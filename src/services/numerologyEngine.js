@@ -88,4 +88,3 @@ numerologyEngine.calculatePersonalMonthForDate = (date, birthDate) => {
 };
 
 export default numerologyEngine;
-

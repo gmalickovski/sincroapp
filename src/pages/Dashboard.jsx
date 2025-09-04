@@ -1,7 +1,7 @@
 import React from 'react';
 import DashboardCard from '../components/ui/DashboardCard';
 import { StarIcon, BookIcon } from '../components/ui/Icons';
-import { textosDescritivos, textosArcanos } from '../data/content';
+import { textosDescritivos, textosArcanos, bussolaAtividades } from '../data/content';
 import Spinner from '../components/ui/Spinner';
 
 // Componente reutilizável para o Tooltip
@@ -15,17 +15,20 @@ const Tooltip = ({ text, children }) => (
 );
 
 function Dashboard({ data }) {
-    if (!data) {
+    if (!data || !data.estruturas) {
         return <div className="p-6 text-white flex justify-center items-center h-full"><Spinner /></div>;
     }
     
+    // Pega os números calculados do objeto 'data'
     const diaPessoal = data.numeros?.diaPessoal || 'default';
-    const arcanoRegente = data.estruturas?.arcanoRegente;
-    const arcanoAtual = data.estruturas?.arcanoAtual?.numero;
+    const arcanoRegente = data.estruturas.arcanoRegente;
+    const arcanoAtual = data.estruturas.arcanoAtual?.numero;
     
+    // Busca os textos correspondentes usando os números como chave
     const infoDia = textosDescritivos.diaPessoal[diaPessoal] || textosDescritivos.diaPessoal.default;
     const infoArcanoRegente = textosArcanos[arcanoRegente] || textosArcanos.default;
     const infoArcanoAtual = textosArcanos[arcanoAtual] || textosArcanos.default;
+    const atividadesDoDia = bussolaAtividades[diaPessoal] || bussolaAtividades.default;
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6 animate-fade-in text-gray-300">
@@ -35,7 +38,7 @@ function Dashboard({ data }) {
                     
                     {/* Card do Arcano Regente */}
                     <DashboardCard title={
-                        <Tooltip text={infoArcanoRegente.descricao}>
+                        <Tooltip text={"Seu arcano fundamental, derivado do seu nome de nascimento."}>
                             <span>Arcano Regente</span>
                             <span className="ml-2 h-4 w-4 flex items-center justify-center text-xs bg-gray-600 rounded-full text-white cursor-help">?</span>
                         </Tooltip>
@@ -45,15 +48,21 @@ function Dashboard({ data }) {
                                 <span className="text-5xl font-bold text-purple-300">{arcanoRegente || '?'}</span>
                             </div>
                             <div>
-                                <h4 className="font-bold text-white text-lg">{infoArcanoRegente.nome}</h4>
-                                <p className="mt-2 text-sm text-gray-400">Seu arcano fundamental, derivado do seu nome.</p>
+                                <h4 className="font-bold text-white text-lg">
+                                    {/* CORREÇÃO: Exibe o nome tradicional se existir, senão o nome padrão */}
+                                    {infoArcanoRegente.nomeTradicional || infoArcanoRegente.nome}
+                                </h4>
+                                <p className="mt-2 text-sm text-gray-400">
+                                    {/* CORREÇÃO: Puxa a descrição dinâmica */}
+                                    {infoArcanoRegente.descricao}
+                                </p>
                             </div>
                         </div>
                     </DashboardCard>
 
                     {/* Card do Arcano Vigente */}
                     <DashboardCard title={
-                         <Tooltip text={infoArcanoAtual.descricao}>
+                         <Tooltip text={"A energia que te influencia neste ciclo de vida atual."}>
                             <span>Arcano Vigente</span>
                              <span className="ml-2 h-4 w-4 flex items-center justify-center text-xs bg-gray-600 rounded-full text-white cursor-help">?</span>
                         </Tooltip>
@@ -63,13 +72,21 @@ function Dashboard({ data }) {
                                 <span className="text-5xl font-bold text-purple-300">{arcanoAtual || '?'}</span>
                             </div>
                             <div>
-                                <h4 className="font-bold text-white text-lg">{infoArcanoAtual.nome}</h4>
-                                <p className="mt-2 text-sm text-gray-400">A energia que te influencia neste ciclo de vida.</p>
+                                <h4 className="font-bold text-white text-lg">
+                                    {/* CORREÇÃO: Exibe o nome tradicional se existir, senão o nome padrão */}
+                                    {infoArcanoAtual.nomeTradicional || infoArcanoAtual.nome}
+                                </h4>
+                                <p className="mt-2 text-sm text-gray-400">
+                                    {/* CORREÇÃO: Puxa a descrição dinâmica */}
+                                    {infoArcanoAtual.descricao}
+                                </p>
                             </div>
                         </div>
                     </DashboardCard>
+                </div>
 
-                    {/* Card da Energia do Dia */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Card da Energia do Dia (sem alterações) */}
                     <DashboardCard title="Energia do Dia" icon={<StarIcon />}>
                         <h4 className="font-bold text-white text-lg">Dia Pessoal {diaPessoal}: {infoDia.titulo}</h4>
                         <p className="mt-2 text-sm text-gray-400">{infoDia.desc}</p>
@@ -80,21 +97,23 @@ function Dashboard({ data }) {
                         </div>
                     </DashboardCard>
                     
-                    {/* Card da Bússola de Atividades (REINSERIDO) */}
+                    {/* Card da Bússola de Atividades (sem alterações) */}
                     <DashboardCard title="Bússola de Atividades" icon={<StarIcon />}>
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <h4 className="font-bold text-green-400 mb-2">Potencializar</h4>
                                 <ul className="list-disc list-inside space-y-2 text-sm text-gray-400">
-                                    <li>Marque aquela reunião importante.</li>
-                                    <li>Conecte-se com amigos e colegas.</li>
+                                    {atividadesDoDia.potencializar.map((item, index) => (
+                                        <li key={`pot-${index}`}>{item}</li>
+                                    ))}
                                 </ul>
                             </div>
                             <div>
                                 <h4 className="font-bold text-red-400 mb-2">Atenção</h4>
                                 <ul className="list-disc list-inside space-y-2 text-sm text-gray-400">
-                                    <li>Cuidado com a dispersão de energia.</li>
-                                    <li>Evite comunicação superficial.</li>
+                                    {atividadesDoDia.atencao.map((item, index) => (
+                                        <li key={`atn-${index}`}>{item}</li>
+                                    ))}
                                 </ul>
                             </div>
                         </div>
@@ -102,7 +121,7 @@ function Dashboard({ data }) {
                 </div>
             </div>
 
-            {/* Coluna Lateral */}
+            {/* Coluna Lateral (sem alterações) */}
             <div className="lg:col-span-1 xl:col-span-1 space-y-6">
                  <DashboardCard title="Diário de Bordo Rápido" icon={<BookIcon />} className="h-full flex flex-col">
                     <p className="text-sm text-gray-400 mb-3">Algum insight sobre a energia de hoje? Anote aqui!</p>
@@ -120,4 +139,3 @@ function Dashboard({ data }) {
 }
 
 export default Dashboard;
-
