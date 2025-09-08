@@ -3,6 +3,7 @@ import { auth, db } from './services/firebase';
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
+// Importa todas as nossas páginas e componentes
 import Spinner from './components/ui/Spinner';
 import LoginPage from './pages/LoginPage';
 import LandingPage from './pages/LandingPage';
@@ -15,9 +16,14 @@ import Journal from './pages/Journal';
 import AdminPanel from './pages/AdminPanel';
 import numerologyEngine from './services/numerologyEngine';
 
+// ========================================================================
+// |                   LAYOUT PRINCIPAL (ÁREA LOGADA)                     |
+// ========================================================================
+// Este componente interno define a estrutura da tela quando o usuário está logado.
 const AppLayout = ({ user, userData, onLogout }) => {
     const [activeView, setActiveView] = useState('dashboard');
     const [numerologyData, setNumerologyData] = useState(null);
+    const [dateForJournal, setDateForJournal] = useState(null); // Estado para a data vinda do calendário
 
     useEffect(() => {
         if (userData?.nome && userData?.dataNasc) {
@@ -26,12 +32,23 @@ const AppLayout = ({ user, userData, onLogout }) => {
         }
     }, [userData]);
 
+    // Função que o Calendário chamará para navegar para o diário
+    const handleAddNoteForDate = (date) => {
+        setDateForJournal(date);
+        setActiveView('journal');
+    };
+    
+    // Função para limpar a data selecionada após a anotação ser salva no diário
+    const handleJournalUpdated = () => {
+        setDateForJournal(null);
+    }
+
+    // Decide qual página renderizar com base no estado 'activeView'
     const renderView = () => {
         switch (activeView) {
             case 'dashboard': return <Dashboard data={numerologyData} />;
-            case 'calendar': return <Calendar userData={userData} />;
-            // AJUSTE AQUI: Passamos também o 'userData' para o Diário
-            case 'journal': return <Journal user={user} userData={userData} />;
+            case 'calendar': return <Calendar user={user} userData={userData} onAddNoteForDate={handleAddNoteForDate} />;
+            case 'journal': return <Journal user={user} userData={userData} preselectedDate={dateForJournal} onJournalUpdated={handleJournalUpdated} />;
             case 'admin': return <AdminPanel />;
             default: return <Dashboard data={numerologyData} />;
         }
@@ -48,12 +65,18 @@ const AppLayout = ({ user, userData, onLogout }) => {
     );
 };
 
+
+// ========================================================================
+// |               COMPONENTE PRINCIPAL QUE GERENCIA TUDO               |
+// ========================================================================
 function App() {
-    const [appState, setAppState] = useState('loading');
+    // Estados que controlam a aplicação inteira
+    const [appState, setAppState] = useState('loading'); // loading, landing, login, app
     const [user, setUser] = useState(null);
     const [userData, setUserData] = useState(null);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     
+    // Este 'useEffect' roda uma vez e fica ouvindo por mudanças no login/logout
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (currentUser) {
@@ -79,6 +102,7 @@ function App() {
         return () => unsubscribe();
     }, []);
 
+    // Função para salvar os detalhes do novo usuário no Firestore
     const handleSaveUserDetails = async ({ nome, dataNasc }) => {
         if (user) {
             const userDocRef = doc(db, "users", user.uid);
@@ -89,6 +113,7 @@ function App() {
         }
     };
 
+    // Função de logout que será passada para o Header
     const handleLogout = async () => {
         try {
             await signOut(auth);
@@ -97,6 +122,7 @@ function App() {
         }
     };
 
+    // Lógica principal para decidir qual tela mostrar
     switch (appState) {
         case 'loading':
             return <div className="min-h-screen bg-gray-900 flex items-center justify-center"><Spinner /></div>;
@@ -111,6 +137,7 @@ function App() {
             if (user && userData) {
                  return <AppLayout user={user} userData={userData} onLogout={handleLogout} />;
             }
+            // Mostra o spinner enquanto os dados do usuário estão sendo carregados do Firestore
             return <div className="min-h-screen bg-gray-900 flex items-center justify-center"><Spinner /></div>;
         default:
             return <LandingPage onEnterClick={() => setAppState('login')} />;

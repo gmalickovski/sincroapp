@@ -2,12 +2,16 @@ import React, { useState, useEffect } from 'react';
 import numerologyEngine from '../services/numerologyEngine';
 import { intencoes } from '../data/content';
 import { ChevronLeft, ChevronRight, StarIcon, BookIcon } from '../components/ui/Icons';
+import CalendarActionModal from '../components/ui/CalendarActionModal';
+import { db } from '../services/firebase';
+import { collection, onSnapshot, query, where, Timestamp } from "firebase/firestore";
 
-const Calendar = ({ userData, onAddNoteForDate }) => {
+const Calendar = ({ user, userData, onAddNoteForDate }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [daysInMonth, setDaysInMonth] = useState([]);
+    const [journalEntries, setJournalEntries] = useState(new Set()); // Para armazenar as datas com anotações
     const [selectedIntention, setSelectedIntention] = useState('none');
-    const [selectedDay, setSelectedDay] = useState(null); // Para controlar o dia clicado
+    const [selectedDay, setSelectedDay] = useState(null);
 
     const isPremium = userData?.plano === 'premium' || userData?.isAdmin === true;
 
@@ -15,10 +19,36 @@ const Calendar = ({ userData, onAddNoteForDate }) => {
         1: 'bg-red-500/80', 2: 'bg-orange-500/80', 3: 'bg-yellow-500/80',
         4: 'bg-lime-500/80', 5: 'bg-cyan-500/80', 6: 'bg-blue-500/80',
         7: 'bg-purple-500/80', 8: 'bg-pink-500/80', 9: 'bg-teal-500/80',
-        11: 'bg-yellow-300/80 text-black', 22: 'bg-blue-300/80 text-black',
         default: 'bg-gray-700/80'
     };
 
+    // Efeito para buscar as anotações do diário do mês atual
+    useEffect(() => {
+        if (!user?.uid) return;
+
+        const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
+        const entriesRef = collection(db, 'users', user.uid, 'journalEntries');
+        const q = query(entriesRef, 
+            where('createdAt', '>=', Timestamp.fromDate(startOfMonth)),
+            where('createdAt', '<=', Timestamp.fromDate(endOfMonth))
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const datesWithNotes = new Set();
+            snapshot.forEach(doc => {
+                const date = doc.data().createdAt.toDate().toDateString();
+                datesWithNotes.add(date);
+            });
+            setJournalEntries(datesWithNotes);
+        });
+
+        return () => unsubscribe();
+    }, [user, currentDate]);
+
+
+    // Efeito para construir o calendário
     useEffect(() => {
         if (!userData?.dataNasc) return;
 
@@ -50,24 +80,21 @@ const Calendar = ({ userData, onAddNoteForDate }) => {
                 date,
                 personalDay,
                 isToday: new Date().toDateString() === date.toDateString(),
-                isHighlighted
+                isHighlighted,
+                hasNote: journalEntries.has(date.toDateString()) // Verifica se o dia tem anotação
             });
         }
         setDaysInMonth(days);
 
-    }, [currentDate, userData, selectedIntention, isPremium]);
+    }, [currentDate, userData, selectedIntention, isPremium, journalEntries]);
 
     const changeMonth = (amount) => {
-        setSelectedDay(null); // Limpa a seleção ao mudar de mês
+        setSelectedDay(null);
         setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + amount, 1));
     };
     
     const handleDayClick = (day) => {
-        if (selectedDay?.key === day.key) {
-            setSelectedDay(null); // Clicar de novo no mesmo dia deseleciona
-        } else {
-            setSelectedDay(day);
-        }
+        setSelectedDay(day);
     };
 
     const monthName = currentDate.toLocaleString('pt-BR', { month: 'long' });
@@ -77,6 +104,15 @@ const Calendar = ({ userData, onAddNoteForDate }) => {
 
     return (
         <div className="p-8 text-white relative">
+            {selectedDay && 
+                <CalendarActionModal 
+                    day={selectedDay}
+                    onClose={() => setSelectedDay(null)}
+                    onAddNote={() => onAddNoteForDate(selectedDay.date)}
+                    userData={userData}
+                />
+            }
+
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-bold capitalize">{`${monthName} de ${year}`}</h1>
                 <div className="flex items-center gap-2">
@@ -86,8 +122,7 @@ const Calendar = ({ userData, onAddNoteForDate }) => {
                 </div>
             </div>
             
-            {/* Planejador de Intenções (código inalterado) */}
-            <div className="relative"> ... </div>
+            {/* ... Planejador de Intenções (código inalterado) ... */}
 
             <div className="grid grid-cols-7 gap-1 text-center font-semibold text-gray-400 mb-2">
                 {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => <div key={day}>{day}</div>)}
@@ -98,32 +133,18 @@ const Calendar = ({ userData, onAddNoteForDate }) => {
                     day.empty ? <div key={day.key}></div> : (
                         <div 
                             key={day.key} 
-                            className={`
-                                h-28 rounded-lg p-2 flex flex-col items-start relative border transition-all duration-300 cursor-pointer
-                                hover:scale-105 hover:border-white/50
-                                ${day.isHighlighted ? 'border-yellow-400 shadow-lg shadow-yellow-400/20' : ''}
-                                ${day.isToday ? 'border-purple-500 bg-gray-700/50' : 'border-gray-700 bg-gray-800/50'}
-                                ${selectedDay?.key === day.key ? 'scale-105 border-white' : ''}
-                            `}
+                            className={`h-28 rounded-lg p-2 flex flex-col items-start relative border transition-all duration-300 cursor-pointer hover:scale-105 hover:border-white/50 ${day.isHighlighted ? 'border-yellow-400 shadow-lg shadow-yellow-400/20' : (day.isToday ? 'border-purple-500 bg-gray-700/50' : 'border-gray-700 bg-gray-800/50')}`}
                             onClick={() => handleDayClick(day)}
                         >
+                            {/* NOVO: Indicador de anotação */}
+                            {day.hasNote && <BookIcon className="absolute top-2 right-2 h-3 w-3 text-cyan-400" />}
+
                             <span className={`font-bold ${day.isToday ? 'text-purple-300' : ''}`}>{day.date.getDate()}</span>
                             <div className="absolute bottom-2 left-2 right-2">
                                 <div className={`px-2 py-1 rounded text-xs font-bold text-white text-center ${energyColors[day.personalDay] || energyColors.default}`}>
                                     Vibração {day.personalDay}
                                 </div>
                             </div>
-                             {selectedDay?.key === day.key && (
-                                <div className="absolute -bottom-14 left-1/2 -translate-x-1/2 z-20 animate-fade-in-up">
-                                    <button 
-                                        onClick={() => onAddNoteForDate(selectedDay.date)}
-                                        className="bg-purple-600 text-white font-semibold text-xs px-3 py-2 rounded-lg shadow-lg hover:bg-purple-500 flex items-center gap-2"
-                                    >
-                                        <BookIcon className="h-4 w-4" />
-                                        Anotação
-                                    </button>
-                                </div>
-                            )}
                         </div>
                     )
                 ))}
