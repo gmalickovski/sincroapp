@@ -3,7 +3,6 @@ import { auth, db } from './services/firebase';
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
-// Importa todas as nossas páginas e componentes
 import Spinner from './components/ui/Spinner';
 import LoginPage from './pages/LoginPage';
 import LandingPage from './pages/LandingPage';
@@ -13,17 +12,18 @@ import Header from './components/layout/Header';
 import Dashboard from './pages/Dashboard';
 import Calendar from './pages/Calendar';
 import Journal from './pages/Journal';
+import Tasks from './pages/Tasks';
 import AdminPanel from './pages/AdminPanel';
 import numerologyEngine from './services/numerologyEngine';
 
 // ========================================================================
 // |                   LAYOUT PRINCIPAL (ÁREA LOGADA)                     |
 // ========================================================================
-// Este componente interno define a estrutura da tela quando o usuário está logado.
 const AppLayout = ({ user, userData, onLogout }) => {
     const [activeView, setActiveView] = useState('dashboard');
     const [numerologyData, setNumerologyData] = useState(null);
-    const [dateForJournal, setDateForJournal] = useState(null); // Estado para a data vinda do calendário
+    // Este estado é usado para pré-selecionar a data ao navegar para Journal ou Tasks
+    const [dateForAction, setDateForAction] = useState(null); 
 
     useEffect(() => {
         if (userData?.nome && userData?.dataNasc) {
@@ -31,26 +31,28 @@ const AppLayout = ({ user, userData, onLogout }) => {
             setNumerologyData(data);
         }
     }, [userData]);
-
-    // Função que o Calendário chamará para navegar para o diário
-    const handleAddNoteForDate = (date) => {
-        setDateForJournal(date);
-        setActiveView('journal');
-    };
     
-    // Função para limpar a data selecionada após a anotação ser salva no diário
-    const handleJournalUpdated = () => {
-        setDateForJournal(null);
+    // Função para limpar a data (usada pelas páginas Journal/Tasks ao salvar)
+    const handleActionFinished = () => {
+        setDateForAction(null);
     }
 
     // Decide qual página renderizar com base no estado 'activeView'
     const renderView = () => {
         switch (activeView) {
-            case 'dashboard': return <Dashboard data={numerologyData} />;
-            case 'calendar': return <Calendar user={user} userData={userData} onAddNoteForDate={handleAddNoteForDate} />;
-            case 'journal': return <Journal user={user} userData={userData} preselectedDate={dateForJournal} onJournalUpdated={handleJournalUpdated} />;
-            case 'admin': return <AdminPanel />;
-            default: return <Dashboard data={numerologyData} />;
+            case 'dashboard': 
+                return <Dashboard user={user} userData={userData} data={numerologyData} setActiveView={setActiveView} />;
+            case 'calendar': 
+                return <Calendar user={user} userData={userData} />;
+            case 'journal': 
+                return <Journal user={user} userData={userData} preselectedDate={dateForAction} onJournalUpdated={handleActionFinished} />;
+            // ATUALIZADO: Passando 'userData' para a página de Tarefas
+            case 'tasks': 
+                return <Tasks user={user} userData={userData} preselectedDate={dateForAction} onTasksUpdated={handleActionFinished} />;
+            case 'admin': 
+                return <AdminPanel />;
+            default: 
+                return <Dashboard user={user} userData={userData} data={numerologyData} setActiveView={setActiveView} />;
         }
     };
     
