@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { BookIcon, XIcon, ChevronLeft, CheckSquareIcon } from './Icons';
+import { BookIcon, XIcon, ChevronLeft, CheckSquareIcon, TrashIcon } from './Icons'; // Adicionando TrashIcon à importação
 import Spinner from './Spinner';
 import { db, auth } from '../../services/firebase';
 import { collection, addDoc, onSnapshot, query, where, orderBy, doc, deleteDoc, updateDoc, Timestamp } from "firebase/firestore";
 import numerologyEngine from '../../services/numerologyEngine';
 
-// --- Mini Componentes Internos para o Modal ---
 const CheckboxIcon = ({ checked }) => (
     <div className={`h-5 w-5 border-2 ${checked ? 'border-purple-500 bg-purple-500' : 'border-gray-500'} rounded flex-shrink-0 flex items-center justify-center cursor-pointer`}>
-        {checked && <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+        {checked && <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
     </div>
 );
-
-// --- Componente Principal do Modal ---
 const CalendarActionModal = ({ day, onClose, userData }) => {
     const [view, setView] = useState('menu');
     const [noteContent, setNoteContent] = useState('');
@@ -20,7 +17,6 @@ const CalendarActionModal = ({ day, onClose, userData }) => {
     const [isLoadingTasks, setIsLoadingTasks] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const user = auth.currentUser;
-
     useEffect(() => {
         if (view !== 'task' || !user) return;
         setIsLoadingTasks(true);
@@ -28,7 +24,12 @@ const CalendarActionModal = ({ day, onClose, userData }) => {
         startOfDay.setHours(0, 0, 0, 0);
         const endOfDay = new Date(day.date);
         endOfDay.setHours(23, 59, 59, 999);
-        const q = query(collection(db, 'users', user.uid, 'tasks'), where('createdAt', '>=', Timestamp.fromDate(startOfDay)), where('createdAt', '<=', Timestamp.fromDate(endOfDay)), orderBy('createdAt', 'asc'));
+        const q = query(
+            collection(db, 'users', user.uid, 'tasks'),
+            where('createdAt', '>=', Timestamp.fromDate(startOfDay)),
+            where('createdAt', '<=', Timestamp.fromDate(endOfDay)),
+            orderBy('createdAt', 'asc')
+        );
         const unsubscribe = onSnapshot(q, (snapshot) => {
             setTasks(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
             setIsLoadingTasks(false);
@@ -38,7 +39,6 @@ const CalendarActionModal = ({ day, onClose, userData }) => {
         });
         return () => unsubscribe();
     }, [view, day.date, user]);
-
     const handleSaveNote = async () => {
         if (noteContent.trim() === '' || !user || !userData?.dataNasc) return;
         setIsSaving(true);
@@ -49,31 +49,25 @@ const CalendarActionModal = ({ day, onClose, userData }) => {
         } catch (error) { console.error("Erro ao salvar anotação:", error); } 
         finally { setIsSaving(false); }
     };
-    
     const handleAddTask = async (text) => {
         if (text.trim() === '' || !user) return;
         try { await addDoc(collection(db, 'users', user.uid, 'tasks'), { text: text, completed: false, createdAt: Timestamp.fromDate(day.date) }); } 
         catch (error) { console.error("Erro ao adicionar tarefa:", error); }
     };
-
     const handleTaskKeyDown = (e) => {
         if (e.key === 'Enter') { e.preventDefault(); handleAddTask(e.target.value); e.target.value = ''; }
     };
-    
     const toggleTaskCompletion = async (task) => {
         if (!user) return;
         const taskDocRef = doc(db, 'users', user.uid, 'tasks', task.id);
         await updateDoc(taskDocRef, { completed: !task.completed });
     };
-
     const handleDeleteTask = async (taskId) => {
         if (!user) return;
         const taskDocRef = doc(db, 'users', user.uid, 'tasks', taskId);
         await deleteDoc(taskDocRef);
     };
-
     const formattedDate = day.date.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
-
     const renderContent = () => {
         switch (view) {
             case 'note':
@@ -92,10 +86,7 @@ const CalendarActionModal = ({ day, onClose, userData }) => {
                                 <div key={task.id} className="flex items-center group">
                                     <button onClick={() => toggleTaskCompletion(task)}><CheckboxIcon checked={task.completed} /></button>
                                     <span className={`flex-1 ml-3 text-sm ${task.completed ? 'line-through text-gray-500' : 'text-gray-300'}`}>{task.text}</span>
-                                    {/* BOTÃO DE EXCLUSÃO PADRONIZADO COM O ÍCONE 'X' */}
-                                    <button onClick={() => handleDeleteTask(task.id)} className="ml-2 p-1 rounded-md text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-colors" title="Excluir tarefa">
-                                        <XIcon className="h-4 w-4" />
-                                    </button>
+                                    <button onClick={() => handleDeleteTask(task.id)} className="ml-2 text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100"><TrashIcon className="h-4 w-4" /></button>
                                 </div>
                             ))}
                                <div className="flex items-center group pt-2">
@@ -115,7 +106,6 @@ const CalendarActionModal = ({ day, onClose, userData }) => {
                 );
         }
     }
-
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in" onClick={onClose}>
             <div className="bg-gray-800 text-white p-6 rounded-2xl shadow-2xl border border-gray-700 w-full max-w-sm relative" onClick={(e) => e.stopPropagation()}>
@@ -130,5 +120,4 @@ const CalendarActionModal = ({ day, onClose, userData }) => {
         </div>
     );
 };
-
 export default CalendarActionModal;
