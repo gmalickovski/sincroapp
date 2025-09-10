@@ -22,6 +22,7 @@ const AddNewDayModal = ({ isOpen, onClose, userData }) => {
 
     const personalDay = selectedDate ? numerologyEngine.calculatePersonalDayForDate(new Date(selectedDate.replace(/-/g, '/')), userData.dataNasc) : null;
     const energyColors = { 1: 'bg-red-500 text-white', 2: 'bg-orange-500 text-white', 3: 'bg-yellow-500 text-black', 4: 'bg-lime-500 text-black', 5: 'bg-cyan-500 text-black', 6: 'bg-blue-500 text-white', 7: 'bg-purple-500 text-white', 8: 'bg-pink-500 text-white', 9: 'bg-teal-500 text-white', default: 'bg-gray-700 text-white' };
+    const energyBorderColors = { 1: 'border-red-500', 2: 'border-orange-500', 3: 'border-yellow-500', 4: 'border-lime-500', 5: 'border-cyan-500', 6: 'border-blue-500', 7: 'border-purple-500', 8: 'border-pink-500', 9: 'border-teal-500', default: 'border-gray-700' };
 
     const handleUpdateTaskText = (id, text) => {
         setTasks(currentTasks => currentTasks.map(task => task.id === id ? { ...task, text } : task));
@@ -45,7 +46,7 @@ const AddNewDayModal = ({ isOpen, onClose, userData }) => {
             e.preventDefault();
             const taskToFocus = taskInputRefs.current[index - 1];
             const textToMerge = tasks[index - 1]?.text || '';
-            handleDeleteTask(tasks[index].id); // Reutiliza a função de deletar
+            handleDeleteTask(tasks[index].id);
             if(taskToFocus) {
                 setTimeout(() => {
                     taskToFocus.focus();
@@ -94,9 +95,9 @@ const AddNewDayModal = ({ isOpen, onClose, userData }) => {
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in" onClick={onClose}>
-            <div className="relative bg-gray-800 text-white p-6 rounded-2xl shadow-2xl border border-gray-700 w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
+            <div className={`relative bg-gray-800 text-white p-6 rounded-2xl shadow-2xl w-full max-w-lg transition-all border-t-4 ${energyBorderColors[personalDay] || energyBorderColors.default}`} onClick={(e) => e.stopPropagation()}>
                 <button onClick={onClose} className="absolute top-3 right-3 p-2 rounded-full text-gray-400 hover:bg-gray-700 hover:text-white transition-colors"><XIcon className="w-5 h-5" /></button>
-                <h2 className="text-xl font-bold mb-4">Adicionar Tarefas para um Novo Dia</h2>
+                <h2 className="text-xl font-bold mb-4">Nova Lista de Tarefas</h2>
                 
                 <div className="flex items-center gap-2 mb-4">
                     <div className="relative w-full">
@@ -108,18 +109,17 @@ const AddNewDayModal = ({ isOpen, onClose, userData }) => {
                     {personalDay && <div className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${energyColors[personalDay] || energyColors.default}`}>Vibração {personalDay}</div>}
                 </div>
                 
-                <div className="bg-gray-900/50 p-4 rounded-lg min-h-[150px] space-y-2" onClick={addFirstTask}>
+                <div className="min-h-[150px] space-y-2 pt-2" onClick={addFirstTask}>
                     {tasks.map((task, index) => (
                         <div key={task.id} className="flex items-center group">
                             <CheckboxIcon checked={false} />
                             <input ref={el => taskInputRefs.current[index] = el} type="text" placeholder="Digite uma tarefa" value={task.text} onChange={e => handleUpdateTaskText(task.id, e.target.value)} onKeyDown={e => handleTaskKeyDown(e, index)} className="w-full bg-transparent focus:outline-none placeholder-gray-500 ml-3 text-sm" autoFocus={index === tasks.length -1} />
-                            {/* BOTÃO 'X' ADICIONADO AQUI */}
                             <button onClick={() => handleDeleteTask(task.id)} className="ml-2 p-1 rounded-md text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-colors" title="Excluir tarefa">
                                 <XIcon className="h-4 w-4" />
                             </button>
                         </div>
                     ))}
-                    {tasks.length === 0 && <p className="text-gray-500 text-center pt-10">Clique aqui para começar a adicionar tarefas</p>}
+                    {tasks.length === 0 && <p className="text-gray-500 text-center pt-10 cursor-pointer">Clique aqui para começar a adicionar tarefas</p>}
                 </div>
 
                 <div className="flex justify-end mt-6">

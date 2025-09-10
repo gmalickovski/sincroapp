@@ -5,8 +5,8 @@ const Sidebar = ({ activeView, setActiveView, isAdmin, isMobileOpen, closeMobile
     const navItems = [
         { id: 'dashboard', icon: <HomeIcon className="h-5 w-5" />, label: 'Sua Rota de Hoje' },
         { id: 'calendar', icon: <CalendarIcon className="h-5 w-5" />, label: 'Calendário' },
-        { id: 'journal', icon: <BookIcon className="h-5 w-5" />, label: 'Diário de Bordo' },
-        { id: 'tasks', icon: <CheckSquareIcon className="h-5 w-5" />, label: 'Tarefas' },
+        { id: 'journal', icon: <BookIcon className="h-5 w-5" />, label: 'Anotações do Dia' },
+        { id: 'tasks', icon: <CheckSquareIcon className="h-5 w-5" />, label: 'Diário de Tarefas' },
     ];
 
     if (isAdmin) {

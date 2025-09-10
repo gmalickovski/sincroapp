@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import DashboardCard from '../components/ui/DashboardCard';
-import { StarIcon, BookIcon, CheckSquareIcon } from '../components/ui/Icons';
+import { BookIcon, CheckSquareIcon, SunIcon, CompassIcon } from '../components/ui/Icons'; // Importação corrigida
 import { textosDescritivos, textosArcanos, bussolaAtividades } from '../data/content';
 import Spinner from '../components/ui/Spinner';
 import { db } from '../services/firebase';
 import { collection, query, where, onSnapshot, Timestamp, orderBy, limit, addDoc } from "firebase/firestore";
 import numerologyEngine from '../services/numerologyEngine';
 
-// --- Subcomponentes do Dashboard (Lógica interna inalterada) ---
+// --- Subcomponentes do Dashboard ---
 const DailyTasksCard = ({ user, setActiveView }) => {
     const [tasks, setTasks] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -23,18 +23,40 @@ const DailyTasksCard = ({ user, setActiveView }) => {
         return () => unsubscribe();
     }, [user]);
     return (
-        <DashboardCard title="Tarefas de Hoje" icon={<CheckSquareIcon />} className="h-full flex flex-col">
-            {isLoading ? <div className="flex-1 flex items-center justify-center"><Spinner /></div>
-            : error ? <p className="text-sm text-red-400">{error}</p>
-            : tasks.length === 0 ? <p className="text-sm text-gray-400 flex-1 flex items-center justify-center">Nenhuma tarefa para hoje.</p>
-            : <div className="space-y-2 mt-2">{tasks.map(task => (<div key={task.id} className={`flex items-center text-sm ${task.completed ? 'text-gray-500 line-through' : 'text-gray-300'}`}><span className={`mr-2 h-2 w-2 rounded-full ${task.completed ? 'bg-green-500' : 'bg-purple-500'}`}></span>{task.text}</div>))}</div>}
-            <button onClick={() => setActiveView('tasks')} className="mt-auto pt-4 w-full text-center text-sm text-purple-400 hover:text-purple-300 font-semibold">Ver todas as tarefas</button>
+        <DashboardCard title="Diário de Tarefas (Hoje)" icon={<CheckSquareIcon />}>
+            <div className="flex-1">
+                {isLoading ? <div className="flex items-center justify-center h-full"><Spinner /></div>
+                : error ? <p className="text-sm text-red-400">{error}</p>
+                : tasks.length === 0 ? <p className="text-sm text-gray-400">Nenhuma tarefa para hoje.</p>
+                : <div className="space-y-2 mt-2">{tasks.map(task => (<div key={task.id} className={`flex items-center text-sm ${task.completed ? 'text-gray-500 line-through' : 'text-gray-300'}`}><span className={`mr-2 h-2 w-2 rounded-full ${task.completed ? 'bg-green-500' : 'bg-purple-500'}`}></span>{task.text}</div>))}</div>}
+            </div>
+            <button onClick={() => setActiveView('tasks')} className="mt-4 w-full text-center text-sm text-purple-400 hover:text-purple-300 font-semibold">Ver todas as tarefas</button>
         </DashboardCard>
     );
 };
-const QuickJournalCard = ({ user, userData }) => {
+const QuickJournalCard = ({ user, userData, setActiveView }) => {
     const [note, setNote] = useState('');
     const [isSaving, setIsSaving] = useState(false);
+    const [latestEntry, setLatestEntry] = useState(null);
+    const [isLoadingLatest, setIsLoadingLatest] = useState(true);
+
+    useEffect(() => {
+        if (!user) {
+            setIsLoadingLatest(false);
+            return;
+        }
+        const q = query(collection(db, 'users', user.uid, 'journalEntries'), orderBy('createdAt', 'desc'), limit(1));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            if (!snapshot.empty) {
+                setLatestEntry({ id: snapshot.docs[0].id, ...snapshot.docs[0].data() });
+            } else {
+                setLatestEntry(null);
+            }
+            setIsLoadingLatest(false);
+        });
+        return () => unsubscribe();
+    }, [user]);
+
     const handleSaveNote = async () => {
         if (note.trim() === '' || !user?.uid || !userData?.dataNasc) return;
         setIsSaving(true);
@@ -46,11 +68,22 @@ const QuickJournalCard = ({ user, userData }) => {
         } catch (error) { console.error("Erro:", error); } 
         finally { setIsSaving(false); }
     };
+
     return (
-        <DashboardCard title="Diário de Bordo Rápido" icon={<BookIcon />} className="h-full flex flex-col">
-            <p className="text-sm text-gray-400 mb-3">Algum insight sobre a energia de hoje? Anote aqui!</p>
-            <textarea className="w-full flex-1 bg-gray-900 border border-gray-600 rounded-lg p-3 text-sm" placeholder="Digite suas reflexões..." value={note} onChange={(e) => setNote(e.target.value)} />
+        <DashboardCard title="Anotação Rápida" icon={<BookIcon />}>
+            <p className="text-sm text-gray-400 mb-3">Algum insight sobre a vibração de hoje? Anote aqui!</p>
+            <textarea className="w-full h-24 bg-gray-900 border border-gray-600 rounded-lg p-3 text-sm" placeholder="Digite suas reflexões..." value={note} onChange={(e) => setNote(e.target.value)} />
             <button onClick={handleSaveNote} disabled={isSaving || note.trim() === ''} className="mt-4 w-full bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 disabled:bg-gray-500 flex justify-center items-center h-10">{isSaving ? <Spinner /> : 'Salvar Anotação'}</button>
+            
+            {!isLoadingLatest && latestEntry && (
+                <div className="mt-4 pt-4 border-t border-gray-700">
+                    <h4 className="text-sm font-bold text-gray-400 mb-2">Última Anotação:</h4>
+                    <button onClick={() => setActiveView('journal')} className="w-full text-left bg-gray-900/50 p-3 rounded-lg hover:bg-gray-700/50 transition-colors">
+                        <p className="text-xs text-purple-300 font-semibold">{new Date(latestEntry.createdAt.seconds * 1000).toLocaleDateString('pt-BR', {day:'2-digit', month:'long'})}</p>
+                        <p className="text-sm text-gray-300 truncate mt-1">{latestEntry.content}</p>
+                    </button>
+                </div>
+            )}
         </DashboardCard>
     );
 };
@@ -70,46 +103,59 @@ function Dashboard({ user, userData, data, setActiveView }) {
     const infoArcanoAtual = textosArcanos[arcanoAtual] || textosArcanos.default;
     const atividadesDoDia = bussolaAtividades[diaPessoal] || bussolaAtividades.default;
 
-    const ArcanoRegenteCard = () => (
-        <DashboardCard title={<Tooltip text="Seu arcano fundamental."><span>Arcano Regente</span><span className="ml-2 h-4 w-4 flex items-center justify-center text-xs bg-gray-600 rounded-full">?</span></Tooltip>}>
-            <div className="flex flex-col md:flex-row items-center text-center md:text-left"><div className="flex-shrink-0 w-full h-20 md:w-20 md:h-28 bg-gray-700/50 border border-gray-600 rounded-lg flex items-center justify-center md:mr-6 mb-4 md:mb-0"><span className="text-5xl font-bold text-purple-300">{arcanoRegente || '?'}</span></div><div><h4 className="font-bold text-white text-lg">{infoArcanoRegente.nomeTradicional || infoArcanoRegente.nome}</h4><p className="mt-2 text-sm text-gray-400">{infoArcanoRegente.descricao}</p></div></div>
+    const ArcanoCard = ({ number, info, title, tooltipText }) => (
+        <DashboardCard title={<Tooltip text={tooltipText}><span>{title}</span><span className="ml-2 h-4 w-4 flex items-center justify-center text-xs bg-gray-600 rounded-full">?</span></Tooltip>}>
+            <div className="flex flex-col md:flex-row items-center text-center md:text-left gap-4">
+                <div className="flex-shrink-0 w-24 h-24 bg-gray-700/50 border border-gray-600 rounded-lg flex items-center justify-center">
+                    <span className="text-5xl font-bold text-purple-300">{number || '?'}</span>
+                </div>
+                <div>
+                    <h4 className="font-bold text-white text-lg">{info.nomeTradicional || info.nome}</h4>
+                    <p className="mt-1 text-sm text-gray-400">{info.descricao}</p>
+                </div>
+            </div>
         </DashboardCard>
     );
-    const ArcanoVigenteCard = () => (
-        <DashboardCard title={<Tooltip text="A energia que te influencia neste ciclo."><span>Arcano Vigente</span><span className="ml-2 h-4 w-4 flex items-center justify-center text-xs bg-gray-600 rounded-full">?</span></Tooltip>}>
-            <div className="flex flex-col md:flex-row items-center text-center md:text-left"><div className="flex-shrink-0 w-full h-20 md:w-20 md:h-28 bg-gray-700/50 border border-gray-600 rounded-lg flex items-center justify-center md:mr-6 mb-4 md:mb-0"><span className="text-5xl font-bold text-purple-300">{arcanoAtual || '?'}</span></div><div><h4 className="font-bold text-white text-lg">{infoArcanoAtual.nomeTradicional || infoArcanoAtual.nome}</h4><p className="mt-2 text-sm text-gray-400">{infoArcanoAtual.descricao}</p></div></div>
-        </DashboardCard>
-    );
+
     const BussolaCard = () => (
-        <DashboardCard title="Bússola de Atividades" icon={<StarIcon />} className="h-full"><div className="grid grid-cols-1 sm:grid-cols-2 gap-6 h-full"><div><h4 className="font-bold text-green-400 mb-2">Potencializar</h4><ul className="list-disc list-inside space-y-2 text-sm text-gray-400">{atividadesDoDia.potencializar.map((item, index) => (<li key={`pot-${index}`}>{item}</li>))}</ul></div><div><h4 className="font-bold text-red-400 mb-2">Atenção</h4><ul className="list-disc list-inside space-y-2 text-sm text-gray-400">{atividadesDoDia.atencao.map((item, index) => (<li key={`atn-${index}`}>{item}</li>))}</ul></div></div></DashboardCard>
+        <DashboardCard title="Bússola de Atividades" icon={<CompassIcon />} className="row-span-1 md:row-span-2">
+            <div className="flex flex-col gap-6 h-full">
+                <div>
+                    <h4 className="font-bold text-green-400 mb-2">Potencializar</h4>
+                    <ul className="list-disc list-inside space-y-2 text-sm text-gray-400">{atividadesDoDia.potencializar.map((item, index) => (<li key={`pot-${index}`}>{item}</li>))}</ul>
+                </div>
+                <div>
+                    <h4 className="font-bold text-red-400 mb-2">Atenção</h4>
+                    <ul className="list-disc list-inside space-y-2 text-sm text-gray-400">{atividadesDoDia.atencao.map((item, index) => (<li key={`atn-${index}`}>{item}</li>))}</ul>
+                </div>
+            </div>
+        </DashboardCard>
     );
-    const EnergiaCard = () => (
-        <DashboardCard title="Energia do Dia" icon={<StarIcon />} className="h-full"><h4 className="font-bold text-white text-lg">Dia Pessoal {diaPessoal}: {infoDia.titulo}</h4><p className="mt-2 text-sm text-gray-400">{infoDia.desc}</p><div className="mt-4 flex flex-wrap gap-2">{infoDia.tags.map(tag => (<span key={tag} className="bg-purple-500/30 text-purple-300 text-xs font-semibold px-3 py-1 rounded-full">{tag}</span>))}</div></DashboardCard>
+
+    const VibracaoDiaCard = () => (
+        <DashboardCard title="Vibração do Dia" icon={<SunIcon />}>
+             <div className="flex items-center text-center gap-4">
+                <div className="flex-shrink-0 w-24 h-24 bg-cyan-500/10 border border-cyan-400/50 rounded-lg flex items-center justify-center">
+                    <span className="text-5xl font-bold text-cyan-300">{diaPessoal}</span>
+                </div>
+                <div className="text-left">
+                    <h4 className="font-bold text-white text-lg">{infoDia.titulo}</h4>
+                    <p className="mt-1 text-sm text-gray-400">{infoDia.desc}</p>
+                </div>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">{infoDia.tags.map(tag => (<span key={tag} className="bg-purple-500/30 text-purple-300 text-xs font-semibold px-3 py-1 rounded-full">{tag}</span>))}</div>
+        </DashboardCard>
     );
 
     return (
         <div className="p-4 md:p-6">
-            {/* Layout para telas grandes (a partir de 1200px) */}
-            <div className="hidden min-[1200px]:grid grid-cols-3 gap-6 animate-fade-in text-gray-300" style={{gridTemplateRows: 'auto 1fr auto'}}>
-                <div className="col-span-1"><ArcanoRegenteCard /></div>
-                <div className="col-span-1"><ArcanoVigenteCard /></div>
-                <div className="col-span-1 row-span-3"><DailyTasksCard user={user} setActiveView={setActiveView} /></div>
-                <div className="col-span-2"><BussolaCard /></div>
-                <div className="col-span-1"><EnergiaCard /></div>
-                <div className="col-span-1"><QuickJournalCard user={user} userData={userData} /></div>
-            </div>
-
-            {/* AQUI ESTÁ A MUDANÇA: Layout para telas pequenas e médias (abaixo de 1200px) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 min-[1200px]:hidden gap-6 animate-fade-in text-gray-300">
-                <ArcanoRegenteCard />
-                <ArcanoVigenteCard />
-                {/* Bússola agora ocupa 2 colunas em telas médias */}
-                <div className="md:col-span-2"><BussolaCard /></div>
-                <EnergiaCard />
-                {/* Tarefas sobe para ficar ao lado de Energia */}
-                <DailyTasksCard user={user} setActiveView={setActiveView} />
-                {/* Diário agora ocupa 2 colunas em telas médias */}
-                <div className="md:col-span-2"><QuickJournalCard user={user} userData={userData} /></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in text-gray-300">
+                <div className="lg:col-span-2"><VibracaoDiaCard /></div>
+                <div className="md:row-span-2"><BussolaCard/></div>
+                <ArcanoCard number={arcanoRegente} info={infoArcanoRegente} title="Arcano Regente" tooltipText="Seu arcano fundamental, sua essência." />
+                <ArcanoCard number={arcanoAtual} info={infoArcanoAtual} title="Arcano Vigente" tooltipText="A energia que te influencia neste ciclo atual da sua vida."/>
+                <div className="h-full flex flex-col"><DailyTasksCard user={user} setActiveView={setActiveView} /></div>
+                <div className="md:col-span-2 lg:col-span-1"><QuickJournalCard user={user} userData={userData} setActiveView={setActiveView} /></div>
             </div>
         </div>
     );
