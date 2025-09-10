@@ -14,9 +14,10 @@ import Calendar from './pages/Calendar';
 import Journal from './pages/Journal';
 import Tasks from './pages/Tasks';
 import AdminPanel from './pages/AdminPanel';
+import JournalEntryModal from './components/ui/JournalEntryModal'; // Importado aqui
 import numerologyEngine from './services/numerologyEngine';
 
-const AppLayout = ({ user, userData, onLogout }) => {
+const AppLayout = ({ user, userData, onLogout, setEditingEntry }) => {
     const [activeView, setActiveView] = useState('dashboard');
     const [numerologyData, setNumerologyData] = useState(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -31,8 +32,10 @@ const AppLayout = ({ user, userData, onLogout }) => {
     const renderView = () => {
         switch (activeView) {
             case 'dashboard': return <Dashboard user={user} userData={userData} data={numerologyData} setActiveView={setActiveView} />;
-            case 'calendar': return <Calendar user={user} userData={userData} />;
-            case 'journal': return <Journal user={user} userData={userData} />;
+            // Passando a função 'setEditingEntry' para o Calendário
+            case 'calendar': return <Calendar user={user} userData={userData} setEditingEntry={setEditingEntry} />;
+            // Passando a função 'setEditingEntry' para o Diário
+            case 'journal': return <Journal user={user} userData={userData} setEditingEntry={setEditingEntry} />;
             case 'tasks': return <Tasks user={user} userData={userData} />;
             case 'admin': return <AdminPanel />;
             default: return <Dashboard user={user} userData={userData} data={numerologyData} setActiveView={setActiveView} />;
@@ -49,10 +52,8 @@ const AppLayout = ({ user, userData, onLogout }) => {
                 closeMobileMenu={() => setIsMobileMenuOpen(false)}
             />
             
-            {/* O conteúdo principal agora tem a margem responsiva correta e a estrutura de overflow */}
             <div className="flex-1 flex flex-col h-screen md:ml-20 lg:ml-64 transition-all duration-300">
                 <Header user={user} onLogout={onLogout} onMenuClick={() => setIsMobileMenuOpen(true)} />
-                {/* A tag <main> agora controla seu próprio scroll, impedindo o overflow */}
                 <main className="flex-1 overflow-y-auto overflow-x-hidden">
                     {renderView()}
                 </main>
@@ -61,12 +62,13 @@ const AppLayout = ({ user, userData, onLogout }) => {
     );
 };
 
-// ... O resto do componente App permanece o mesmo
 function App() {
     const [appState, setAppState] = useState('loading');
     const [user, setUser] = useState(null);
     const [userData, setUserData] = useState(null);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
+    // Novo estado para controlar a anotação em edição/visualização
+    const [editingEntry, setEditingEntry] = useState(null);
     
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -95,17 +97,33 @@ function App() {
         try { await signOut(auth); } 
         catch (error) { console.error("Erro ao fazer logout:", error); }
     };
+    
+    // Função para fechar o modal de edição
+    const handleCloseEntryModal = () => {
+        setEditingEntry(null);
+    };
 
-    switch (appState) {
-        case 'loading': return <div className="min-h-screen bg-gray-900 flex items-center justify-center"><Spinner /></div>;
-        case 'landing': return <LandingPage onEnterClick={() => setAppState('login')} />;
-        case 'login': return <LoginPage onBackToHomeClick={() => setAppState('landing')} />;
-        case 'app':
-            if (showDetailsModal) { return <UserDetailsModal onSave={handleSaveUserDetails} />; }
-            if (user && userData) { return <AppLayout user={user} userData={userData} onLogout={handleLogout} />; }
-            return <div className="min-h-screen bg-gray-900 flex items-center justify-center"><Spinner /></div>;
-        default: return <LandingPage onEnterClick={() => setAppState('login')} />;
-    }
+    // Renderização principal do App
+    const renderAppState = () => {
+        switch (appState) {
+            case 'loading': return <div className="min-h-screen bg-gray-900 flex items-center justify-center"><Spinner /></div>;
+            case 'landing': return <LandingPage onEnterClick={() => setAppState('login')} />;
+            case 'login': return <LoginPage onBackToHomeClick={() => setAppState('landing')} />;
+            case 'app':
+                if (showDetailsModal) { return <UserDetailsModal onSave={handleSaveUserDetails} />; }
+                if (user && userData) { return <AppLayout user={user} userData={userData} onLogout={handleLogout} setEditingEntry={setEditingEntry} />; }
+                return <div className="min-h-screen bg-gray-900 flex items-center justify-center"><Spinner /></div>;
+            default: return <LandingPage onEnterClick={() => setAppState('login')} />;
+        }
+    };
+
+    return (
+        <>
+            {renderAppState()}
+            {/* O modal de edição agora é renderizado aqui, no topo de tudo */}
+            {editingEntry && <JournalEntryModal entry={editingEntry} onClose={handleCloseEntryModal} />}
+        </>
+    );
 }
 
 export default App;

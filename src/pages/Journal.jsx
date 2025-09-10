@@ -5,7 +5,6 @@ import numerologyEngine from '../services/numerologyEngine';
 import Spinner from '../components/ui/Spinner';
 import UpgradeModal from '../components/ui/UpgradeModal';
 import { CalendarIcon, EditIcon, ChevronDownIcon } from '../components/ui/Icons';
-import JournalEntryModal from '../components/ui/JournalEntryModal';
 
 const TrashIcon = (props) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -16,7 +15,8 @@ const TrashIcon = (props) => (
     </svg>
 );
 
-const Journal = ({ user, userData, preselectedDate, onJournalUpdated }) => {
+// Recebendo 'setEditingEntry' como prop
+const Journal = ({ user, userData, preselectedDate, onJournalUpdated, setEditingEntry }) => {
     const [newNote, setNewNote] = useState('');
     const [entries, setEntries] = useState([]);
     const [vibrationFilter, setVibrationFilter] = useState('all');
@@ -25,7 +25,6 @@ const Journal = ({ user, userData, preselectedDate, onJournalUpdated }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-    const [selectedEntry, setSelectedEntry] = useState(null);
     const [isFullScreen, setIsFullScreen] = useState(false);
     
     const dateInputRef = useRef(null);
@@ -66,7 +65,7 @@ const Journal = ({ user, userData, preselectedDate, onJournalUpdated }) => {
             q = query(q, where('createdAt', '>=', Timestamp.fromDate(startOfDay)), where('createdAt', '<=', Timestamp.fromDate(endOfDay)));
         }
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            setEntries(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+            setEntries(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'journal' }))); // Adicionado type
             setIsLoading(false);
         }, (error) => {
             console.error("Erro ao buscar anotações:", error);
@@ -103,9 +102,6 @@ const Journal = ({ user, userData, preselectedDate, onJournalUpdated }) => {
         if (isConfirmed) {
             try {
                 await deleteDoc(doc(db, 'users', user.uid, 'journalEntries', entryId));
-                if (selectedEntry && selectedEntry.id === entryId) {
-                    setSelectedEntry(null);
-                }
             } catch (error) {
                 console.error("Erro ao excluir anotação:", error);
             }
@@ -164,7 +160,6 @@ const Journal = ({ user, userData, preselectedDate, onJournalUpdated }) => {
     return (
         <>
             {showUpgradeModal && <UpgradeModal onClose={() => setShowUpgradeModal(false)} />}
-            {selectedEntry && <JournalEntryModal entry={selectedEntry} onClose={() => setSelectedEntry(null)} />}
             {isFullScreen && <NewNoteEditor />}
             
             <div className="p-4 md:p-8 text-white w-full">
@@ -219,7 +214,7 @@ const Journal = ({ user, userData, preselectedDate, onJournalUpdated }) => {
                         ) : (
                             <div className="space-y-4">
                                 {entries.map(entry => (
-                                    <div key={entry.id} onClick={() => setSelectedEntry(entry)} className="bg-gray-800/50 border border-gray-700 rounded-xl p-4 animate-fade-in group relative hover:border-purple-500 cursor-pointer transition-colors">
+                                    <div key={entry.id} onClick={() => setEditingEntry(entry)} className="bg-gray-800/50 border border-gray-700 rounded-xl p-4 animate-fade-in group relative hover:border-purple-500 cursor-pointer transition-colors">
                                         <div className="flex justify-between items-center mb-2">
                                             <p className="text-sm font-semibold text-purple-300">{formatDate(entry.createdAt)}</p>
                                             <div className="flex items-center gap-4">

@@ -5,25 +5,33 @@ import numerologyEngine from '../services/numerologyEngine';
 import { ChevronLeft, ChevronRight, BookIcon, CheckSquareIcon, PlusIcon } from '../components/ui/Icons';
 import CalendarActionModal from '../components/ui/CalendarActionModal';
 
-// --- Subcomponente para o Painel de Detalhes ---
-const DetailPanel = ({ selectedDay, onOpenModal }) => {
-    // ... (nenhuma mudança neste subcomponente)
+// --- Subcomponente para o Item de Detalhe (com lógica de clique corrigida) ---
+const DetailItem = ({ item, setEditingEntry, setActiveView }) => {
+    const icon = item.type === 'task'
+        ? <CheckSquareIcon className="w-4 h-4 text-blue-300 flex-shrink-0" />
+        : <BookIcon className="w-4 h-4 text-cyan-300 flex-shrink-0" />;
+
+    const handleClick = () => {
+        if (item.type === 'journal') {
+            setEditingEntry(item); // Abre o modal de edição para anotações
+        } else {
+            // Ação para tarefas (pode ser ajustada no futuro)
+            // Por enquanto, podemos simplesmente não fazer nada ou navegar para a página de tarefas
+        }
+    };
+
+    return (
+        <button onClick={handleClick} className="w-full flex items-center gap-3 text-sm text-gray-300 bg-gray-900/50 p-3 rounded-lg animate-fade-in hover:bg-gray-700 transition-colors text-left">
+            {icon}
+            <span className="truncate">{item.text}</span>
+        </button>
+    );
+};
+
+// --- Painel de Detalhes para DESKTOP ---
+const DesktopDetailPanel = ({ selectedDay, onOpenModal, setEditingEntry }) => {
     const selectedDayFormatted = new Date(selectedDay.date).toLocaleString('pt-BR', { day: 'numeric', weekday: 'long' });
     const selectedDayItems = Object.values(selectedDay.items);
-
-    const DetailItem = ({ item }) => {
-        const icon = item.type === 'task' 
-            ? <CheckSquareIcon className="w-4 h-4 text-blue-300 flex-shrink-0" /> 
-            : <BookIcon className="w-4 h-4 text-cyan-300 flex-shrink-0" />;
-        const view = item.type === 'task' ? 'task' : 'note';
-
-        return (
-            <button onClick={() => onOpenModal(view)} className="w-full flex items-center gap-3 text-sm text-gray-300 bg-gray-900/50 p-3 rounded-lg animate-fade-in hover:bg-gray-700 transition-colors text-left">
-                {icon}
-                <span className="truncate">{item.text}</span>
-            </button>
-        );
-    };
 
     return (
         <div className="bg-gray-800/50 border border-gray-700 rounded-2xl p-4 h-full flex flex-col">
@@ -31,14 +39,14 @@ const DetailPanel = ({ selectedDay, onOpenModal }) => {
                 <h2 className="text-xl font-bold capitalize">{selectedDayFormatted}</h2>
                 <span className="text-xs font-bold bg-gray-700 px-2 py-1 rounded-full whitespace-nowrap">Vibração {selectedDay.personalDay}</span>
             </div>
-            <div className="mt-4 space-y-2 overflow-y-auto flex-1">
+            <div className="mt-4 space-y-2 overflow-y-auto flex-1 custom-scrollbar pr-2">
                 {selectedDayItems.length > 0 ? (
-                    selectedDayItems.map((item) => <DetailItem key={item.id} item={item} />)
-                ) : (<p className="text-gray-500 text-sm">Nenhum item para este dia.</p>)}
+                    selectedDayItems.map((item) => <DetailItem key={item.id} item={item} setEditingEntry={setEditingEntry} />)
+                ) : (<p className="text-gray-500 text-sm p-3">Nenhum item para este dia.</p>)}
             </div>
-             <button 
-                onClick={() => onOpenModal('menu')} 
-                className="w-full mt-4 bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors items-center justify-center gap-2 shrink-0 hidden lg:flex"
+             <button
+                onClick={() => onOpenModal('menu')}
+                className="w-full mt-4 bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center gap-2 shrink-0"
              >
                 <PlusIcon className="w-5 h-5" /> Adicionar
             </button>
@@ -46,43 +54,71 @@ const DetailPanel = ({ selectedDay, onOpenModal }) => {
     );
 };
 
+// --- Painel de Detalhes Deslizante para MOBILE ---
+const MobileDetailPanel = ({ selectedDay, isVisible, onClose, onOpenModal, setEditingEntry }) => {
+    if (!selectedDay) return null;
+
+    const selectedDayFormatted = new Date(selectedDay.date).toLocaleString('pt-BR', { day: 'numeric', weekday: 'long' });
+    const selectedDayItems = Object.values(selectedDay.items);
+
+    return (
+        <>
+            <div className={`fixed inset-0 bg-black/60 z-40 transition-opacity lg:hidden ${isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose} />
+            <div className={`fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 rounded-t-2xl p-4 z-50 transition-transform duration-300 ease-out lg:hidden ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
+                <div className="w-10 h-1.5 bg-gray-600 rounded-full mx-auto mb-4"></div>
+                <div className="flex items-center gap-3 mb-4">
+                    <h2 className="text-xl font-bold capitalize">{selectedDayFormatted}</h2>
+                    <span className="text-xs font-bold bg-gray-700 px-2 py-1 rounded-full whitespace-nowrap">Vibração {selectedDay.personalDay}</span>
+                </div>
+                <div className="space-y-2 max-h-[30vh] overflow-y-auto custom-scrollbar pr-2">
+                     {selectedDayItems.length > 0 ? (
+                        selectedDayItems.map((item) => <DetailItem key={item.id} item={item} setEditingEntry={setEditingEntry} />)
+                    ) : (<p className="text-gray-500 text-sm p-3">Nenhum item para este dia.</p>)}
+                </div>
+                 <button
+                    onClick={() => onOpenModal('menu')}
+                    className="w-full mt-4 bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
+                 >
+                    <PlusIcon className="w-5 h-5" /> Adicionar
+                </button>
+            </div>
+        </>
+    );
+};
+
 // --- Subcomponente para cada Célula do Dia no Calendário ---
 const DayCell = ({ day, isSelected, onClick }) => {
-    // ... (nenhuma mudança neste subcomponente)
     if (day.empty) return <div />;
-    const dayNumberClasses = `font-bold text-sm w-6 h-6 flex items-center justify-center rounded-full ${day.isToday ? 'bg-purple-600 text-white' : ''}`;
-    const cellClasses = `h-full rounded-lg p-2 flex flex-col justify-between relative border-2 transition-all duration-200 cursor-pointer overflow-hidden 
-                         ${isSelected ? 'border-purple-500 bg-gray-700/50' : 'border-transparent'} 
-                         ${!isSelected && day.isToday ? 'bg-gray-700/40' : ''}`;
+
+    const dayNumberClasses = `font-bold text-sm w-7 h-7 flex items-center justify-center rounded-full transition-colors ${isSelected ? 'bg-purple-600 text-white' : day.isToday ? 'bg-gray-600 text-white' : 'text-gray-300'}`;
+
+    const cellClasses = `h-full rounded-lg p-1.5 flex flex-col justify-between relative border-2 transition-all duration-200 cursor-pointer overflow-hidden hover:bg-gray-700/50 ${isSelected ? 'border-purple-500 bg-gray-700/50' : 'border-transparent'}`;
     return (
         <div onClick={onClick} className={cellClasses}>
-            <div>
+            <div className="flex justify-between items-start">
                 <span className={dayNumberClasses}>{day.date.getDate()}</span>
-                <div className="flex items-center gap-1.5 mt-2">
+                <div className="flex flex-col items-end gap-1.5 mt-1">
                     {day.items.task && <CheckSquareIcon className="w-3.5 h-3.5 text-blue-400"/>}
                     {day.items.journal && <BookIcon className="w-3.5 h-3.5 text-cyan-400"/>}
                 </div>
             </div>
-            <div className={`w-full h-1 rounded-b-md ${day.energyColorClass}`}></div>
+            <div className={`w-full h-1 rounded-b-md ${day.energyColorClass} mt-1`}></div>
         </div>
     );
 };
 
-const Calendar = ({ user, userData }) => {
+
+// --- Componente Principal do Calendário ---
+const Calendar = ({ user, userData, setEditingEntry }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [monthData, setMonthData] = useState({});
     const [selectedDay, setSelectedDay] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isPanelVisible, setIsPanelVisible] = useState(false);
     const [modalInitialView, setModalInitialView] = useState('menu');
 
-    const energyColors = {
-        1: 'bg-red-500', 2: 'bg-orange-500', 3: 'bg-yellow-500',
-        4: 'bg-lime-500', 5: 'bg-cyan-500', 6: 'bg-blue-500',
-        7: 'bg-purple-500', 8: 'bg-pink-500', 9: 'bg-teal-500',
-        11: 'bg-violet-400', 22: 'bg-indigo-400',
-        default: 'bg-gray-700'
-    };
-    
+    const energyColors = { 1: 'bg-red-500', 2: 'bg-orange-500', 3: 'bg-yellow-500', 4: 'bg-lime-500', 5: 'bg-cyan-500', 6: 'bg-blue-500', 7: 'bg-purple-500', 8: 'bg-pink-500', 9: 'bg-teal-500', 11: 'bg-violet-400', 22: 'bg-indigo-400', default: 'bg-gray-700' };
+
     useEffect(() => {
         if (!user?.uid) return;
         const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
@@ -90,37 +126,35 @@ const Calendar = ({ user, userData }) => {
 
         const fetchDataForMonth = (collectionName, type) => {
             const q = query(collection(db, 'users', user.uid, collectionName), where('createdAt', '>=', Timestamp.fromDate(startOfMonth)), where('createdAt', '<=', Timestamp.fromDate(endOfMonth)));
-            
             return onSnapshot(q, (snapshot) => {
                 setMonthData(prevData => {
-                    const updatedData = { ...prevData };
-                     Object.keys(updatedData).forEach(dateKey => {
-                        if (updatedData[dateKey]?.[type]) {
-                            delete updatedData[dateKey][type];
-                        }
-                    });
-                    
+                    const dataForType = {};
                     snapshot.forEach(doc => {
                         const docData = doc.data();
                         const dateKey = docData.createdAt.toDate().toISOString().split('T')[0];
-                        if (!updatedData[dateKey]) updatedData[dateKey] = {};
-                        updatedData[dateKey][type] = { id: doc.id, text: type === 'task' ? docData.text : docData.content, type: type };
+                        if (!dataForType[dateKey]) dataForType[dateKey] = {};
+                        dataForType[dateKey][type] = { id: doc.id, text: type === 'task' ? docData.text : docData.content, type: type };
                     });
-                    return updatedData;
+                    const cleanedData = { ...prevData };
+                    Object.keys(cleanedData).forEach(dateKey => {
+                        if (cleanedData[dateKey]?.[type]) {
+                            delete cleanedData[dateKey][type];
+                        }
+                    });
+                    Object.keys(dataForType).forEach(dateKey => {
+                        if (!cleanedData[dateKey]) cleanedData[dateKey] = {};
+                        cleanedData[dateKey] = { ...cleanedData[dateKey], ...dataForType[dateKey]};
+                    });
+                    return cleanedData;
                 });
             });
         };
 
         const journalUnsub = fetchDataForMonth('journalEntries', 'journal');
         const tasksUnsub = fetchDataForMonth('tasks', 'task');
-        
-        return () => {
-            journalUnsub();
-            tasksUnsub();
-            setMonthData({});
-        };
+        return () => { journalUnsub(); tasksUnsub(); };
     }, [user, currentDate]);
-    
+
     const daysInMonth = useMemo(() => {
         if (!userData?.dataNasc) return [];
         const year = currentDate.getFullYear();
@@ -134,9 +168,7 @@ const Calendar = ({ user, userData }) => {
             const dateKey = date.toISOString().split('T')[0];
             const personalDay = numerologyEngine.calculatePersonalDayForDate(date, userData.dataNasc);
             daysArray.push({
-                key: date.toISOString(),
-                date,
-                personalDay: personalDay,
+                key: date.toISOString(), date, personalDay: personalDay,
                 isToday: new Date().toDateString() === date.toDateString(),
                 items: monthData[dateKey] || {},
                 energyColorClass: energyColors[personalDay] || energyColors.default
@@ -145,25 +177,32 @@ const Calendar = ({ user, userData }) => {
         return daysArray;
     }, [currentDate, userData, monthData]);
 
-    // AJUSTE 2: Efeito para selecionar o dia de hoje automaticamente ao carregar
     useEffect(() => {
         if (daysInMonth.length > 0 && !selectedDay) {
-            const today = daysInMonth.find(d => d.isToday);
-            if (today) {
-                setSelectedDay(today);
-            }
+            const today = daysInMonth.find(d => d.isToday) || daysInMonth.find(d => !d.empty);
+            setSelectedDay(today);
         }
-    }, [daysInMonth, selectedDay]);
-    
+    }, [daysInMonth]);
+
     const changeMonth = (amount) => {
         setSelectedDay(null);
+        setIsPanelVisible(false);
         setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + amount, 1));
+    };
+
+    const handleDayClick = (day) => {
+        if (day.empty) return;
+        setSelectedDay(day);
+        if (window.innerWidth < 1024) {
+             setIsPanelVisible(true);
+        }
     };
 
     const handleOpenModal = (view = 'menu') => {
         if (!selectedDay) return;
         setModalInitialView(view);
         setIsModalOpen(true);
+        setIsPanelVisible(false);
     };
 
     const weekDays = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
@@ -171,10 +210,8 @@ const Calendar = ({ user, userData }) => {
     return (
         <>
             {isModalOpen && selectedDay && <CalendarActionModal key={selectedDay.key} day={selectedDay} initialView={modalInitialView} onClose={() => setIsModalOpen(false)} userData={userData} />}
-            
-            {/* AJUSTE 1: Modificado o padding para resolver a quebra de layout no mobile */}
-            <div className="px-4 pt-4 md:p-8 text-white h-full flex flex-col">
-                <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+            <div className="p-4 md:p-6 lg:p-8 text-white h-full flex flex-col">
+                <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 flex-shrink-0">
                     <h1 className="text-2xl sm:text-3xl font-bold capitalize">{`${currentDate.toLocaleString('pt-BR', { month: 'long' })} de ${currentDate.getFullYear()}`}</h1>
                     <div className="flex items-center gap-2">
                         <button onClick={() => changeMonth(-1)} className="p-2 rounded-full hover:bg-gray-700"><ChevronLeft/></button>
@@ -184,43 +221,33 @@ const Calendar = ({ user, userData }) => {
                 </div>
 
                 <div className="flex-1 lg:grid lg:grid-cols-3 lg:gap-8 min-h-0">
-                    <div className="lg:col-span-2 flex flex-col">
+                    <div className="lg:col-span-2 flex flex-col h-full">
                         <div className="grid grid-cols-7 gap-1 text-center font-semibold text-gray-400 mb-2">
                             {weekDays.map((day, index) => <div key={index} className="text-xs sm:text-base">{day}</div>)}
                         </div>
-                        <div className="grid grid-cols-7 gap-2 flex-1">
+                        <div className="grid grid-cols-7 grid-rows-6 gap-1 md:gap-2 flex-1">
                             {daysInMonth.map(day => (
-                                <DayCell 
-                                    key={day.key}
-                                    day={day}
-                                    isSelected={selectedDay?.key === day.key}
-                                    onClick={() => !day.empty && setSelectedDay(day)}
-                                />
+                                <DayCell key={day.key} day={day} isSelected={selectedDay?.key === day.key} onClick={() => handleDayClick(day)} />
                             ))}
                         </div>
                     </div>
                     {selectedDay && (
-                        <>
-                            <div className="hidden lg:block lg:col-span-1">
-                                <DetailPanel selectedDay={selectedDay} onOpenModal={handleOpenModal} />
+                        <div className="hidden lg:block lg:col-span-1">
+                           <div className="sticky top-8">
+                                <DesktopDetailPanel selectedDay={selectedDay} onOpenModal={handleOpenModal} setEditingEntry={setEditingEntry} />
                             </div>
-                            <div className="block lg:hidden mt-6">
-                                <DetailPanel selectedDay={selectedDay} onOpenModal={handleOpenModal} />
-                            </div>
-                        </>
+                        </div>
                     )}
                 </div>
             </div>
-            
-            {selectedDay && (
-                <button
-                    onClick={() => handleOpenModal('menu')}
-                    className="lg:hidden fixed bottom-6 right-6 bg-purple-600 rounded-full w-14 h-14 flex items-center justify-center shadow-lg transform-gpu transition-transform hover:scale-110 active:scale-95 z-20"
-                    aria-label="Adicionar item"
-                >
-                    <PlusIcon className="w-7 h-7 text-white" />
-                </button>
-            )}
+
+            <MobileDetailPanel
+                selectedDay={selectedDay}
+                isVisible={isPanelVisible}
+                onClose={() => setIsPanelVisible(false)}
+                onOpenModal={handleOpenModal}
+                setEditingEntry={setEditingEntry}
+            />
         </>
     );
 };
