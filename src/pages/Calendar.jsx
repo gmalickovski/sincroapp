@@ -1,3 +1,9 @@
+// /src/pages/Calendar.jsx
+
+/* ==================================================================
+    COPIE E COLE TODO O CONTEÚDO ABAIXO NO SEU ARQUIVO
+   ================================================================== */
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { db } from '../services/firebase';
 import { collection, onSnapshot, query, where, Timestamp, orderBy } from "firebase/firestore";
@@ -5,8 +11,8 @@ import numerologyEngine from '../services/numerologyEngine';
 import { ChevronLeft, ChevronRight, BookIcon, CheckSquareIcon, PlusIcon } from '../components/ui/Icons';
 import CalendarActionModal from '../components/ui/CalendarActionModal';
 
-// --- Subcomponente para o Item de Detalhe (com lógica de clique corrigida) ---
-const DetailItem = ({ item, setEditingEntry, setActiveView }) => {
+// --- Subcomponente para o Item de Detalhe (com lógica de clique FINAL) ---
+const DetailItem = ({ item, setEditingEntry, onOpenTaskModal }) => {
     const icon = item.type === 'task'
         ? <CheckSquareIcon className="w-4 h-4 text-blue-300 flex-shrink-0" />
         : <BookIcon className="w-4 h-4 text-cyan-300 flex-shrink-0" />;
@@ -15,8 +21,8 @@ const DetailItem = ({ item, setEditingEntry, setActiveView }) => {
         if (item.type === 'journal') {
             setEditingEntry(item); // Abre o modal de edição para anotações
         } else {
-            // Ação para tarefas (pode ser ajustada no futuro)
-            // Por enquanto, podemos simplesmente não fazer nada ou navegar para a página de tarefas
+            // AÇÃO FINAL: Abre o modal de ação diretamente na view de tarefas
+            onOpenTaskModal(); 
         }
     };
 
@@ -28,10 +34,12 @@ const DetailItem = ({ item, setEditingEntry, setActiveView }) => {
     );
 };
 
-// --- Painel de Detalhes para DESKTOP ---
+// --- Painel de Detalhes para DESKTOP (passando a prop 'onOpenTaskModal') ---
 const DesktopDetailPanel = ({ selectedDay, onOpenModal, setEditingEntry }) => {
     const selectedDayFormatted = new Date(selectedDay.date).toLocaleString('pt-BR', { day: 'numeric', weekday: 'long' });
-    const selectedDayItems = Object.values(selectedDay.items);
+    const journalItems = selectedDay.items.journal || [];
+    const taskItem = selectedDay.items.task ? [selectedDay.items.task] : [];
+    const selectedDayItems = [...journalItems, ...taskItem];
 
     return (
         <div className="bg-gray-800/50 border border-gray-700 rounded-2xl p-4 h-full flex flex-col">
@@ -41,7 +49,7 @@ const DesktopDetailPanel = ({ selectedDay, onOpenModal, setEditingEntry }) => {
             </div>
             <div className="mt-4 space-y-2 overflow-y-auto flex-1 custom-scrollbar pr-2">
                 {selectedDayItems.length > 0 ? (
-                    selectedDayItems.map((item) => <DetailItem key={item.id} item={item} setEditingEntry={setEditingEntry} />)
+                    selectedDayItems.map((item) => <DetailItem key={item.id} item={item} setEditingEntry={setEditingEntry} onOpenTaskModal={() => onOpenModal('task')} />)
                 ) : (<p className="text-gray-500 text-sm p-3">Nenhum item para este dia.</p>)}
             </div>
              <button
@@ -54,12 +62,13 @@ const DesktopDetailPanel = ({ selectedDay, onOpenModal, setEditingEntry }) => {
     );
 };
 
-// --- Painel de Detalhes Deslizante para MOBILE ---
+// --- Painel de Detalhes para MOBILE (passando a prop 'onOpenTaskModal') ---
 const MobileDetailPanel = ({ selectedDay, isVisible, onClose, onOpenModal, setEditingEntry }) => {
     if (!selectedDay) return null;
-
     const selectedDayFormatted = new Date(selectedDay.date).toLocaleString('pt-BR', { day: 'numeric', weekday: 'long' });
-    const selectedDayItems = Object.values(selectedDay.items);
+    const journalItems = selectedDay.items.journal || [];
+    const taskItem = selectedDay.items.task ? [selectedDay.items.task] : [];
+    const selectedDayItems = [...journalItems, ...taskItem];
 
     return (
         <>
@@ -72,7 +81,7 @@ const MobileDetailPanel = ({ selectedDay, isVisible, onClose, onOpenModal, setEd
                 </div>
                 <div className="space-y-2 max-h-[30vh] overflow-y-auto custom-scrollbar pr-2">
                      {selectedDayItems.length > 0 ? (
-                        selectedDayItems.map((item) => <DetailItem key={item.id} item={item} setEditingEntry={setEditingEntry} />)
+                        selectedDayItems.map((item) => <DetailItem key={item.id} item={item} setEditingEntry={setEditingEntry} onOpenTaskModal={() => onOpenModal('task')} />)
                     ) : (<p className="text-gray-500 text-sm p-3">Nenhum item para este dia.</p>)}
                 </div>
                  <button
@@ -89,17 +98,18 @@ const MobileDetailPanel = ({ selectedDay, isVisible, onClose, onOpenModal, setEd
 // --- Subcomponente para cada Célula do Dia no Calendário ---
 const DayCell = ({ day, isSelected, onClick }) => {
     if (day.empty) return <div />;
-
     const dayNumberClasses = `font-bold text-sm w-7 h-7 flex items-center justify-center rounded-full transition-colors ${isSelected ? 'bg-purple-600 text-white' : day.isToday ? 'bg-gray-600 text-white' : 'text-gray-300'}`;
-
     const cellClasses = `h-full rounded-lg p-1.5 flex flex-col justify-between relative border-2 transition-all duration-200 cursor-pointer overflow-hidden hover:bg-gray-700/50 ${isSelected ? 'border-purple-500 bg-gray-700/50' : 'border-transparent'}`;
+    const hasTasks = !!day.items.task;
+    const hasJournal = day.items.journal && day.items.journal.length > 0;
+
     return (
         <div onClick={onClick} className={cellClasses}>
             <div className="flex justify-between items-start">
                 <span className={dayNumberClasses}>{day.date.getDate()}</span>
                 <div className="flex flex-col items-end gap-1.5 mt-1">
-                    {day.items.task && <CheckSquareIcon className="w-3.5 h-3.5 text-blue-400"/>}
-                    {day.items.journal && <BookIcon className="w-3.5 h-3.5 text-cyan-400"/>}
+                    {hasTasks && <CheckSquareIcon className="w-3.5 h-3.5 text-blue-400"/>}
+                    {hasJournal && <BookIcon className="w-3.5 h-3.5 text-cyan-400"/>}
                 </div>
             </div>
             <div className={`w-full h-1 rounded-b-md ${day.energyColorClass} mt-1`}></div>
@@ -107,9 +117,8 @@ const DayCell = ({ day, isSelected, onClick }) => {
     );
 };
 
-
 // --- Componente Principal do Calendário ---
-const Calendar = ({ user, userData, setEditingEntry }) => {
+const Calendar = ({ user, userData, setEditingEntry, openNewNoteEditor }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [monthData, setMonthData] = useState({});
     const [selectedDay, setSelectedDay] = useState(null);
@@ -124,35 +133,53 @@ const Calendar = ({ user, userData, setEditingEntry }) => {
         const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
         const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
 
-        const fetchDataForMonth = (collectionName, type) => {
-            const q = query(collection(db, 'users', user.uid, collectionName), where('createdAt', '>=', Timestamp.fromDate(startOfMonth)), where('createdAt', '<=', Timestamp.fromDate(endOfMonth)));
-            return onSnapshot(q, (snapshot) => {
+        const fetchData = () => {
+            const journalQuery = query(collection(db, 'users', user.uid, 'journalEntries'), where('createdAt', '>=', Timestamp.fromDate(startOfMonth)), where('createdAt', '<=', Timestamp.fromDate(endOfMonth)));
+            const journalUnsub = onSnapshot(journalQuery, (snapshot) => {
                 setMonthData(prevData => {
                     const dataForType = {};
                     snapshot.forEach(doc => {
                         const docData = doc.data();
                         const dateKey = docData.createdAt.toDate().toISOString().split('T')[0];
-                        if (!dataForType[dateKey]) dataForType[dateKey] = {};
-                        dataForType[dateKey][type] = { id: doc.id, text: type === 'task' ? docData.text : docData.content, type: type };
+                        if (!dataForType[dateKey]) dataForType[dateKey] = { journal: [] };
+                        dataForType[dateKey].journal.push({ id: doc.id, text: docData.content, type: 'journal', ...docData });
                     });
-                    const cleanedData = { ...prevData };
-                    Object.keys(cleanedData).forEach(dateKey => {
-                        if (cleanedData[dateKey]?.[type]) {
-                            delete cleanedData[dateKey][type];
-                        }
-                    });
+                    const newData = { ...prevData };
+                    Object.keys(newData).forEach(dateKey => { if (newData[dateKey]?.journal) delete newData[dateKey].journal; });
                     Object.keys(dataForType).forEach(dateKey => {
-                        if (!cleanedData[dateKey]) cleanedData[dateKey] = {};
-                        cleanedData[dateKey] = { ...cleanedData[dateKey], ...dataForType[dateKey]};
+                        if (!newData[dateKey]) newData[dateKey] = {};
+                        newData[dateKey].journal = dataForType[dateKey].journal;
                     });
-                    return cleanedData;
+                    return newData;
                 });
             });
+
+            const tasksQuery = query(collection(db, 'users', user.uid, 'tasks'), where('createdAt', '>=', Timestamp.fromDate(startOfMonth)), where('createdAt', '<=', Timestamp.fromDate(endOfMonth)), orderBy('createdAt', 'desc'));
+            const tasksUnsub = onSnapshot(tasksQuery, (snapshot) => {
+                setMonthData(prevData => {
+                    const dataForType = {};
+                    snapshot.forEach(doc => {
+                        const docData = doc.data();
+                        const dateKey = docData.createdAt.toDate().toISOString().split('T')[0];
+                        if (!dataForType[dateKey]) {
+                            dataForType[dateKey] = { task: { id: doc.id, text: docData.text, type: 'task', ...docData } };
+                        }
+                    });
+                     const newData = { ...prevData };
+                     Object.keys(newData).forEach(dateKey => { if (newData[dateKey]?.task) delete newData[dateKey].task; });
+                     Object.keys(dataForType).forEach(dateKey => {
+                        if (!newData[dateKey]) newData[dateKey] = {};
+                        newData[dateKey].task = dataForType[dateKey].task;
+                    });
+                    return newData;
+                });
+            });
+
+            return () => { journalUnsub(); tasksUnsub(); };
         };
 
-        const journalUnsub = fetchDataForMonth('journalEntries', 'journal');
-        const tasksUnsub = fetchDataForMonth('tasks', 'task');
-        return () => { journalUnsub(); tasksUnsub(); };
+        const unsubscribe = fetchData();
+        return () => unsubscribe();
     }, [user, currentDate]);
 
     const daysInMonth = useMemo(() => {
@@ -178,9 +205,10 @@ const Calendar = ({ user, userData, setEditingEntry }) => {
     }, [currentDate, userData, monthData]);
 
     useEffect(() => {
-        if (daysInMonth.length > 0 && !selectedDay) {
-            const today = daysInMonth.find(d => d.isToday) || daysInMonth.find(d => !d.empty);
-            setSelectedDay(today);
+        if (daysInMonth.length > 0) {
+            const today = daysInMonth.find(d => d.isToday);
+            const dayToSelect = today || daysInMonth.find(d => !d.empty);
+            if(dayToSelect) setSelectedDay(dayToSelect);
         }
     }, [daysInMonth]);
 
@@ -209,7 +237,16 @@ const Calendar = ({ user, userData, setEditingEntry }) => {
 
     return (
         <>
-            {isModalOpen && selectedDay && <CalendarActionModal key={selectedDay.key} day={selectedDay} initialView={modalInitialView} onClose={() => setIsModalOpen(false)} userData={userData} />}
+            {isModalOpen && selectedDay && 
+                <CalendarActionModal 
+                    key={selectedDay.key} 
+                    day={selectedDay} 
+                    initialView={modalInitialView} 
+                    onClose={() => setIsModalOpen(false)} 
+                    userData={userData}
+                    openNewNoteEditor={openNewNoteEditor} 
+                />
+            }
             <div className="p-4 md:p-6 lg:p-8 text-white h-full flex flex-col">
                 <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 flex-shrink-0">
                     <h1 className="text-2xl sm:text-3xl font-bold capitalize">{`${currentDate.toLocaleString('pt-BR', { month: 'long' })} de ${currentDate.getFullYear()}`}</h1>

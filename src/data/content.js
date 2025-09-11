@@ -163,3 +163,25 @@ export const intencoes = {
     }
 };
 
+export const textosTooltips = {
+    vibracaoDia: "Calculado com base no seu dia e mês de nascimento + o dia atual. Representa a energia principal que influencia suas 24 horas.",
+    mesPessoal: "Calculado a partir do seu Ano Pessoal + o mês atual. Indica a tendência energética e o 'tema' principal para o seu mês.",
+    anoPessoal: "Calculado a partir do seu dia e mês de nascimento + o ano vigente. Revela o grande tema e as lições do seu ciclo anual, que vai de um aniversário ao outro.",
+    arcanoRegente: "Seu arcano fundamental, calculado a partir do seu nome de nascimento. Representa sua essência, seus talentos e sua missão de vida.",
+    arcanoVigente: "A energia de um dos arcanos do seu Triângulo da Vida que te influencia neste ciclo atual da sua vida, baseado na sua idade.",
+    bussolaAtividades: "Sugestões de ações para potencializar as energias do seu Dia Pessoal e pontos de atenção para evitar armadilhas energéticas.",
+};
+
+// Textos para os Ciclos de Vida (um novo conceito)
+export const textosCiclosDeVida = {
+    1: { titulo: "O Início", descricao: "Um ciclo para plantar sementes. É um período de novos começos, independência e muita energia para iniciar projetos. O foco é em você e na sua individualidade." },
+    2: { titulo: "A Parceria", descricao: "Após a ação do primeiro ciclo, este é um momento de paciência, cooperação e desenvolvimento de parcerias. O foco está nas relações e na diplomacia." },
+    3: { titulo: "A Criatividade", descricao: "Um período de expansão social e expressão criativa. A comunicação está em alta. É um tempo para socializar, se divertir e dar vida a novas ideias." },
+    4: { titulo: "A Construção", descricao: "Ciclo de trabalho duro, organização e estrutura. É o momento de construir as bases para o futuro. O foco é na disciplina, no planejamento e na estabilidade." },
+    5: { titulo: "A Mudança", descricao: "Um período de grande movimento, liberdade e quebra de rotina. Espere o inesperado. É um ciclo para se adaptar, viajar e explorar novas possibilidades." },
+    6: { titulo: "A Responsabilidade", descricao: "O foco se volta para o lar, a família e a comunidade. É um ciclo para assumir responsabilidades afetivas, cuidar dos outros e buscar a harmonia nos relacionamentos." },
+    7: { titulo: "A Introspecção", descricao: "Um ciclo de pausa, reflexão e busca por autoconhecimento. É um período para estudar, meditar e aprofundar sua conexão espiritual, muitas vezes em solidão." },
+    8: { titulo: "O Poder", descricao: "Ciclo de colheita material e poder pessoal. O foco está na carreira, nas finanças e na capacidade de liderar. É um período de grandes conquistas e ambição." },
+    9: { titulo: "A Finalização", descricao: "O fim de um grande ciclo de 9 anos. É um período de limpeza, perdão e desapego, deixando para trás o que não serve mais para abrir espaço para o novo ciclo que virá." },
+    default: { titulo: "Ciclo Indefinido", descricao: "Não foi possível calcular o ciclo de vida." }
+};

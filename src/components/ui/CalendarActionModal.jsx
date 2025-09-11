@@ -1,24 +1,22 @@
+// /src/components/ui/CalendarActionModal.jsx
+
+/* ==================================================================
+    SUBSTITUA O CONTEÚDO DO SEU ARQUIVO POR ESTE CÓDIGO FINAL
+   ================================================================== */
+
 import React, { useState, useEffect } from 'react';
-import { BookIcon, XIcon, ChevronLeft, CheckSquareIcon, TrashIcon } from './Icons';
+// CORREÇÃO: Adicionado 'CheckboxIcon' à lista de importação
+import { BookIcon, XIcon, ChevronLeft, CheckSquareIcon, TrashIcon, CheckboxIcon } from './Icons';
 import Spinner from './Spinner';
 import { db, auth } from '../../services/firebase';
 import { collection, addDoc, onSnapshot, query, where, orderBy, doc, deleteDoc, updateDoc, Timestamp } from "firebase/firestore";
-import numerologyEngine from '../../services/numerologyEngine';
 
-const CheckboxIcon = ({ checked }) => (
-    <div className={`h-5 w-5 border-2 ${checked ? 'border-purple-500 bg-purple-500' : 'border-gray-500'} rounded flex-shrink-0 flex items-center justify-center cursor-pointer`}>
-        {checked && <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
-    </div>
-);
-
-const CalendarActionModal = ({ day, onClose, userData, initialView = 'menu' }) => {
+const CalendarActionModal = ({ day, onClose, initialView = 'menu', openNewNoteEditor }) => {
     const [view, setView] = useState(initialView);
-    const [noteContent, setNoteContent] = useState('');
     const [tasks, setTasks] = useState([]);
     const [newTaskText, setNewTaskText] = useState('');
     
     const [isLoadingTasks, setIsLoadingTasks] = useState(false);
-    const [isSavingNote, setIsSavingNote] = useState(false);
     const [isSavingTask, setIsSavingTask] = useState(false);
 
     const user = auth.currentUser;
@@ -53,15 +51,9 @@ const CalendarActionModal = ({ day, onClose, userData, initialView = 'menu' }) =
         return () => unsubscribe();
     }, [view, day.date, user]);
 
-    const handleSaveNote = async () => {
-        if (noteContent.trim() === '' || !user || !userData?.dataNasc) return;
-        setIsSavingNote(true);
-        try {
-            const personalDayForNote = numerologyEngine.calculatePersonalDayForDate(day.date, userData.dataNasc);
-            await addDoc(collection(db, 'users', user.uid, 'journalEntries'), { content: noteContent, createdAt: Timestamp.fromDate(day.date), personalDay: personalDayForNote });
-            onClose(); 
-        } catch (error) { console.error("Erro ao salvar anotação:", error); } 
-        finally { setIsSavingNote(false); }
+    const handleAddNoteClick = () => {
+        openNewNoteEditor(day.date);
+        onClose();
     };
 
     const handleSaveNewTask = async () => {
@@ -100,13 +92,6 @@ const CalendarActionModal = ({ day, onClose, userData, initialView = 'menu' }) =
 
     const renderContent = () => {
         switch (view) {
-            case 'note':
-                return (
-                    <div className="text-left animate-fade-in">
-                        <textarea value={noteContent} onChange={(e) => setNoteContent(e.target.value)} placeholder="Escreva sua anotação..." rows="5" className="w-full bg-gray-900 border border-gray-600 rounded-lg p-3 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none" autoFocus />
-                        <button onClick={handleSaveNote} disabled={isSavingNote || noteContent.trim() === ''} className="mt-4 w-full bg-purple-600 text-white font-bold py-2 px-4 rounded-lg h-10 flex items-center justify-center hover:bg-purple-700 disabled:bg-gray-600">{isSavingNote ? <Spinner /> : 'Salvar Anotação'}</button>
-                    </div>
-                );
             case 'task':
                 return (
                     <div className="text-left animate-fade-in">
@@ -123,15 +108,15 @@ const CalendarActionModal = ({ day, onClose, userData, initialView = 'menu' }) =
                         </div>
                         <div className="flex items-center group pt-3 mt-3 border-t border-gray-700">
                             <div className="h-5 w-5 border-2 border-gray-600 rounded flex-shrink-0"></div>
-                            <input type="text" value={newTaskText} onChange={(e) => setNewTaskText(e.target.value)} onKeyDown={handleNewTaskKeyDown} placeholder="Adicionar nova tarefa" className="flex-1 ml-3 bg-transparent focus:outline-none placeholder-gray-500 text-sm" />
+                            <input type="text" value={newTaskText} onChange={(e) => setNewTaskText(e.target.value)} onKeyDown={handleNewTaskKeyDown} placeholder="Adicionar nova tarefa" className="flex-1 ml-3 bg-transparent focus:outline-none placeholder-gray-500 text-sm" autoFocus />
                         </div>
-                         <button onClick={handleSaveNewTask} disabled={isSavingTask || newTaskText.trim() === ''} className="mt-4 w-full bg-purple-600 text-white font-bold py-2 px-4 rounded-lg h-10 flex items-center justify-center hover:bg-purple-700 disabled:bg-gray-600">{isSavingTask ? <Spinner /> : 'Salvar Tarefa'}</button>
+                         <button onClick={handleSaveNewTask} disabled={isSavingTask || newTaskText.trim() === ''} className="mt-4 w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg h-10 flex items-center justify-center hover:bg-blue-700 disabled:bg-gray-600">{isSavingTask ? <Spinner /> : 'Adicionar Tarefa'}</button>
                     </div>
                 );
             default:
                 return (
                      <div className="space-y-3 animate-fade-in">
-                         <button onClick={() => setView('note')} className="w-full bg-purple-600 font-bold py-3 px-4 rounded-lg hover:bg-purple-700 flex items-center justify-center gap-2"><BookIcon className="h-5 w-5" />Adicionar Anotação</button>
+                         <button onClick={handleAddNoteClick} className="w-full bg-purple-600 font-bold py-3 px-4 rounded-lg hover:bg-purple-700 flex items-center justify-center gap-2"><BookIcon className="h-5 w-5" />Adicionar Anotação</button>
                          <button onClick={() => setView('task')} className="w-full bg-blue-600 font-bold py-3 px-4 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"><CheckSquareIcon className="h-5 w-5" />Adicionar Tarefa</button>
                     </div>
                 );
