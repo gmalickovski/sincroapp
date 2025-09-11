@@ -1,65 +1,40 @@
-import React, { useState } from 'react';
-import { db, auth } from '../../services/firebase';
-import { doc, updateDoc } from "firebase/firestore";
-import Spinner from './Spinner';
-import { XIcon } from './Icons';
+// /src/components/ui/JournalEntryModal.jsx
 
-const JournalEntryModal = ({ entry, onClose }) => {
+import React from 'react';
+import { XIcon } from './Icons';
+import VibrationPill from './VibrationPill'; // Importa a pílula
+
+// MODIFICADO: Componente agora recebe a prop 'onInfoClick'
+const JournalEntryModal = ({ entry, onClose, onInfoClick }) => {
     if (!entry) return null;
 
-    const [content, setContent] = useState(entry.content);
-    const [originalContent, setOriginalContent] = useState(entry.content);
-    const [isSaving, setIsSaving] = useState(false);
-    const user = auth.currentUser;
-    const hasChanges = content !== originalContent;
-    
-    const formattedDate = new Date(entry.createdAt.seconds * 1000).toLocaleString('pt-BR', {
-        weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
-    });
+    const formatDate = (timestamp) => {
+        if (!timestamp) return '';
+        return new Date(timestamp.seconds * 1000).toLocaleString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    };
 
-    const handleSave = async () => {
-        if (!user || !hasChanges || isSaving) return;
-        setIsSaving(true);
-        const entryRef = doc(db, 'users', user.uid, 'journalEntries', entry.id);
-        try {
-            await updateDoc(entryRef, { content: content });
-            setOriginalContent(content); 
-            setTimeout(onClose, 1000); 
-        } catch (error) {
-            console.error("Erro ao atualizar a anotação:", error);
-        } finally {
-            setIsSaving(false);
-        }
+    const energyColors = {
+        1: 'border-red-500', 2: 'border-orange-500', 3: 'border-yellow-500',
+        4: 'border-lime-500', 5: 'border-cyan-500', 6: 'border-blue-500',
+        7: 'border-purple-500', 8: 'border-pink-500', 9: 'border-teal-500',
+        11: 'border-violet-400', 22: 'border-indigo-400',
+        default: 'border-gray-700'
     };
 
     return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center z-50 animate-fade-in p-4" onClick={onClose}>
-            <div className="w-full max-w-3xl relative" onClick={e => e.stopPropagation()}>
-                {/* Folha de Papel */}
-                <div className="journal-paper shadow-2xl h-[70vh] flex flex-col">
-                    <div className="flex justify-between items-start text-gray-600 border-b border-gray-300 pb-3 mb-3">
-                        <div className="flex-1">
-                            <h3 className="text-lg font-bold capitalize">{formattedDate}</h3>
-                        </div>
-                        <span className="text-sm font-semibold bg-gray-200/80 px-3 py-1 rounded-full text-purple-800">Vibração {entry.personalDay}</span>
-                    </div>
-                    <textarea
-                        value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                        className="w-full h-full bg-transparent focus:outline-none text-base resize-none"
-                        autoFocus
-                    />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4" onClick={onClose}>
+            <div 
+                className={`bg-gray-800 text-white p-6 rounded-2xl shadow-2xl w-full max-w-lg relative transition-all border-t-4 ${energyColors[entry.personalDay] || energyColors.default}`}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full text-gray-400 hover:bg-gray-700"><XIcon className="h-5 w-5" /></button>
+                
+                <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-lg font-bold text-white pr-8">{formatDate(entry.createdAt)}</h3>
+                    {/* CORREÇÃO: Passando a função onInfoClick para a prop onClick */}
+                    <VibrationPill vibrationNumber={entry.personalDay} onClick={onInfoClick} />
                 </div>
-                 {/* Botão Salvar Flutuante */}
-                <div className="flex justify-center mt-4">
-                    <button 
-                        onClick={handleSave} 
-                        disabled={!hasChanges || isSaving} 
-                        className="text-white font-bold py-2 px-8 rounded-lg transition-colors hover:bg-white/10 disabled:text-gray-500 disabled:cursor-not-allowed"
-                    >
-                        {isSaving ? <Spinner /> : (hasChanges ? 'Salvar Alterações' : 'Salvo')}
-                    </button>
-                </div>
+                <p className="text-gray-300 whitespace-pre-wrap text-sm">{entry.content}</p>
             </div>
         </div>
     );
