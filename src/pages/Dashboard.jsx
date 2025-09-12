@@ -8,6 +8,7 @@ import Spinner from '../components/ui/Spinner';
 import { db } from '../services/firebase';
 import { collection, query, where, onSnapshot, Timestamp, orderBy, limit, addDoc } from "firebase/firestore";
 import numerologyEngine from '../services/numerologyEngine';
+import UpgradeCard from '../components/ui/UpgradeCard'; // Importando o novo card
 
 // --- Subcomponentes (DailyTasksCard, QuickJournalCard) ---
 const DailyTasksCard = ({ user, setActiveView }) => {
@@ -51,7 +52,6 @@ const QuickJournalCard = ({ user, userData, setActiveView }) => {
     return (<DashboardCard title="Anotação Rápida" icon={<BookIcon />}><p className="text-sm text-gray-400 mb-3">Algum insight sobre a vibração de hoje? Anote aqui!</p><textarea className="w-full h-24 bg-gray-900 border border-gray-600 rounded-lg p-3 text-sm" placeholder="Digite suas reflexões..." value={note} onChange={(e) => setNote(e.target.value)} /><button onClick={handleSaveNote} disabled={isSaving || note.trim() === ''} className="mt-4 w-full bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 disabled:bg-gray-500 flex justify-center items-center h-10">{isSaving ? <Spinner /> : 'Salvar Anotação'}</button>{!isLoadingLatest && latestEntry && (<div className="mt-4 pt-4 border-t border-gray-700"><h4 className="text-sm font-bold text-gray-400 mb-2">Última Anotação:</h4><button onClick={() => setActiveView('journal')} className="w-full text-left bg-gray-900/50 p-3 rounded-lg hover:bg-gray-700/50 transition-colors"><p className="text-xs text-purple-300 font-semibold">{new Date(latestEntry.createdAt.seconds * 1000).toLocaleDateString('pt-BR', {day:'2-digit', month:'long'})}</p><p className="text-sm text-gray-300 truncate mt-1">{latestEntry.content}</p></button></div>)}</DashboardCard>);
 };
 
-// Componente de Tooltip Reutilizável
 const Tooltip = ({ text, children }) => (
     <div className="relative group flex items-center cursor-help">
         {children}
@@ -67,18 +67,19 @@ function Dashboard({ user, userData, data, setActiveView }) {
         return <div className="p-4 md:p-6 text-white flex justify-center items-center h-full"><Spinner /></div>;
     }
     
+    const isPremium = userData?.plano !== 'gratuito'; // Verifica se o usuário é premium
+
     const { diaPessoal, mesPessoal, anoPessoal } = data.numeros;
     const { arcanoRegente, arcanoAtual, cicloDeVidaAtual } = data.estruturas;
 
     const infoDia = textosDescritivos.diaPessoal[diaPessoal] || textosDescritivos.diaPessoal.default;
-    const infoMes = textosDescritivos.diaPessoal[mesPessoal] || textosDescritivos.diaPessoal.default;
-    const infoAno = textosDescritivos.diaPessoal[anoPessoal] || textosDescritivos.diaPessoal.default;
+    const infoMes = textosDescritivos.diaPessoal[diaPessoal] || textosDescritivos.diaPessoal.default;
+    const infoAno = textosDescritivos.diaPessoal[diaPessoal] || textosDescritivos.diaPessoal.default;
     const infoArcanoRegente = textosArcanos[arcanoRegente] || textosArcanos.default;
     const infoArcanoAtual = textosArcanos[arcanoAtual?.numero] || textosArcanos.default;
     const atividadesDoDia = bussolaAtividades[diaPessoal] || bussolaAtividades.default;
     const infoCicloAtual = textosCiclosDeVida[cicloDeVidaAtual.regente] || textosCiclosDeVida.default;
 
-    // Subcomponente para Card de Arcano (com tooltip)
     const ArcanoCard = ({ number, info, title, tooltipText }) => (
         <DashboardCard title={<Tooltip text={tooltipText}><span>{title}</span><span className="ml-2 h-4 w-4 flex items-center justify-center text-xs bg-gray-600 rounded-full">?</span></Tooltip>}>
             <div className="flex flex-col md:flex-row items-center text-center md:text-left gap-4">
@@ -88,7 +89,6 @@ function Dashboard({ user, userData, data, setActiveView }) {
         </DashboardCard>
     );
 
-    // Subcomponente genérico para Cards de Vibração (Dia, Mês, Ano)
     const VibracaoCard = ({ title, tooltipText, numero, info, icon, colorClass }) => (
          <DashboardCard title={<Tooltip text={tooltipText}><span>{title}</span><span className="ml-2 h-4 w-4 flex items-center justify-center text-xs bg-gray-600 rounded-full">?</span></Tooltip>} icon={icon}>
              <div className="flex items-center text-center gap-4">
@@ -99,7 +99,6 @@ function Dashboard({ user, userData, data, setActiveView }) {
         </DashboardCard>
     );
     
-    // Subcomponente para o Card de Ciclos de Vida
     const CicloDeVidaCard = ({ ciclo }) => (
         <DashboardCard title={
             <Tooltip text="Seu grande ciclo de vida atual, que define o tema principal da sua fase de vida.">
@@ -120,7 +119,6 @@ function Dashboard({ user, userData, data, setActiveView }) {
         </DashboardCard>
     );
 
-    // VERSÃO CORRIGIDA DO BUSSOLACARD
     const BussolaCard = () => (
         <DashboardCard title={<Tooltip text={textosTooltips.bussolaAtividades}><span>Bússola de Atividades</span><span className="ml-2 h-4 w-4 flex items-center justify-center text-xs bg-gray-600 rounded-full">?</span></Tooltip>} icon={<CompassIcon />} className="row-span-1 md:row-span-2">
             <div className="flex flex-col gap-6 h-full">
@@ -142,12 +140,28 @@ function Dashboard({ user, userData, data, setActiveView }) {
                 <VibracaoCard title="Vibração do Dia" tooltipText={textosTooltips.vibracaoDia} numero={diaPessoal} info={infoDia} icon={<SunIcon/>} colorClass={{text: 'text-cyan-300', border: 'border-cyan-400', bg: 'bg-cyan-500'}} />
                 <VibracaoCard title="Vibração do Mês" tooltipText={textosTooltips.mesPessoal} numero={mesPessoal} info={infoMes} icon={<MoonIcon/>} colorClass={{text: 'text-indigo-300', border: 'border-indigo-400', bg: 'bg-indigo-500'}} />
                 <VibracaoCard title="Vibração do Ano" tooltipText={textosTooltips.anoPessoal} numero={anoPessoal} info={infoAno} icon={<StarIcon/>} colorClass={{text: 'text-amber-300', border: 'border-amber-400', bg: 'bg-amber-500'}} />
-                <div className="lg:col-span-3"><CicloDeVidaCard ciclo={cicloDeVidaAtual}/></div>
+                
+                {/* --- LÓGICA DE PLANOS EM AÇÃO --- */}
+                <div className="lg:col-span-3">
+                    {isPremium ? (
+                        <CicloDeVidaCard ciclo={cicloDeVidaAtual}/>
+                    ) : (
+                        <UpgradeCard title="Desbloqueie seus Ciclos de Vida" featureText="Entenda os grandes temas da sua jornada com o plano Premium." />
+                    )}
+                </div>
+
                 <ArcanoCard number={arcanoRegente} info={infoArcanoRegente} title="Arcano Regente" tooltipText={textosTooltips.arcanoRegente} />
                 <ArcanoCard number={arcanoAtual?.numero} info={infoArcanoAtual} title="Arcano Vigente" tooltipText={textosTooltips.arcanoVigente}/>
                 <BussolaCard/>
-                <DailyTasksCard user={user} setActiveView={setActiveView} />
+
+                {isPremium ? (
+                    <DailyTasksCard user={user} setActiveView={setActiveView} />
+                ) : (
+                     <UpgradeCard title="Acesse o Diário de Tarefas" featureText="Organize seu dia e alinhe suas ações com a energia do momento." />
+                )}
+
                 <QuickJournalCard user={user} userData={userData} setActiveView={setActiveView} />
+
             </div>
         </div>
     );

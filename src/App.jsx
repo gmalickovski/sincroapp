@@ -5,11 +5,7 @@ import { auth, db } from './services/firebase';
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc, setDoc, addDoc, collection, Timestamp } from "firebase/firestore";
 import { textosDescritivos } from './data/content';
-
-// --- INÍCIO DO CÓDIGO DE MIGRAÇÃO TEMPORÁRIO ---
-// Garanta que você tenha o arquivo /src/migration.js criado, como na instrução anterior.
 import { runMigration } from './migration.js'; 
-// --- FIM DO CÓDIGO DE MIGRAÇÃO TEMPORÁRIO ---
 
 // Componentes e Páginas
 import Spinner from './components/ui/Spinner';
@@ -27,6 +23,11 @@ import JournalEntryModal from './components/ui/JournalEntryModal';
 import InfoModal from './components/ui/InfoModal';
 import VibrationPill from './components/ui/VibrationPill';
 import numerologyEngine from './services/numerologyEngine';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import CookieBanner from './components/ui/CookieBanner';
+import SettingsPage from './pages/SettingsPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 
 const NewNoteEditor = ({ onClose, preselectedDate, user, userData, onInfoClick }) => {
     const [content, setContent] = useState('');
@@ -59,8 +60,7 @@ const NewNoteEditor = ({ onClose, preselectedDate, user, userData, onInfoClick }
     );
 };
 
-const AppLayout = ({ user, userData, onLogout, setEditingEntry, openNewNoteEditor, onInfoClick }) => {
-    const [activeView, setActiveView] = useState('dashboard');
+const AppLayout = ({ user, userData, onLogout, setEditingEntry, openNewNoteEditor, onInfoClick, activeView, setActiveView, onNavigateToSettings }) => {
     const [numerologyData, setNumerologyData] = useState(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     useEffect(() => { if (userData?.nome && userData?.dataNasc) { setNumerologyData(numerologyEngine(userData.nome, userData.dataNasc)); } }, [userData]);
@@ -78,7 +78,7 @@ const AppLayout = ({ user, userData, onLogout, setEditingEntry, openNewNoteEdito
     
     return (
         <div className="h-screen w-screen flex bg-gray-900 text-gray-200 font-sans antialiased">
-            <Sidebar activeView={activeView} setActiveView={setActiveView} isAdmin={userData?.isAdmin} isMobileOpen={isMobileMenuOpen} closeMobileMenu={() => setIsMobileMenuOpen(false)} />
+            <Sidebar activeView={activeView} setActiveView={setActiveView} isAdmin={userData?.isAdmin} isMobileOpen={isMobileMenuOpen} closeMobileMenu={() => setIsMobileMenuOpen(false)} onLogout={onLogout} onNavigateToSettings={onNavigateToSettings}/>
             <div className="flex-1 flex flex-col h-screen md:ml-20 lg:ml-64 transition-all duration-300">
                 <Header user={user} onLogout={onLogout} onMenuClick={() => setIsMobileMenuOpen(true)} />
                 <main className="flex-1 overflow-y-auto overflow-x-hidden">
@@ -91,6 +91,7 @@ const AppLayout = ({ user, userData, onLogout, setEditingEntry, openNewNoteEdito
 
 function App() {
     const [appState, setAppState] = useState('loading');
+    const [activeView, setActiveView] = useState('dashboard');
     const [user, setUser] = useState(null);
     const [userData, setUserData] = useState(null);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -114,12 +115,29 @@ function App() {
             if (currentUser) {
                 setUser(currentUser);
                 const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-                if (userDoc.exists()) { setUserData(userDoc.data()); setShowDetailsModal(false); setAppState('app'); } 
-                else { setShowDetailsModal(true); setAppState('app'); }
-            } else { setUser(null); setUserData(null); setAppState('landing'); }
+                if (userDoc.exists()) { 
+                    setUserData(userDoc.data()); 
+                    setShowDetailsModal(false);
+                    // Apenas muda para 'app' se não estiver em 'settings'
+                    if (appState !== 'settings') {
+                       setAppState('app'); 
+                    }
+                } else { 
+                    setShowDetailsModal(true); 
+                    setAppState('app'); 
+                }
+            } else { 
+                setUser(null); 
+                setUserData(null);
+                 // Se o usuário deslogar, vai para a landing page, a menos que esteja
+                 // navegando nas páginas legais ou de recuperação
+                if (appState !== 'privacy' && appState !== 'terms' && appState !== 'forgotPassword') {
+                    setAppState('landing');
+                }
+            }
         });
         return () => unsubscribe();
-    }, []);
+    }, []); // <--- CORREÇÃO APLICADA: O array de dependências está VAZIO.
 
     const handleSaveUserDetails = async ({ nome, dataNasc }) => {
         if (user) {
@@ -129,19 +147,36 @@ function App() {
             setShowDetailsModal(false);
         }
     };
-    const handleLogout = async () => { try { await signOut(auth); } catch (error) { console.error("Erro:", error); }};
+    const handleLogout = async () => { try { await signOut(auth); setAppState('landing'); } catch (error) { console.error("Erro:", error); }};
     const handleCloseEntryModal = () => setEditingEntry(null);
+    
+    const handleNavigate = (page) => {
+        if (page === 'privacy') setAppState('privacy');
+        if (page === 'terms') setAppState('terms');
+    };
 
     const renderAppState = () => {
         switch (appState) {
             case 'loading': return <div className="min-h-screen bg-gray-900 flex items-center justify-center"><Spinner /></div>;
-            case 'landing': return <LandingPage onEnterClick={() => setAppState('login')} />;
-            case 'login': return <LoginPage onBackToHomeClick={() => setAppState('landing')} />;
+            case 'landing': return <LandingPage onEnterClick={() => setAppState('login')} onNavigate={handleNavigate} />;
+            case 'login': return <LoginPage onBackToHomeClick={() => setAppState('landing')} onNavigateToForgotPassword={() => setAppState('forgotPassword')} />;
+            case 'forgotPassword': return <ForgotPasswordPage onBackToLogin={() => setAppState('login')} />;
+            case 'privacy': return <PrivacyPolicy onBackToHomeClick={() => setAppState('landing')} />;
+            case 'terms': return <TermsOfService onBackToHomeClick={() => setAppState('landing')} />;
+            case 'settings':
+                if (user && userData) {
+                    return <SettingsPage user={user} userData={userData} onBackToApp={() => setAppState('app')} />;
+                }
+                // Se o usuário chegar aqui sem estar logado, volta para o início
+                if (!user) setAppState('landing');
+                return <div className="min-h-screen bg-gray-900 flex items-center justify-center"><Spinner /></div>;
             case 'app':
                 if (showDetailsModal) { return <UserDetailsModal onSave={handleSaveUserDetails} />; }
-                if (user && userData) { return <AppLayout user={user} userData={userData} onLogout={handleLogout} setEditingEntry={setEditingEntry} openNewNoteEditor={openNewNoteEditor} onInfoClick={handleInfoClick} />; }
+                if (user && userData) { return <AppLayout user={user} userData={userData} onLogout={handleLogout} setEditingEntry={setEditingEntry} openNewNoteEditor={openNewNoteEditor} onInfoClick={handleInfoClick} activeView={activeView} setActiveView={setActiveView} onNavigateToSettings={() => setAppState('settings')} />; }
+                 // Se o usuário chegar aqui sem estar logado, volta para o início
+                if (!user) setAppState('landing');
                 return <div className="min-h-screen bg-gray-900 flex items-center justify-center"><Spinner /></div>;
-            default: return <LandingPage onEnterClick={() => setAppState('login')} />;
+            default: return <LandingPage onEnterClick={() => setAppState('login')} onNavigate={handleNavigate} />;
         }
     };
 
@@ -149,9 +184,7 @@ function App() {
         <>
             {renderAppState()}
             
-            {/* --- INÍCIO DO CÓDIGO DE MIGRAÇÃO TEMPORÁRIO --- */}
-            {/* Este botão só aparecerá se você estiver logado como admin */}
-            {userData?.isAdmin && (
+            {userData?.isAdmin && appState === 'app' && (
                 <button 
                     onClick={runMigration} 
                     className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:bg-red-700 animate-pulse"
@@ -159,11 +192,11 @@ function App() {
                     MIGRAR TEXTOS PARA O FIREBASE (VERSÃO FINAL)
                 </button>
             )}
-            {/* --- FIM DO CÓDIGO DE MIGRAÇÃO TEMPORÁRIO --- */}
 
             <JournalEntryModal entry={editingEntry} onClose={handleCloseEntryModal} onInfoClick={handleInfoClick} />
             {isNewNoteEditorOpen && <NewNoteEditor onClose={closeNewNoteEditor} preselectedDate={preselectedDateForEditor} user={user} userData={userData} onInfoClick={handleInfoClick} />}
             <InfoModal info={infoModalData} onClose={closeInfoModal} />
+            <CookieBanner />
         </>
     );
 }
