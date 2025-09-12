@@ -34,7 +34,7 @@ const TermsOfService = ({ onBackToHomeClick }) => {
 
                     <section>
                         <h2 className="text-xl font-bold text-purple-300 mb-2">5. Propriedade Intelectual</h2>
-                        <p>Todo o conteúdo, design e tecnologia do Sincro App são de nossa propriedade. Você não pode copiar, modificar ou distribuir nosso conteúdo sem permissão explícita.</p>
+                        <p>Todo o conteúdo, design e tecnologia do SincroApp são de nossa propriedade. Você não pode copiar, modificar ou distribuir nosso conteúdo sem permissão explícita.</p>
                     </section>
 
                      <section>

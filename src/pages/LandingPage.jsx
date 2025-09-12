@@ -9,7 +9,7 @@ const LandingPage = ({ onEnterClick, onNavigate }) => {
                 <div className="container mx-auto flex justify-between items-center">
                     <div className="flex items-center gap-2">
                         <StarIcon className="h-8 w-8 text-purple-400" />
-                        <h1 className="text-xl font-bold">Sincro App</h1>
+                        <h1 className="text-xl font-bold">SincroApp</h1>
                     </div>
                     <button onClick={onEnterClick} className="bg-white/10 border border-white/20 text-white font-semibold py-2 px-5 rounded-full hover:bg-white/20 transition-colors">
                         Entrar

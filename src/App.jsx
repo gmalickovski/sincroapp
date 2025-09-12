@@ -1,4 +1,4 @@
-// /src/App.jsx
+// src/App.jsx
 
 import React, { useState, useEffect } from 'react';
 import { auth, db } from './services/firebase';
@@ -80,7 +80,7 @@ const AppLayout = ({ user, userData, onLogout, setEditingEntry, openNewNoteEdito
         <div className="h-screen w-screen flex bg-gray-900 text-gray-200 font-sans antialiased">
             <Sidebar activeView={activeView} setActiveView={setActiveView} isAdmin={userData?.isAdmin} isMobileOpen={isMobileMenuOpen} closeMobileMenu={() => setIsMobileMenuOpen(false)} onLogout={onLogout} onNavigateToSettings={onNavigateToSettings}/>
             <div className="flex-1 flex flex-col h-screen md:ml-20 lg:ml-64 transition-all duration-300">
-                <Header user={user} onLogout={onLogout} onMenuClick={() => setIsMobileMenuOpen(true)} />
+                <Header user={user} userData={userData} onMenuClick={() => setIsMobileMenuOpen(true)} />
                 <main className="flex-1 overflow-y-auto overflow-x-hidden">
                     {renderView()}
                 </main>
@@ -137,7 +137,7 @@ function App() {
             }
         });
         return () => unsubscribe();
-    }, []); // <--- CORREÇÃO APLICADA: O array de dependências está VAZIO.
+    }, [appState]);
 
     const handleSaveUserDetails = async ({ nome, dataNasc }) => {
         if (user) {

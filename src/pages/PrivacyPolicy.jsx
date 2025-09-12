@@ -40,7 +40,7 @@ const PrivacyPolicy = ({ onBackToHomeClick }) => {
 
                     <section>
                         <h2 className="text-xl font-bold text-purple-300 mb-2">5. Cookies</h2>
-                        <p>Nosso site utiliza cookies essenciais para o funcionamento da plataforma, como manter sua sessão de login ativa. Ao utilizar o Sincro App, você concorda com o uso desses cookies.</p>
+                        <p>Nosso site utiliza cookies essenciais para o funcionamento da plataforma, como manter sua sessão de login ativa. Ao utilizar o SincroApp, você concorda com o uso desses cookies.</p>
                     </section>
 
                      <section>

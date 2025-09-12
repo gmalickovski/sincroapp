@@ -31,24 +31,28 @@ const Sidebar = ({ userData, activeView, setActiveView, isAdmin, isMobileOpen, c
 
     return (
         <>
+            {/* Overlay para fechar o menu no mobile */}
             <div 
                 className={`fixed inset-0 bg-black/60 z-30 md:hidden transition-opacity ${isMobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                 onClick={closeMobileMenu}
             ></div>
 
+            {/* Container do Sidebar */}
             <aside 
                 className={`fixed top-0 left-0 h-full bg-gray-900 text-gray-300 flex flex-col z-40
                            transition-transform duration-300 ease-in-out 
                            -translate-x-full md:translate-x-0
-                           w-64 md:w-20 lg:w-64
+                           w-20 lg:w-64
                            ${isMobileOpen ? 'translate-x-0' : ''}`}
             >
                 
-                <div className="h-20 flex-shrink-0 flex items-center border-b border-gray-700 justify-center lg:justify-start lg:px-6">
+                {/* Seção do Logo (Visível apenas em telas grandes) */}
+                <div className="h-20 flex-shrink-0 hidden lg:flex items-center border-b border-gray-700 justify-center lg:justify-start lg:px-6">
                     <StarIcon className="h-8 w-8 text-purple-400 flex-shrink-0" />
-                    <h1 className="ml-3 text-xl font-bold text-white whitespace-nowrap hidden lg:block">Sincro App</h1>
+                    <h1 className="ml-3 text-xl font-bold text-white whitespace-nowrap hidden lg:block">SincroApp</h1>
                 </div>
 
+                {/* Navegação Principal */}
                 <nav className="flex-1 py-6 px-2 lg:px-4 space-y-2">
                     {navItems.map(item => (
                         <a href="#" key={item.id} onClick={(e) => { e.preventDefault(); handleItemClick(item.id); }}
@@ -60,6 +64,7 @@ const Sidebar = ({ userData, activeView, setActiveView, isAdmin, isMobileOpen, c
                     ))}
                 </nav>
 
+                {/* Seção Inferior (Configurações e Sair) */}
                 <div className="py-4 px-2 lg:px-4 border-t border-gray-700 space-y-2">
                      <a href="#" onClick={(e) => { e.preventDefault(); handleSettingsClick(); }}
                         title="Configurações"

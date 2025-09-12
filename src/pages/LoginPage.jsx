@@ -41,7 +41,7 @@ function LoginPage({ onBackToHomeClick, onNavigateToForgotPassword }) { // Adici
              <div className="w-full max-w-sm">
                 <div className="text-center mb-8">
                     <StarIcon className="h-12 w-12 text-purple-400 mx-auto" />
-                    <h1 className="text-3xl font-bold mt-2">Sincro App</h1>
+                    <h1 className="text-3xl font-bold mt-2">SincroApp</h1>
                     <p className="text-gray-400">{isLogin ? 'Bem-vindo(a) de volta!' : 'Crie sua conta'}</p>
                 </div>
                 <div className="bg-gray-800/50 p-8 rounded-2xl border border-gray-700 shadow-xl">
