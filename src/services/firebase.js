@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getAuth, connectAuthEmulator } from "firebase/auth";
+import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -22,9 +22,27 @@ if (!firebaseConfig.apiKey) {
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   db = getFirestore(app);
+
+  // ** CÓDIGO DE CONEXÃO COM O EMULADOR **
+  // A variável import.meta.env.DEV é fornecida pelo Vite e só é verdadeira
+  // quando você roda o comando `npm run dev`.
+  if (import.meta.env.DEV) {
+    try {
+      // Conecta o serviço de Autenticação ao emulador local
+      connectAuthEmulator(auth, "http://127.0.0.1:9099");
+      
+      // Conecta o serviço do Firestore ao emulador local
+      // O Firestore também precisa ser conectado, pois sua função lê o nome do usuário do banco.
+      connectFirestoreEmulator(db, "127.0.0.1", 8080); 
+      
+      console.log("Conectado aos emuladores do Firebase: Auth e Firestore");
+    } catch (error) {
+      console.error("Erro ao conectar aos emuladores:", error);
+    }
+  }
+
   console.log("Firebase inicializado com sucesso!");
 }
 
 // Exporta as variáveis, mesmo que estejam vazias, para evitar erros de importação
 export { app, auth, db };
-

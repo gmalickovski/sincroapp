@@ -118,7 +118,6 @@ function App() {
                 if (userDoc.exists()) { 
                     setUserData(userDoc.data()); 
                     setShowDetailsModal(false);
-                    // Apenas muda para 'app' se não estiver em 'settings'
                     if (appState !== 'settings') {
                        setAppState('app'); 
                     }
@@ -129,15 +128,15 @@ function App() {
             } else { 
                 setUser(null); 
                 setUserData(null);
-                 // Se o usuário deslogar, vai para a landing page, a menos que esteja
-                 // navegando nas páginas legais ou de recuperação
-                if (appState !== 'privacy' && appState !== 'terms' && appState !== 'forgotPassword') {
+                // CORREÇÃO APLICADA AQUI:
+                // Adicionamos a verificação para não interferir na navegação para a página de login.
+                if (appState !== 'login' && appState !== 'privacy' && appState !== 'terms' && appState !== 'forgotPassword') {
                     setAppState('landing');
                 }
             }
         });
         return () => unsubscribe();
-    }, [appState]);
+    }, [appState]); // Adicionamos appState à dependência para a lógica refletir o estado atual
 
     const handleSaveUserDetails = async ({ nome, dataNasc }) => {
         if (user) {
@@ -167,13 +166,11 @@ function App() {
                 if (user && userData) {
                     return <SettingsPage user={user} userData={userData} onBackToApp={() => setAppState('app')} />;
                 }
-                // Se o usuário chegar aqui sem estar logado, volta para o início
                 if (!user) setAppState('landing');
                 return <div className="min-h-screen bg-gray-900 flex items-center justify-center"><Spinner /></div>;
             case 'app':
                 if (showDetailsModal) { return <UserDetailsModal onSave={handleSaveUserDetails} />; }
                 if (user && userData) { return <AppLayout user={user} userData={userData} onLogout={handleLogout} setEditingEntry={setEditingEntry} openNewNoteEditor={openNewNoteEditor} onInfoClick={handleInfoClick} activeView={activeView} setActiveView={setActiveView} onNavigateToSettings={() => setAppState('settings')} />; }
-                 // Se o usuário chegar aqui sem estar logado, volta para o início
                 if (!user) setAppState('landing');
                 return <div className="min-h-screen bg-gray-900 flex items-center justify-center"><Spinner /></div>;
             default: return <LandingPage onEnterClick={() => setAppState('login')} onNavigate={handleNavigate} />;
