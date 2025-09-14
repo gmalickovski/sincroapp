@@ -13,36 +13,33 @@ const firebaseConfig = {
 
 let app;
 let auth;
-let db;
+let firestore;
 
-// Verificação crucial sem travar o app
+// Verificação para garantir que as variáveis de ambiente foram carregadas
 if (!firebaseConfig.apiKey) {
-  console.error("ERRO CRÍTICO: As credenciais do Firebase não foram encontradas em import.meta.env. O arquivo .env.local pode não estar sendo lido. Verifique se ele está na pasta raiz e se o servidor foi reiniciado.");
+  console.error("ERRO CRÍTICO: As credenciais do Firebase não foram encontradas. Verifique se o arquivo .env.local está na pasta raiz do projeto e se o servidor de desenvolvimento foi reiniciado.");
 } else {
+  // Inicializa o Firebase
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
-  db = getFirestore(app);
+  firestore = getFirestore(app);
 
-  // ** CÓDIGO DE CONEXÃO COM O EMULADOR **
-  // A variável import.meta.env.DEV é fornecida pelo Vite e só é verdadeira
-  // quando você roda o comando `npm run dev`.
+  // Conecta aos emuladores locais APENAS em ambiente de desenvolvimento
+  // A variável import.meta.env.DEV é fornecida pelo Vite e é `true` ao rodar `npm run dev`.
   if (import.meta.env.DEV) {
     try {
-      // Conecta o serviço de Autenticação ao emulador local
+      // Conecta ao emulador de Autenticação
       connectAuthEmulator(auth, "http://127.0.0.1:9099");
       
-      // Conecta o serviço do Firestore ao emulador local
-      // O Firestore também precisa ser conectado, pois sua função lê o nome do usuário do banco.
-      connectFirestoreEmulator(db, "127.0.0.1", 8080); 
+      // Conecta ao emulador do Firestore
+      connectFirestoreEmulator(firestore, "127.0.0.1", 8080); 
       
-      console.log("Conectado aos emuladores do Firebase: Auth e Firestore");
+      console.log("✅ Conectado aos emuladores do Firebase: Auth e Firestore");
     } catch (error) {
-      console.error("Erro ao conectar aos emuladores:", error);
+      console.error("❌ Erro ao conectar aos emuladores:", error);
     }
   }
-
-  console.log("Firebase inicializado com sucesso!");
 }
 
-// Exporta as variáveis, mesmo que estejam vazias, para evitar erros de importação
-export { app, auth, db };
+// Exporta as instâncias para serem usadas em outras partes do aplicativo
+export { app, auth, firestore };
