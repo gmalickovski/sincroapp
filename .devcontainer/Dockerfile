@@ -1,5 +1,5 @@
 # Use a imagem oficial do Node.js v18 como base
-FROM mcr.microsoft.com/devcontainers/javascript-node:0-18
+FROM mcr.microsoft.com/devcontainers/javascript-node:0-20
 
 # Instala o Java (necessário para o emulador do Firestore) e o Firebase CLI
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \

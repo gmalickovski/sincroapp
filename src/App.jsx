@@ -5,7 +5,7 @@ import { auth, db } from './services/firebase';
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc, setDoc, addDoc, collection, Timestamp } from "firebase/firestore";
 import { textosDescritivos } from './data/content';
-import { runMigration } from './migration.js'; 
+import { runMigration } from './migration.js';
 
 // Componentes e Páginas
 import Spinner from './components/ui/Spinner';

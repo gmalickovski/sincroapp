@@ -1,192 +1,52 @@
-[debug] [2025-09-14T04:48:06.711Z] ----------------------------------------------------------------------
-[debug] [2025-09-14T04:48:06.715Z] Command:       /usr/local/share/nvm/versions/node/v18.20.8/bin/node /usr/local/share/npm-global/bin/firebase emulators:start
-[debug] [2025-09-14T04:48:06.716Z] CLI Version:   13.35.1
-[debug] [2025-09-14T04:48:06.716Z] Platform:      linux
-[debug] [2025-09-14T04:48:06.717Z] Node Version:  v18.20.8
-[debug] [2025-09-14T04:48:06.717Z] Time:          Sun Sep 14 2025 04:48:06 GMT+0000 (Coordinated Universal Time)
-[debug] [2025-09-14T04:48:06.718Z] ----------------------------------------------------------------------
+[debug] [2025-09-16T04:06:03.716Z] ----------------------------------------------------------------------
+[debug] [2025-09-16T04:06:03.725Z] Command:       /usr/local/bin/node /workspaces/sincroapp/node_modules/firebase-tools/lib/bin/firebase.js emulators:start --only functions,auth,firestore
+[debug] [2025-09-16T04:06:03.726Z] CLI Version:   13.35.1
+[debug] [2025-09-16T04:06:03.727Z] Platform:      linux
+[debug] [2025-09-16T04:06:03.727Z] Node Version:  v20.2.0
+[debug] [2025-09-16T04:06:03.727Z] Time:          Tue Sep 16 2025 04:06:03 GMT+0000 (Coordinated Universal Time)
+[debug] [2025-09-16T04:06:03.728Z] ----------------------------------------------------------------------
 [debug] 
-[debug] [2025-09-14T04:48:07.305Z] Field "/functions" in "firebase.json" is possibly invalid: must be object
-[debug] [2025-09-14T04:48:07.306Z] Object "/functions/0" in "firebase.json" has unknown property: {"additionalProperty":"main"}
-[debug] [2025-09-14T04:48:07.306Z] Field "/functions" in "firebase.json" is possibly invalid: must match a schema in anyOf
-[debug] [2025-09-14T04:48:07.346Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
-[debug] [2025-09-14T04:48:07.346Z] > authorizing via signed-in user (studiomalickovski@gmail.com)
-[debug] [2025-09-14T04:48:08.336Z] openjdk version "17.0.16" 2025-07-15
+[debug] [2025-09-16T04:06:04.524Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-09-16T04:06:04.526Z] > authorizing via signed-in user (studiomalickovski@gmail.com)
+[debug] [2025-09-16T04:06:05.515Z] openjdk version "17.0.16" 2025-07-15
 
-[debug] [2025-09-14T04:48:08.338Z] OpenJDK Runtime Environment (build 17.0.16+8-Debian-1deb11u1)
+[debug] [2025-09-16T04:06:05.517Z] OpenJDK Runtime Environment (build 17.0.16+8-Debian-1deb11u1)
 OpenJDK 64-Bit Server VM (build 17.0.16+8-Debian-1deb11u1, mixed mode, sharing)
 
-[debug] [2025-09-14T04:48:08.379Z] Parsed Java major version: 17
-[info] i  emulators: Starting emulators: auth, functions, firestore, extensions {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: auth, functions, firestore, extensions"}}
-[debug] [2025-09-14T04:48:08.387Z] Checked if tokens are valid: false, expires at: 1757826170042
-[debug] [2025-09-14T04:48:08.388Z] Checked if tokens are valid: false, expires at: 1757826170042
-[debug] [2025-09-14T04:48:08.389Z] > refreshing access token with scopes: []
-[debug] [2025-09-14T04:48:08.396Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
-[debug] [2025-09-14T04:48:08.397Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
-[debug] [2025-09-14T04:48:08.646Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
-[debug] [2025-09-14T04:48:08.646Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
-[debug] [2025-09-14T04:48:08.671Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/sincroapp-529cc [none]
-[debug] [2025-09-14T04:48:09.695Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/sincroapp-529cc 200
-[debug] [2025-09-14T04:48:09.695Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/sincroapp-529cc {"projectNumber":"1011842661481","projectId":"sincroapp-529cc","lifecycleState":"ACTIVE","name":"sincroapp","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-09-03T15:27:02.690625Z"}
-[debug] [2025-09-14T04:48:09.712Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-09-14T04:48:09.712Z] [auth] Authentication Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-09-14T04:48:09.712Z] [firestore] Firestore Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-09-14T04:48:09.712Z] [firestore.websocket] websocket server for firestore only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-09-14T04:48:09.713Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"auth":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"firestore":[{"address":"127.0.0.1","family":"IPv4","port":8080}],"firestore.websocket":[{"address":"127.0.0.1","family":"IPv4","port":9150}]},"metadata":{"message":"assigned listening specs for emulators"}}
-[debug] [2025-09-14T04:48:09.723Z] [hub] writing locator at /tmp/hub-sincroapp-529cc.json
-[debug] [2025-09-14T04:48:09.735Z] [Extensions] Started Extensions emulator, this is a noop.
-[debug] [2025-09-14T04:48:09.737Z] [functions] Functions Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-09-14T04:48:09.737Z] [eventarc] Eventarc Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-09-14T04:48:09.737Z] [tasks] Cloud Tasks Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-09-14T04:48:09.737Z] late-assigned ports for functions and eventarc emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"auth":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"firestore":[{"address":"127.0.0.1","family":"IPv4","port":8080}],"firestore.websocket":[{"address":"127.0.0.1","family":"IPv4","port":9150}],"functions":[{"address":"127.0.0.1","family":"IPv4","port":5001}],"eventarc":[{"address":"127.0.0.1","family":"IPv4","port":9299}],"tasks":[{"address":"127.0.0.1","family":"IPv4","port":9499}]},"metadata":{"message":"late-assigned ports for functions and eventarc emulators"}}
+[debug] [2025-09-16T04:06:05.551Z] Parsed Java major version: 17
+[info] i  emulators: Starting emulators: auth, functions, firestore {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: auth, functions, firestore"}}
+[debug] [2025-09-16T04:06:05.571Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-09-16T04:06:05.571Z] [auth] Authentication Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-09-16T04:06:05.572Z] [firestore] Firestore Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-09-16T04:06:05.572Z] [firestore.websocket] websocket server for firestore only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-09-16T04:06:05.573Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"auth":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"firestore":[{"address":"127.0.0.1","family":"IPv4","port":8080}],"firestore.websocket":[{"address":"127.0.0.1","family":"IPv4","port":9150}]},"metadata":{"message":"assigned listening specs for emulators"}}
+[debug] [2025-09-16T04:06:05.588Z] [hub] writing locator at /tmp/hub-sincroapp-529cc.json
+[debug] [2025-09-16T04:06:05.607Z] [functions] Functions Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-09-16T04:06:05.609Z] [eventarc] Eventarc Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-09-16T04:06:05.610Z] [tasks] Cloud Tasks Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-09-16T04:06:05.610Z] late-assigned ports for functions and eventarc emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"auth":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"firestore":[{"address":"127.0.0.1","family":"IPv4","port":8080}],"firestore.websocket":[{"address":"127.0.0.1","family":"IPv4","port":9150}],"functions":[{"address":"127.0.0.1","family":"IPv4","port":5001}],"eventarc":[{"address":"127.0.0.1","family":"IPv4","port":9299}],"tasks":[{"address":"127.0.0.1","family":"IPv4","port":9499}]},"metadata":{"message":"late-assigned ports for functions and eventarc emulators"}}
 [warn] ⚠  functions: The following emulators are not running, calls to these services from the Functions emulator will affect production: apphosting, database, hosting, pubsub, storage, dataconnect {"metadata":{"emulator":{"name":"functions"},"message":"The following emulators are not running, calls to these services from the Functions emulator will affect production: \u001b[1mapphosting, database, hosting, pubsub, storage, dataconnect\u001b[22m"}}
-[debug] [2025-09-14T04:48:09.760Z] defaultcredentials: writing to file /home/node/.config/firebase/studiomalickovski_gmail_com_application_default_credentials.json
-[debug] [2025-09-14T04:48:09.764Z] Setting GAC to /home/node/.config/firebase/studiomalickovski_gmail_com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to /home/node/.config/firebase/studiomalickovski_gmail_com_application_default_credentials.json"}}
-[debug] [2025-09-14T04:48:09.765Z] Checked if tokens are valid: true, expires at: 1757828887647
-[debug] [2025-09-14T04:48:09.765Z] Checked if tokens are valid: true, expires at: 1757828887647
-[debug] [2025-09-14T04:48:09.765Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/sincroapp-529cc/adminSdkConfig [none]
-[debug] [2025-09-14T04:48:10.224Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/sincroapp-529cc/adminSdkConfig 200
-[debug] [2025-09-14T04:48:10.224Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/sincroapp-529cc/adminSdkConfig {"projectId":"sincroapp-529cc","storageBucket":"sincroapp-529cc.firebasestorage.app"}
-[warn] ⚠  firestore: Cloud Firestore Emulator does not support multiple databases yet. {"metadata":{"emulator":{"name":"firestore"},"message":"Cloud Firestore Emulator does not support multiple databases yet."}}
-[warn] ⚠  firestore: Did not find a Cloud Firestore rules file specified in a firebase.json config file. {"metadata":{"emulator":{"name":"firestore"},"message":"Did not find a Cloud Firestore rules file specified in a firebase.json config file."}}
-[warn] ⚠  firestore: The emulator will default to allowing all reads and writes. Learn more about this option: https://firebase.google.com/docs/emulator-suite/install_and_configure#security_rules_configuration. {"metadata":{"emulator":{"name":"firestore"},"message":"The emulator will default to allowing all reads and writes. Learn more about this option: https://firebase.google.com/docs/emulator-suite/install_and_configure#security_rules_configuration."}}
-[debug] [2025-09-14T04:48:10.269Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"firestore"},"message":"Ignoring unsupported arg: auto_download"}}
-[debug] [2025-09-14T04:48:10.269Z] Ignoring unsupported arg: single_project_mode_error {"metadata":{"emulator":{"name":"firestore"},"message":"Ignoring unsupported arg: single_project_mode_error"}}
-[debug] [2025-09-14T04:48:10.270Z] Starting Firestore Emulator with command {"binary":"java","args":["-Dgoogle.cloud_firestore.debug_log_level=FINE","-Duser.language=en","-jar","/home/node/.cache/firebase/emulators/cloud-firestore-emulator-v1.19.8.jar","--host","127.0.0.1","--port",8080,"--websocket_port",9150,"--project_id","sincroapp-529cc","--single_project_mode",true,"--functions_emulator","127.0.0.1:5001"],"optionalArgs":["port","webchannel_port","host","rules","websocket_port","functions_emulator","seed_from_export","project_id","single_project_mode"],"joinArgs":false,"shell":false,"port":8080} {"metadata":{"emulator":{"name":"firestore"},"message":"Starting Firestore Emulator with command {\"binary\":\"java\",\"args\":[\"-Dgoogle.cloud_firestore.debug_log_level=FINE\",\"-Duser.language=en\",\"-jar\",\"/home/node/.cache/firebase/emulators/cloud-firestore-emulator-v1.19.8.jar\",\"--host\",\"127.0.0.1\",\"--port\",8080,\"--websocket_port\",9150,\"--project_id\",\"sincroapp-529cc\",\"--single_project_mode\",true,\"--functions_emulator\",\"127.0.0.1:5001\"],\"optionalArgs\":[\"port\",\"webchannel_port\",\"host\",\"rules\",\"websocket_port\",\"functions_emulator\",\"seed_from_export\",\"project_id\",\"single_project_mode\"],\"joinArgs\":false,\"shell\":false,\"port\":8080}"}}
+[debug] [2025-09-16T04:06:05.667Z] defaultcredentials: writing to file /home/node/.config/firebase/studiomalickovski_gmail_com_application_default_credentials.json
+[debug] [2025-09-16T04:06:05.675Z] Setting GAC to /home/node/.config/firebase/studiomalickovski_gmail_com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to /home/node/.config/firebase/studiomalickovski_gmail_com_application_default_credentials.json"}}
+[debug] [2025-09-16T04:06:05.679Z] Checked if tokens are valid: false, expires at: 1757994045751
+[debug] [2025-09-16T04:06:05.680Z] Checked if tokens are valid: false, expires at: 1757994045751
+[debug] [2025-09-16T04:06:05.682Z] > refreshing access token with scopes: []
+[debug] [2025-09-16T04:06:05.689Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-09-16T04:06:05.690Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-09-16T04:06:05.950Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-09-16T04:06:05.950Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-09-16T04:06:05.975Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/sincroapp-529cc/adminSdkConfig [none]
+[debug] [2025-09-16T04:06:06.460Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/sincroapp-529cc/adminSdkConfig 200
+[debug] [2025-09-16T04:06:06.460Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/sincroapp-529cc/adminSdkConfig {"projectId":"sincroapp-529cc","storageBucket":"sincroapp-529cc.firebasestorage.app"}
+[debug] [2025-09-16T04:06:06.501Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"firestore"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2025-09-16T04:06:06.501Z] Ignoring unsupported arg: single_project_mode_error {"metadata":{"emulator":{"name":"firestore"},"message":"Ignoring unsupported arg: single_project_mode_error"}}
+[debug] [2025-09-16T04:06:06.501Z] Starting Firestore Emulator with command {"binary":"java","args":["-Dgoogle.cloud_firestore.debug_log_level=FINE","-Duser.language=en","-jar","/home/node/.cache/firebase/emulators/cloud-firestore-emulator-v1.19.8.jar","--host","127.0.0.1","--port",8080,"--websocket_port",9150,"--project_id","sincroapp-529cc","--rules","/workspaces/sincroapp/firestore.rules","--single_project_mode",true,"--functions_emulator","127.0.0.1:5001"],"optionalArgs":["port","webchannel_port","host","rules","websocket_port","functions_emulator","seed_from_export","project_id","single_project_mode"],"joinArgs":false,"shell":false,"port":8080} {"metadata":{"emulator":{"name":"firestore"},"message":"Starting Firestore Emulator with command {\"binary\":\"java\",\"args\":[\"-Dgoogle.cloud_firestore.debug_log_level=FINE\",\"-Duser.language=en\",\"-jar\",\"/home/node/.cache/firebase/emulators/cloud-firestore-emulator-v1.19.8.jar\",\"--host\",\"127.0.0.1\",\"--port\",8080,\"--websocket_port\",9150,\"--project_id\",\"sincroapp-529cc\",\"--rules\",\"/workspaces/sincroapp/firestore.rules\",\"--single_project_mode\",true,\"--functions_emulator\",\"127.0.0.1:5001\"],\"optionalArgs\":[\"port\",\"webchannel_port\",\"host\",\"rules\",\"websocket_port\",\"functions_emulator\",\"seed_from_export\",\"project_id\",\"single_project_mode\"],\"joinArgs\":false,\"shell\":false,\"port\":8080}"}}
 [info] i  firestore: Firestore Emulator logging to firestore-debug.log {"metadata":{"emulator":{"name":"firestore"},"message":"Firestore Emulator logging to \u001b[1mfirestore-debug.log\u001b[22m"}}
-[debug] [2025-09-14T04:48:14.800Z] Sep 14, 2025 4:48:14 AM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketServer start
+[debug] [2025-09-16T04:06:10.002Z] Sep 16, 2025 4:06:09 AM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketServer start
 INFO: Started WebSocket server on ws://127.0.0.1:9150
- {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 14, 2025 4:48:14 AM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketServer start\nINFO: Started WebSocket server on ws://127.0.0.1:9150\n"}}
-[debug] [2025-09-14T04:48:14.956Z] API endpoint: http://127.0.0.1:8080 {"metadata":{"emulator":{"name":"firestore"},"message":"API endpoint: http://127.0.0.1:8080"}}
-[debug] [2025-09-14T04:48:14.958Z] 
-If you are using a library that supports the FIRESTORE_EMULATOR_HOST environment variable, run:
-
-   export FIRESTORE_EMULATOR_HOST=127.0.0.1:8080
-
-If you are running a Firestore in Datastore Mode project, run:
-
-   export DATASTORE_EMULATOR_HOST=127.0.0.1:8080
-
-Note: Support for Datastore Mode is in preview. If you encounter any bugs please file at https://github.com/firebase/firebase-tools/issues.
-Dev App Server is now running.
-
- {"metadata":{"emulator":{"name":"firestore"},"message":"\nIf you are using a library that supports the FIRESTORE_EMULATOR_HOST environment variable, run:\n\n   export FIRESTORE_EMULATOR_HOST=127.0.0.1:8080\n\nIf you are running a Firestore in Datastore Mode project, run:\n\n   export DATASTORE_EMULATOR_HOST=127.0.0.1:8080\n\nNote: Support for Datastore Mode is in preview. If you encounter any bugs please file at https://github.com/firebase/firebase-tools/issues.\nDev App Server is now running.\n\n"}}
-[info] ✔  firestore: Firestore Emulator UI websocket is running on 9150. {"metadata":{"emulator":{"name":"firestore"},"message":"Firestore Emulator UI websocket is running on 9150."}}
-[debug] [2025-09-14T04:48:35.251Z] [Extensions] Connecting Extensions emulator, this is a noop.
-[info] i  functions: Watching "/workspaces/Sincro App/functions" for Cloud Functions... {"metadata":{"emulator":{"name":"functions"},"message":"Watching \"/workspaces/Sincro App/functions\" for Cloud Functions..."}}
-[debug] [2025-09-14T04:48:35.282Z] Validating nodejs source
-[warn] ⚠  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
-[warn] ⚠  functions: Please note that there will be breaking changes when you upgrade. 
-[debug] [2025-09-14T04:48:36.638Z] > [functions] package.json contents: {
-  "name": "functions",
-  "description": "Cloud Functions for Firebase",
-  "main": "index.js",
-  "dependencies": {
-    "axios": "^1.7.2",
-    "firebase-admin": "^12.1.0",
-    "firebase-functions": "^5.0.1"
-  },
-  "engines": {
-    "node": "18"
-  },
-  "private": true
-}
-[debug] [2025-09-14T04:48:36.643Z] Building nodejs source
-[debug] [2025-09-14T04:48:36.645Z] Failed to find version of module node: reached end of search path /workspaces/Sincro App/functions/node_modules
-[info] ✔  functions: Using node@18 from host. 
-[debug] [2025-09-14T04:48:36.671Z] Could not find functions.yaml. Must use http discovery
-[debug] [2025-09-14T04:48:36.713Z] Found firebase-functions binary at '/workspaces/Sincro App/functions/node_modules/.bin/firebase-functions'
-[info] Serving at port 8141
-
-[debug] [2025-09-14T04:49:07.595Z] Got response from /__/functions.yaml {"endpoints":{"sendWelcomeEmail":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"eventTrigger":{"eventType":"providers/firebase.auth/eventTypes/user.create","eventFilters":{"resource":"projects/sincroapp-529cc"},"retry":false},"labels":{},"entryPoint":"sendWelcomeEmail"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
-[debug] [2025-09-14T04:49:07.634Z] defaultcredentials: writing to file /home/node/.config/firebase/studiomalickovski_gmail_com_application_default_credentials.json
-[debug] [2025-09-14T04:49:07.637Z] Setting GAC to /home/node/.config/firebase/studiomalickovski_gmail_com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to /home/node/.config/firebase/studiomalickovski_gmail_com_application_default_credentials.json"}}
-[info] ✔  functions: Loaded functions definitions from source: sendWelcomeEmail. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: sendWelcomeEmail."}}
-[debug] [2025-09-14T04:49:07.642Z] addAuthTrigger {"eventTrigger":{"eventType":"providers/firebase.auth/eventTypes/user.create","resource":"projects/sincroapp-529cc"}}
-[info] ✔  functions[us-central1-sendWelcomeEmail]: auth function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mauth\u001b[22m function initialized."}}
-[debug] [2025-09-14T04:49:07.656Z] Could not find VSCode notification endpoint: FetchError: request to http://localhost:40001/vscode/notify failed, reason: connect ECONNREFUSED 127.0.0.1:40001. If you are not running the Firebase Data Connect VSCode extension, this is expected and not an issue.
-[info] 
-┌─────────────────────────────────────────────────────────────┐
-│ ✔  All emulators ready! It is now safe to connect your app. │
-│ i  View Emulator UI at http://127.0.0.1:4000/               │
-└─────────────────────────────────────────────────────────────┘
-
-┌────────────────┬────────────────┬──────────────────────────────────┐
-│ Emulator       │ Host:Port      │ View in Emulator UI              │
-├────────────────┼────────────────┼──────────────────────────────────┤
-│ Authentication │ 127.0.0.1:9099 │ http://127.0.0.1:4000/auth       │
-├────────────────┼────────────────┼──────────────────────────────────┤
-│ Functions      │ 127.0.0.1:5001 │ http://127.0.0.1:4000/functions  │
-├────────────────┼────────────────┼──────────────────────────────────┤
-│ Firestore      │ 127.0.0.1:8080 │ http://127.0.0.1:4000/firestore  │
-├────────────────┼────────────────┼──────────────────────────────────┤
-│ Extensions     │ 127.0.0.1:5001 │ http://127.0.0.1:4000/extensions │
-└────────────────┴────────────────┴──────────────────────────────────┘
-  Emulator Hub host: 127.0.0.1 port: 4400
-  Other reserved ports: 4500, 9150
-┌─────────────────────────┬───────────────┬─────────────────────┐
-│ Extension Instance Name │ Extension Ref │ View in Emulator UI │
-└─────────────────────────┴───────────────┴─────────────────────┘
-Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
- 
-[debug] [2025-09-14T05:02:24.503Z] Received signal SIGHUP 1
-[debug] [2025-09-14T05:04:39.995Z] ----------------------------------------------------------------------
-[debug] [2025-09-14T05:04:40.010Z] Command:       /usr/local/share/nvm/versions/node/v18.20.8/bin/node /usr/local/share/npm-global/bin/firebase emulators:start
-[debug] [2025-09-14T05:04:40.013Z] CLI Version:   13.35.1
-[debug] [2025-09-14T05:04:40.015Z] Platform:      linux
-[debug] [2025-09-14T05:04:40.016Z] Node Version:  v18.20.8
-[debug] [2025-09-14T05:04:40.040Z] Time:          Sun Sep 14 2025 05:04:40 GMT+0000 (Coordinated Universal Time)
-[debug] [2025-09-14T05:04:40.042Z] ----------------------------------------------------------------------
-[debug] 
-[debug] [2025-09-14T05:04:42.453Z] Field "/functions" in "firebase.json" is possibly invalid: must be object
-[debug] [2025-09-14T05:04:42.455Z] Object "/functions/0" in "firebase.json" has unknown property: {"additionalProperty":"main"}
-[debug] [2025-09-14T05:04:42.456Z] Field "/functions" in "firebase.json" is possibly invalid: must match a schema in anyOf
-[debug] [2025-09-14T05:04:42.552Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
-[debug] [2025-09-14T05:04:42.555Z] > authorizing via signed-in user (studiomalickovski@gmail.com)
-[debug] [2025-09-14T05:04:43.994Z] openjdk version "17.0.16" 2025-07-15
-
-[debug] [2025-09-14T05:04:43.996Z] OpenJDK Runtime Environment (build 17.0.16+8-Debian-1deb11u1)
-OpenJDK 64-Bit Server VM (build 17.0.16+8-Debian-1deb11u1, mixed mode, sharing)
-
-[debug] [2025-09-14T05:04:44.085Z] Parsed Java major version: 17
-[info] i  emulators: Starting emulators: auth, functions, firestore, extensions {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: auth, functions, firestore, extensions"}}
-[debug] [2025-09-14T05:04:44.100Z] Checked if tokens are valid: true, expires at: 1757828887647
-[debug] [2025-09-14T05:04:44.104Z] Checked if tokens are valid: true, expires at: 1757828887647
-[debug] [2025-09-14T05:04:44.111Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/sincroapp-529cc [none]
-[debug] [2025-09-14T05:04:45.242Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/sincroapp-529cc 200
-[debug] [2025-09-14T05:04:45.244Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/sincroapp-529cc {"projectNumber":"1011842661481","projectId":"sincroapp-529cc","lifecycleState":"ACTIVE","name":"sincroapp","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-09-03T15:27:02.690625Z"}
-[debug] [2025-09-14T05:04:45.351Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-09-14T05:04:45.353Z] [auth] Authentication Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-09-14T05:04:45.354Z] [firestore] Firestore Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-09-14T05:04:45.355Z] [firestore.websocket] websocket server for firestore only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-09-14T05:04:45.359Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"auth":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"firestore":[{"address":"127.0.0.1","family":"IPv4","port":8080}],"firestore.websocket":[{"address":"127.0.0.1","family":"IPv4","port":9150}]},"metadata":{"message":"assigned listening specs for emulators"}}
-[warn] ⚠  emulators: It seems that you are running multiple instances of the emulator suite for project sincroapp-529cc. This may result in unexpected behavior. 
-[debug] [2025-09-14T05:04:45.417Z] [hub] writing locator at /tmp/hub-sincroapp-529cc.json
-[debug] [2025-09-14T05:04:45.483Z] [Extensions] Started Extensions emulator, this is a noop.
-[debug] [2025-09-14T05:04:45.498Z] [functions] Functions Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-09-14T05:04:45.499Z] [eventarc] Eventarc Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-09-14T05:04:45.499Z] [tasks] Cloud Tasks Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-09-14T05:04:45.500Z] late-assigned ports for functions and eventarc emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"auth":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"firestore":[{"address":"127.0.0.1","family":"IPv4","port":8080}],"firestore.websocket":[{"address":"127.0.0.1","family":"IPv4","port":9150}],"functions":[{"address":"127.0.0.1","family":"IPv4","port":5001}],"eventarc":[{"address":"127.0.0.1","family":"IPv4","port":9299}],"tasks":[{"address":"127.0.0.1","family":"IPv4","port":9499}]},"metadata":{"message":"late-assigned ports for functions and eventarc emulators"}}
-[warn] ⚠  functions: The following emulators are not running, calls to these services from the Functions emulator will affect production: apphosting, database, hosting, pubsub, storage, dataconnect {"metadata":{"emulator":{"name":"functions"},"message":"The following emulators are not running, calls to these services from the Functions emulator will affect production: \u001b[1mapphosting, database, hosting, pubsub, storage, dataconnect\u001b[22m"}}
-[debug] [2025-09-14T05:04:45.687Z] defaultcredentials: writing to file /home/node/.config/firebase/studiomalickovski_gmail_com_application_default_credentials.json
-[debug] [2025-09-14T05:04:45.721Z] Setting GAC to /home/node/.config/firebase/studiomalickovski_gmail_com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to /home/node/.config/firebase/studiomalickovski_gmail_com_application_default_credentials.json"}}
-[debug] [2025-09-14T05:04:45.726Z] Checked if tokens are valid: true, expires at: 1757828887647
-[debug] [2025-09-14T05:04:45.726Z] Checked if tokens are valid: true, expires at: 1757828887647
-[debug] [2025-09-14T05:04:45.728Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/sincroapp-529cc/adminSdkConfig [none]
-[debug] [2025-09-14T05:04:46.261Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/sincroapp-529cc/adminSdkConfig 200
-[debug] [2025-09-14T05:04:46.262Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/sincroapp-529cc/adminSdkConfig {"projectId":"sincroapp-529cc","storageBucket":"sincroapp-529cc.firebasestorage.app"}
-[warn] ⚠  firestore: Cloud Firestore Emulator does not support multiple databases yet. {"metadata":{"emulator":{"name":"firestore"},"message":"Cloud Firestore Emulator does not support multiple databases yet."}}
-[warn] ⚠  firestore: Did not find a Cloud Firestore rules file specified in a firebase.json config file. {"metadata":{"emulator":{"name":"firestore"},"message":"Did not find a Cloud Firestore rules file specified in a firebase.json config file."}}
-[warn] ⚠  firestore: The emulator will default to allowing all reads and writes. Learn more about this option: https://firebase.google.com/docs/emulator-suite/install_and_configure#security_rules_configuration. {"metadata":{"emulator":{"name":"firestore"},"message":"The emulator will default to allowing all reads and writes. Learn more about this option: https://firebase.google.com/docs/emulator-suite/install_and_configure#security_rules_configuration."}}
-[debug] [2025-09-14T05:04:46.427Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"firestore"},"message":"Ignoring unsupported arg: auto_download"}}
-[debug] [2025-09-14T05:04:46.428Z] Ignoring unsupported arg: single_project_mode_error {"metadata":{"emulator":{"name":"firestore"},"message":"Ignoring unsupported arg: single_project_mode_error"}}
-[debug] [2025-09-14T05:04:46.429Z] Starting Firestore Emulator with command {"binary":"java","args":["-Dgoogle.cloud_firestore.debug_log_level=FINE","-Duser.language=en","-jar","/home/node/.cache/firebase/emulators/cloud-firestore-emulator-v1.19.8.jar","--host","127.0.0.1","--port",8080,"--websocket_port",9150,"--project_id","sincroapp-529cc","--single_project_mode",true,"--functions_emulator","127.0.0.1:5001"],"optionalArgs":["port","webchannel_port","host","rules","websocket_port","functions_emulator","seed_from_export","project_id","single_project_mode"],"joinArgs":false,"shell":false,"port":8080} {"metadata":{"emulator":{"name":"firestore"},"message":"Starting Firestore Emulator with command {\"binary\":\"java\",\"args\":[\"-Dgoogle.cloud_firestore.debug_log_level=FINE\",\"-Duser.language=en\",\"-jar\",\"/home/node/.cache/firebase/emulators/cloud-firestore-emulator-v1.19.8.jar\",\"--host\",\"127.0.0.1\",\"--port\",8080,\"--websocket_port\",9150,\"--project_id\",\"sincroapp-529cc\",\"--single_project_mode\",true,\"--functions_emulator\",\"127.0.0.1:5001\"],\"optionalArgs\":[\"port\",\"webchannel_port\",\"host\",\"rules\",\"websocket_port\",\"functions_emulator\",\"seed_from_export\",\"project_id\",\"single_project_mode\"],\"joinArgs\":false,\"shell\":false,\"port\":8080}"}}
-[info] i  firestore: Firestore Emulator logging to firestore-debug.log {"metadata":{"emulator":{"name":"firestore"},"message":"Firestore Emulator logging to \u001b[1mfirestore-debug.log\u001b[22m"}}
-[debug] [2025-09-14T05:04:55.151Z] Sep 14, 2025 5:04:54 AM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketServer start
-INFO: Started WebSocket server on ws://127.0.0.1:9150
- {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 14, 2025 5:04:54 AM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketServer start\nINFO: Started WebSocket server on ws://127.0.0.1:9150\n"}}
-[debug] [2025-09-14T05:04:55.293Z] API endpoint: http:// {"metadata":{"emulator":{"name":"firestore"},"message":"API endpoint: http://"}}
-[debug] [2025-09-14T05:04:55.295Z] 127.0.0.1:8080
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:06:09 AM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketServer start\nINFO: Started WebSocket server on ws://127.0.0.1:9150\n"}}
+[debug] [2025-09-16T04:06:10.073Z] API endpoint: http:// {"metadata":{"emulator":{"name":"firestore"},"message":"API endpoint: http://"}}
+[debug] [2025-09-16T04:06:10.074Z] 127.0.0.1:8080
 If you are using a library that supports the FIRESTORE_EMULATOR_HOST environment variable, run:
 
    export FIRESTORE_EMULATOR_HOST=127.0.0.1:8080
@@ -200,60 +60,194 @@ Dev App Server is now running.
 
  {"metadata":{"emulator":{"name":"firestore"},"message":"127.0.0.1:8080\nIf you are using a library that supports the FIRESTORE_EMULATOR_HOST environment variable, run:\n\n   export FIRESTORE_EMULATOR_HOST=127.0.0.1:8080\n\nIf you are running a Firestore in Datastore Mode project, run:\n\n   export DATASTORE_EMULATOR_HOST=127.0.0.1:8080\n\nNote: Support for Datastore Mode is in preview. If you encounter any bugs please file at https://github.com/firebase/firebase-tools/issues.\nDev App Server is now running.\n\n"}}
 [info] ✔  firestore: Firestore Emulator UI websocket is running on 9150. {"metadata":{"emulator":{"name":"firestore"},"message":"Firestore Emulator UI websocket is running on 9150."}}
-[debug] [2025-09-14T05:05:33.847Z] [Extensions] Connecting Extensions emulator, this is a noop.
-[info] i  functions: Watching "/workspaces/Sincro App/functions" for Cloud Functions... {"metadata":{"emulator":{"name":"functions"},"message":"Watching \"/workspaces/Sincro App/functions\" for Cloud Functions..."}}
-[debug] [2025-09-14T05:05:33.930Z] Validating nodejs source
+[info] i  functions: Watching "/workspaces/sincroapp/functions" for Cloud Functions... {"metadata":{"emulator":{"name":"functions"},"message":"Watching \"/workspaces/sincroapp/functions\" for Cloud Functions..."}}
+[debug] [2025-09-16T04:06:23.887Z] Validating nodejs source
 [warn] ⚠  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
 [warn] ⚠  functions: Please note that there will be breaking changes when you upgrade. 
-[debug] [2025-09-14T05:05:36.396Z] > [functions] package.json contents: {
+[debug] [2025-09-16T04:06:25.122Z] > [functions] package.json contents: {
   "name": "functions",
   "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "20"
+  },
   "main": "index.js",
   "dependencies": {
     "axios": "^1.7.2",
-    "firebase-admin": "^12.1.0",
-    "firebase-functions": "^5.0.1"
+    "firebase-admin": "^11.8.0",
+    "firebase-functions": "^4.9.0"
   },
-  "engines": {
-    "node": "18"
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0"
   },
   "private": true
 }
-[debug] [2025-09-14T05:05:36.402Z] Building nodejs source
-[debug] [2025-09-14T05:05:36.403Z] Failed to find version of module node: reached end of search path /workspaces/Sincro App/functions/node_modules
-[info] ✔  functions: Using node@18 from host. 
-[debug] [2025-09-14T05:05:36.425Z] Could not find functions.yaml. Must use http discovery
-[debug] [2025-09-14T05:05:36.472Z] Found firebase-functions binary at '/workspaces/Sincro App/functions/node_modules/.bin/firebase-functions'
-[info] Serving at port 8119
+[debug] [2025-09-16T04:06:25.127Z] Building nodejs source
+[debug] [2025-09-16T04:06:25.128Z] Failed to find version of module node: reached end of search path /workspaces/sincroapp/functions/node_modules
+[info] ✔  functions: Using node@20 from host. 
+[info] i  functions: You are using a version of firebase-functions SDK (4.9.0) that does not have support for the newest Firebase Extensions features. Please update firebase-functions SDK to >=5.1.0 to use them correctly 
+[debug] [2025-09-16T04:06:25.151Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-09-16T04:06:25.182Z] Found firebase-functions binary at '/workspaces/sincroapp/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8834
 
-[debug] [2025-09-14T05:06:19.232Z] Got response from /__/functions.yaml {"endpoints":{"sendWelcomeEmail":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"eventTrigger":{"eventType":"providers/firebase.auth/eventTypes/user.create","eventFilters":{"resource":"projects/sincroapp-529cc"},"retry":false},"labels":{},"entryPoint":"sendWelcomeEmail"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
-[debug] [2025-09-14T05:06:19.354Z] defaultcredentials: writing to file /home/node/.config/firebase/studiomalickovski_gmail_com_application_default_credentials.json
-[debug] [2025-09-14T05:06:19.363Z] Setting GAC to /home/node/.config/firebase/studiomalickovski_gmail_com_application_default_credentials.json {"metadata":{"emulator":{"name":"functions"},"message":"Setting GAC to /home/node/.config/firebase/studiomalickovski_gmail_com_application_default_credentials.json"}}
-[info] ✔  functions: Loaded functions definitions from source: sendWelcomeEmail. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: sendWelcomeEmail."}}
-[debug] [2025-09-14T05:06:19.379Z] addAuthTrigger {"eventTrigger":{"eventType":"providers/firebase.auth/eventTypes/user.create","resource":"projects/sincroapp-529cc"}}
-[info] ✔  functions[us-central1-sendWelcomeEmail]: auth function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mauth\u001b[22m function initialized."}}
-[debug] [2025-09-14T05:06:19.413Z] Could not find VSCode notification endpoint: FetchError: request to http://localhost:40001/vscode/notify failed, reason: connect ECONNREFUSED 127.0.0.1:40001. If you are not running the Firebase Data Connect VSCode extension, this is expected and not an issue.
+[info] {"severity":"INFO","message":"Firestore Admin SDK conectado ao emulador em: 127.0.0.1:8080"}
+
+[debug] [2025-09-16T04:07:03.159Z] Got response from /__/functions.yaml {"endpoints":{"onUserCreate":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"eventTrigger":{"eventType":"providers/firebase.auth/eventTypes/user.create","eventFilters":{"resource":"projects/sincroapp-529cc"},"retry":false},"labels":{},"entryPoint":"onUserCreate"},"onUserDelete":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"eventTrigger":{"eventType":"providers/firebase.auth/eventTypes/user.delete","eventFilters":{"resource":"projects/sincroapp-529cc"},"retry":false},"labels":{},"entryPoint":"onUserDelete"},"onUserUpdate":{"platform":"gcfv1","availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"serviceAccountEmail":null,"vpc":null,"eventTrigger":{"eventType":"providers/cloud.firestore/eventTypes/document.update","eventFilters":{"resource":"projects/sincroapp-529cc/databases/(default)/documents/users/{userId}"},"retry":false},"labels":{},"entryPoint":"onUserUpdate"}},"specVersion":"v1alpha1","requiredAPIs":[]}
+[info] ✔  functions: Loaded functions definitions from source: onUserCreate, onUserDelete, onUserUpdate. {"metadata":{"emulator":{"name":"functions"},"message":"Loaded functions definitions from source: onUserCreate, onUserDelete, onUserUpdate."}}
+[debug] [2025-09-16T04:07:08.194Z] addAuthTrigger {"eventTrigger":{"eventType":"providers/firebase.auth/eventTypes/user.create","resource":"projects/sincroapp-529cc"}}
+[info] ✔  functions[us-central1-onUserCreate]: auth function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mauth\u001b[22m function initialized."}}
+[debug] [2025-09-16T04:07:08.195Z] addAuthTrigger {"eventTrigger":{"eventType":"providers/firebase.auth/eventTypes/user.delete","resource":"projects/sincroapp-529cc"}}
+[info] ✔  functions[us-central1-onUserDelete]: auth function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mauth\u001b[22m function initialized."}}
+[debug] [2025-09-16T04:07:08.195Z] addFirestoreTrigger "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.update\",\"resource\":\"projects/sincroapp-529cc/databases/(default)/documents/users/{userId}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2025-09-16T04:07:08.196Z] >>> [apiv2][query] PUT http://127.0.0.1:8080/emulator/v1/projects/sincroapp-529cc/triggers/us-central1-onUserUpdate-0 [none]
+[debug] [2025-09-16T04:07:08.196Z] >>> [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/sincroapp-529cc/triggers/us-central1-onUserUpdate-0 "{\"eventTrigger\":{\"eventType\":\"providers/cloud.firestore/eventTypes/document.update\",\"resource\":\"projects/sincroapp-529cc/databases/(default)/documents/users/{userId}\",\"service\":\"firestore.googleapis.com\"}}"
+[debug] [2025-09-16T04:07:08.210Z] Sep 16, 2025 4:07:08 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:07:08 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:07:08.633Z] Sep 16, 2025 4:07:08 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:07:08 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:07:09.859Z] <<< [apiv2][status] PUT http://127.0.0.1:8080/emulator/v1/projects/sincroapp-529cc/triggers/us-central1-onUserUpdate-0 200
+[debug] [2025-09-16T04:07:09.860Z] <<< [apiv2][body] PUT http://127.0.0.1:8080/emulator/v1/projects/sincroapp-529cc/triggers/us-central1-onUserUpdate-0 {}
+[info] ✔  functions[us-central1-onUserUpdate]: firestore function initialized. {"metadata":{"emulator":{"name":"functions"},"message":"\u001b[1mfirestore\u001b[22m function initialized."}}
+[debug] [2025-09-16T04:07:09.884Z] Could not find VSCode notification endpoint: FetchError: request to http://localhost:40001/vscode/notify failed, reason: connect ECONNREFUSED 127.0.0.1:40001. If you are not running the Firebase Data Connect VSCode extension, this is expected and not an issue.
 [info] 
 ┌─────────────────────────────────────────────────────────────┐
 │ ✔  All emulators ready! It is now safe to connect your app. │
 │ i  View Emulator UI at http://127.0.0.1:4000/               │
 └─────────────────────────────────────────────────────────────┘
 
-┌────────────────┬────────────────┬──────────────────────────────────┐
-│ Emulator       │ Host:Port      │ View in Emulator UI              │
-├────────────────┼────────────────┼──────────────────────────────────┤
-│ Authentication │ 127.0.0.1:9099 │ http://127.0.0.1:4000/auth       │
-├────────────────┼────────────────┼──────────────────────────────────┤
-│ Functions      │ 127.0.0.1:5001 │ http://127.0.0.1:4000/functions  │
-├────────────────┼────────────────┼──────────────────────────────────┤
-│ Firestore      │ 127.0.0.1:8080 │ http://127.0.0.1:4000/firestore  │
-├────────────────┼────────────────┼──────────────────────────────────┤
-│ Extensions     │ 127.0.0.1:5001 │ http://127.0.0.1:4000/extensions │
-└────────────────┴────────────────┴──────────────────────────────────┘
+┌────────────────┬────────────────┬─────────────────────────────────┐
+│ Emulator       │ Host:Port      │ View in Emulator UI             │
+├────────────────┼────────────────┼─────────────────────────────────┤
+│ Authentication │ 127.0.0.1:9099 │ http://127.0.0.1:4000/auth      │
+├────────────────┼────────────────┼─────────────────────────────────┤
+│ Functions      │ 127.0.0.1:5001 │ http://127.0.0.1:4000/functions │
+├────────────────┼────────────────┼─────────────────────────────────┤
+│ Firestore      │ 127.0.0.1:8080 │ http://127.0.0.1:4000/firestore │
+└────────────────┴────────────────┴─────────────────────────────────┘
   Emulator Hub host: 127.0.0.1 port: 4400
   Other reserved ports: 4500, 9150
-┌─────────────────────────┬───────────────┬─────────────────────┐
-│ Extension Instance Name │ Extension Ref │ View in Emulator UI │
-└─────────────────────────┴───────────────┴─────────────────────┘
+
 Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
  
+[debug] [2025-09-16T04:23:10.513Z] >>> [apiv2][query] POST http://127.0.0.1:5001/functions/projects/sincroapp-529cc/trigger_multicast [none]
+[debug] [2025-09-16T04:23:10.537Z] >>> [apiv2][body] POST http://127.0.0.1:5001/functions/projects/sincroapp-529cc/trigger_multicast {"eventId":"d2bae907-55a8-483e-8ce5-c40cecc1704c","eventType":"providers/firebase.auth/eventTypes/user.create","resource":{"name":"projects/sincroapp-529cc","service":"firebaseauth.googleapis.com"},"params":{},"timestamp":"2025-09-16T04:23:10.486Z","data":{"uid":"STTOm4HXanQAKiCWvOTBE3t4BzbC","email":"gui.malickovski@gmail.com","emailVerified":false,"metadata":{"creationTime":"2025-09-16T04:23:10.461Z","lastSignInTime":"2025-09-16T04:23:10.461Z"},"customClaims":{},"providerData":[{"providerId":"password","email":"gui.malickovski@gmail.com","federatedId":"gui.malickovski@gmail.com","rawId":"gui.malickovski@gmail.com"}]}}
+[debug] [2025-09-16T04:23:10.663Z] [work-queue] {"queuedWork":["us-central1-onUserCreate-0-2025-09-16T04:23:10.659Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-09-16T04:23:10.665Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["us-central1-onUserCreate-0-2025-09-16T04:23:10.659Z"],"workRunningCount":1}
+[debug] [2025-09-16T04:23:10.668Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-09-16T04:23:10.699Z] <<< [apiv2][status] POST http://127.0.0.1:5001/functions/projects/sincroapp-529cc/trigger_multicast 200
+[debug] [2025-09-16T04:23:10.703Z] <<< [apiv2][body] POST http://127.0.0.1:5001/functions/projects/sincroapp-529cc/trigger_multicast {"status":"multicast_acknowledged"}
+[debug] [2025-09-16T04:23:10.709Z] [work-queue] {"queuedWork":["/functions/projects/sincroapp-529cc/triggers/us-central1-onUserCreate-0-2025-09-16T04:23:10.709Z"],"queueLength":1,"runningWork":[],"workRunningCount":0}
+[debug] [2025-09-16T04:23:10.710Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":["/functions/projects/sincroapp-529cc/triggers/us-central1-onUserCreate-0-2025-09-16T04:23:10.709Z"],"workRunningCount":1}
+[debug] [2025-09-16T04:23:10.714Z] Accepted request POST /functions/projects/sincroapp-529cc/triggers/us-central1-onUserCreate-0 --> us-central1-onUserCreate-0
+[debug] [2025-09-16T04:23:10.760Z] [functions] Runtime ready! Sending request! {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Runtime ready! Sending request!"}}
+[debug] [2025-09-16T04:23:10.766Z] [functions] Got req.url=/functions/projects/sincroapp-529cc/triggers/us-central1-onUserCreate-0, mapping to path=/functions/projects/ {"metadata":{"emulator":{"name":"functions"},"message":"[functions] Got req.url=/functions/projects/sincroapp-529cc/triggers/us-central1-onUserCreate-0, mapping to path=/functions/projects/"}}
+[debug] [2025-09-16T04:23:10.886Z] [worker-pool] addWorker(us-central1-onUserCreate) {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] addWorker(us-central1-onUserCreate)"}}
+[debug] [2025-09-16T04:23:10.889Z] [worker-pool] Adding worker with key us-central1-onUserCreate, total=1 {"metadata":{"emulator":{"name":"functions"},"message":"[worker-pool] Adding worker with key us-central1-onUserCreate, total=1"}}
+[debug] [2025-09-16T04:23:11.672Z] Sep 16, 2025 4:23:11 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:23:11 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:23:15.339Z] Sep 16, 2025 4:23:15 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:23:15 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:23:16.078Z] Sep 16, 2025 4:23:16 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:23:16 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:23:17.031Z] Sep 16, 2025 4:23:17 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:23:17 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:23:17.849Z] Sep 16, 2025 4:23:17 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:23:17 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:23:25.536Z] Sep 16, 2025 4:23:25 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:23:25 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:23:26.419Z] Sep 16, 2025 4:23:26 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:23:26 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:23:27.722Z] Sep 16, 2025 4:23:27 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:23:27 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:23:29.519Z] Sep 16, 2025 4:23:29 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:23:29 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:23:29.572Z] Sep 16, 2025 4:23:29 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:23:29 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:23:31.043Z] Sep 16, 2025 4:23:31 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:23:31 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[error] ⬢  functions: Failed to handle request for function us-central1-onUserCreate {"metadata":{"emulator":{"name":"functions"},"message":"Failed to handle request for function us-central1-onUserCreate"}}
+[error] ⬢  functions: Failed to start functions in /workspaces/sincroapp/functions: FirebaseError: Failed to load function. {"metadata":{"emulator":{"name":"functions"},"message":"Failed to start functions in /workspaces/sincroapp/functions: FirebaseError: Failed to load function."}}
+[debug] [2025-09-16T04:24:10.968Z] [work-queue] {"queuedWork":[],"queueLength":0,"runningWork":[],"workRunningCount":0}
+[debug] [2025-09-16T04:24:16.077Z] Sep 16, 2025 4:24:16 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:24:16 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:24:17.264Z] Sep 16, 2025 4:24:17 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:24:17 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:24:30.332Z] Sep 16, 2025 4:24:30 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:24:30 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:24:30.374Z] Sep 16, 2025 4:24:30 AM com.google.cloud.datastore.emulator.firestore.webchannel.FirestoreV1WebChannelAdapter$FirestoreWriteHandler onClose
+INFO: channel closed
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:24:30 AM com.google.cloud.datastore.emulator.firestore.webchannel.FirestoreV1WebChannelAdapter$FirestoreWriteHandler onClose\nINFO: channel closed\n"}}
+[debug] [2025-09-16T04:24:37.513Z] [runtime-status] [75216] Resolved module firebase-admin {"declared":true,"installed":true,"version":"11.11.1","resolution":"/workspaces/sincroapp/functions/node_modules/firebase-admin/lib/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-onUserCreate"},"extension":{},"message":"[runtime-status] [75216] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"11.11.1\",\"resolution\":\"/workspaces/sincroapp/functions/node_modules/firebase-admin/lib/index.js\"}"}}
+[debug] [2025-09-16T04:24:37.748Z] [runtime-status] [75216] Resolved module firebase-functions {"declared":true,"installed":true,"version":"4.9.0","resolution":"/workspaces/sincroapp/functions/node_modules/firebase-functions/lib/v1/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-onUserCreate"},"extension":{},"message":"[runtime-status] [75216] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"4.9.0\",\"resolution\":\"/workspaces/sincroapp/functions/node_modules/firebase-functions/lib/v1/index.js\"}"}}
+[debug] [2025-09-16T04:24:37.751Z] [runtime-status] [75216] Outgoing network have been stubbed. [{"name":"http","status":"mocked"},{"name":"http","status":"mocked"},{"name":"https","status":"mocked"},{"name":"https","status":"mocked"},{"name":"net","status":"mocked"}] {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-onUserCreate"},"extension":{},"message":"[runtime-status] [75216] Outgoing network have been stubbed. [{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"http\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"https\",\"status\":\"mocked\"},{\"name\":\"net\",\"status\":\"mocked\"}]"}}
+[debug] [2025-09-16T04:24:37.848Z] [runtime-status] [75216] Resolved module firebase-functions {"declared":true,"installed":true,"version":"4.9.0","resolution":"/workspaces/sincroapp/functions/node_modules/firebase-functions/lib/v1/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-onUserCreate"},"extension":{},"message":"[runtime-status] [75216] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"4.9.0\",\"resolution\":\"/workspaces/sincroapp/functions/node_modules/firebase-functions/lib/v1/index.js\"}"}}
+[debug] [2025-09-16T04:24:58.957Z] [runtime-status] [75216] Checked functions.config() {"config":{}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-onUserCreate"},"extension":{},"message":"[runtime-status] [75216] Checked functions.config() {\"config\":{}}"}}
+[debug] [2025-09-16T04:24:58.958Z] [runtime-status] [75216] firebase-functions has been stubbed. {"functionsResolution":{"declared":true,"installed":true,"version":"4.9.0","resolution":"/workspaces/sincroapp/functions/node_modules/firebase-functions/lib/v1/index.js"}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-onUserCreate"},"extension":{},"message":"[runtime-status] [75216] firebase-functions has been stubbed. {\"functionsResolution\":{\"declared\":true,\"installed\":true,\"version\":\"4.9.0\",\"resolution\":\"/workspaces/sincroapp/functions/node_modules/firebase-functions/lib/v1/index.js\"}}"}}
+[debug] [2025-09-16T04:24:58.993Z] [runtime-status] [75216] Resolved module firebase-functions {"declared":true,"installed":true,"version":"4.9.0","resolution":"/workspaces/sincroapp/functions/node_modules/firebase-functions/lib/v1/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-onUserCreate"},"extension":{},"message":"[runtime-status] [75216] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"4.9.0\",\"resolution\":\"/workspaces/sincroapp/functions/node_modules/firebase-functions/lib/v1/index.js\"}"}}
+[debug] [2025-09-16T04:24:59.051Z] [runtime-status] [75216] Resolved module firebase-admin {"declared":true,"installed":true,"version":"11.11.1","resolution":"/workspaces/sincroapp/functions/node_modules/firebase-admin/lib/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-onUserCreate"},"extension":{},"message":"[runtime-status] [75216] Resolved module firebase-admin {\"declared\":true,\"installed\":true,\"version\":\"11.11.1\",\"resolution\":\"/workspaces/sincroapp/functions/node_modules/firebase-admin/lib/index.js\"}"}}
+[debug] [2025-09-16T04:24:59.166Z] [runtime-status] [75216] Resolved module firebase-functions {"declared":true,"installed":true,"version":"4.9.0","resolution":"/workspaces/sincroapp/functions/node_modules/firebase-functions/lib/v1/index.js"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-onUserCreate"},"extension":{},"message":"[runtime-status] [75216] Resolved module firebase-functions {\"declared\":true,\"installed\":true,\"version\":\"4.9.0\",\"resolution\":\"/workspaces/sincroapp/functions/node_modules/firebase-functions/lib/v1/index.js\"}"}}
+[debug] [2025-09-16T04:24:59.167Z] [runtime-status] [75216] firebase-admin has been stubbed. {"adminResolution":{"declared":true,"installed":true,"version":"11.11.1","resolution":"/workspaces/sincroapp/functions/node_modules/firebase-admin/lib/index.js"}} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-onUserCreate"},"extension":{},"message":"[runtime-status] [75216] firebase-admin has been stubbed. {\"adminResolution\":{\"declared\":true,\"installed\":true,\"version\":\"11.11.1\",\"resolution\":\"/workspaces/sincroapp/functions/node_modules/firebase-admin/lib/index.js\"}}"}}
+[debug] [2025-09-16T04:25:01.164Z] [runtime-status] [75216] initializeApp(DEFAULT) {"storageBucket":"sincroapp-529cc.firebasestorage.app","projectId":"sincroapp-529cc"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-onUserCreate"},"extension":{},"message":"[runtime-status] [75216] initializeApp(DEFAULT) {\"storageBucket\":\"sincroapp-529cc.firebasestorage.app\",\"projectId\":\"sincroapp-529cc\"}"}}
+[info] >  {"severity":"INFO","message":"Firestore Admin SDK conectado ao emulador em: 127.0.0.1:8080"} {"user":{"severity":"INFO","message":"Firestore Admin SDK conectado ao emulador em: 127.0.0.1:8080"},"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-onUserCreate"},"extension":{},"message":"\u001b[90m> \u001b[39m {\"severity\":\"INFO\",\"message\":\"Firestore Admin SDK conectado ao emulador em: 127.0.0.1:8080\"}"}}
+[debug] [2025-09-16T04:25:01.271Z] [runtime-status] [75216] Functions runtime initialized. {"cwd":"/workspaces/sincroapp/functions","node_version":"20.2.0"} {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-onUserCreate"},"extension":{},"message":"[runtime-status] [75216] Functions runtime initialized. {\"cwd\":\"/workspaces/sincroapp/functions\",\"node_version\":\"20.2.0\"}"}}
+[debug] [2025-09-16T04:25:01.272Z] [runtime-status] [75216] Listening to port: /tmp/fire_emu_b60d3d2a4267eb34.sock {"metadata":{"emulator":{"name":"functions"},"function":{"name":"us-central1-onUserCreate"},"extension":{},"message":"[runtime-status] [75216] Listening to port: /tmp/fire_emu_b60d3d2a4267eb34.sock"}}
+[debug] [2025-09-16T04:31:51.927Z] Sep 16, 2025 4:31:51 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:31:51 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:32:38.009Z] Sep 16, 2025 4:32:38 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:32:38 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:33:23.956Z] Sep 16, 2025 4:33:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:33:23 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:34:40.393Z] Sep 16, 2025 4:34:40 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:34:40 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:35:25.997Z] Sep 16, 2025 4:35:25 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:35:25 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:36:12.112Z] Sep 16, 2025 4:36:12 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:36:12 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:37:28.027Z] Sep 16, 2025 4:37:28 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:37:28 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:38:14.318Z] Sep 16, 2025 4:38:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:38:14 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:39:00.186Z] Sep 16, 2025 4:39:00 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:39:00 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:39:45.981Z] Sep 16, 2025 4:39:45 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:39:45 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:40:32.061Z] Sep 16, 2025 4:40:32 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:40:32 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}
+[debug] [2025-09-16T04:41:18.906Z] Sep 16, 2025 4:41:18 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected non-HTTP/2 connection.
+ {"metadata":{"emulator":{"name":"firestore"},"message":"Sep 16, 2025 4:41:18 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead\nINFO: Detected non-HTTP/2 connection.\n"}}

@@ -1,3 +1,4 @@
+
 {
   "functions": [
     {
@@ -7,16 +8,14 @@
         "node_modules",
         ".git",
         "firebase-debug.log",
-        "firebase-debug.*.log",
-        "*.local"
-      ],
-      "runtime": "nodejs18",
-      "main": "index.js",
-      "predeploy": [
-        "npm --prefix \"$RESOURCE_DIR\" run lint"
+        "firebase-debug.*.log"
       ]
     }
   ],
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
   "emulators": {
     "auth": {
       "port": 9099
@@ -30,9 +29,6 @@
     "ui": {
       "enabled": true,
       "port": 4000
-    },
-    "hub": {
-      "port": 4400
     }
   }
 }
