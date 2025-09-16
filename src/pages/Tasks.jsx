@@ -1,14 +1,12 @@
-// /src/pages/Tasks.jsx
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { db, auth } from '../services/firebase';
-import { collection, onSnapshot, query, orderBy, doc, deleteDoc, updateDoc, Timestamp, writeBatch } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, doc, deleteDoc, updateDoc, Timestamp, writeBatch, addDoc } from "firebase/firestore";
 import Spinner from '../components/ui/Spinner';
 import numerologyEngine from '../services/numerologyEngine';
-import { TrashIcon, CheckboxIcon, XIcon, PlusIcon, CalendarIcon, CheckAllIcon, ChevronDownIcon } from '../components/ui/Icons';
+import { CheckboxIcon, XIcon, CalendarIcon, CheckAllIcon, ChevronDownIcon } from '../components/ui/Icons';
 import VibrationPill from '../components/ui/VibrationPill';
 
-const TaskCard = ({ date, tasks, cardStatus, personalDay, onAddTask, onToggleTask, onDeleteTask, onUpdateTask, onDeleteCard, onCompleteAll, cardRef, onInfoClick }) => {
+const TaskCard = ({ date, tasks, cardStatus, personalDay, onAddTask, onToggleTask, onUpdateTask, onDeleteCard, onCompleteAll, cardRef, onInfoClick }) => {
     const dateObj = new Date(date);
     dateObj.setMinutes(dateObj.getMinutes() + dateObj.getTimezoneOffset());
     const formattedDate = dateObj.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
@@ -83,18 +81,32 @@ const Tasks = ({ userData, setActiveView, onInfoClick }) => {
         groups[dateKey].push(task);
         return groups;
     }, {}), [allTasks]);
+    
+    const handleAddTask = async (text, date) => {
+        if (!user || text.trim() === '') return;
+        await addDoc(collection(db, 'users', user.uid, 'tasks'), { text, completed: false, createdAt: Timestamp.fromDate(date) });
+    };
 
-    const handleAddTask = async (text, date) => { await addDoc(collection(db, 'users', user.uid, 'tasks'), { text, completed: false, createdAt: Timestamp.fromDate(date) }); };
-    const handleToggleTask = async (task) => { await updateDoc(doc(db, 'users', user.uid, 'tasks', task.id), { completed: !task.completed }); };
-    const handleUpdateTask = async (taskId, newText) => { if (newText.trim() === '') { return; } await updateDoc(doc(db, 'users', user.uid, 'tasks', taskId), { text: newText }); };
+    const handleToggleTask = async (task) => {
+        if (!user) return;
+        await updateDoc(doc(db, 'users', user.uid, 'tasks', task.id), { completed: !task.completed });
+    };
+
+    const handleUpdateTask = async (taskId, newText) => {
+        if (!user || newText.trim() === '') return;
+        await updateDoc(doc(db, 'users', user.uid, 'tasks', taskId), { text: newText });
+    };
+
     const handleDeleteCard = async (tasksToDelete) => {
-        if (tasksToDelete.length > 0 && !window.confirm("Apagar todas as tarefas deste dia? Esta ação não pode ser desfeita.")) return;
+        if (!user || tasksToDelete.length === 0) return;
+        if (!window.confirm("Apagar todas as tarefas deste dia? Esta ação não pode ser desfeita.")) return;
         const batch = writeBatch(db);
         tasksToDelete.forEach(task => { batch.delete(doc(db, 'users', user.uid, 'tasks', task.id)); });
         await batch.commit();
     };
+
     const handleCompleteAll = async (tasksToComplete) => {
-        if (tasksToComplete.length === 0) return;
+        if (!user || tasksToComplete.length === 0) return;
         const batch = writeBatch(db);
         tasksToComplete.forEach(task => {
             const taskRef = doc(db, 'users', user.uid, 'tasks', task.id);
@@ -108,7 +120,7 @@ const Tasks = ({ userData, setActiveView, onInfoClick }) => {
     const pastDates = sortedDatesWithTasks.filter(date => date < todayKey);
     const todayDateTasks = sortedDatesWithTasks.filter(date => date === todayKey);
     const futureDates = sortedDatesWithTasks.filter(date => date > todayKey);
-    const shouldShowEmptyTodayCard = todayDateTasks.length === 0;
+    const shouldShowEmptyTodayCard = todayDateTasks.length === 0 && !isLoading;
     
     const pastTasks = pastDates.flatMap(dateKey => groupedTasks[dateKey]);
     const hasUnfinishedPastTasks = pastTasks.some(task => !task.completed);
@@ -127,7 +139,6 @@ const Tasks = ({ userData, setActiveView, onInfoClick }) => {
                 {isLoading ? <div className="flex justify-center mt-16"><Spinner /></div> : (
                     <div className="space-y-6 md:space-y-8">
                         
-                        {/* BOTÃO PARA MOSTRAR/ESCONDER DIAS ANTERIORES */}
                         {pastDates.length > 0 && (
                             <div className="text-center border-b border-gray-700 pb-6">
                                 <button
@@ -140,30 +151,27 @@ const Tasks = ({ userData, setActiveView, onInfoClick }) => {
                             </div>
                         )}
 
-                        {/* SEÇÃO RECOLHÍVEL PARA TAREFAS PASSADAS */}
                         {showPastTasks && (
                             <div className="space-y-6 md:space-y-8 animate-fade-in">
                                 {pastDates.map(dateKey => renderTaskCard(dateKey))}
                             </div>
                         )}
 
-                        {/* AVISO DE TAREFAS PENDENTES (SEMPRE VISÍVEL, QUANDO NECESSÁRIO) */}
                         {hasUnfinishedPastTasks && !showPastTasks && (
                             <div className="text-center p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg text-sm text-amber-300 animate-fade-in">
                                 Você tem tarefas passadas não finalizadas.
                             </div>
                         )}
-
-                        {/* CARD DE HOJE */}
-                        {todayDateTasks.map(dateKey => renderTaskCard(dateKey))}
-                        {shouldShowEmptyTodayCard && renderTaskCard(dateKey)}
                         
-                        {/* BOTÃO DE PLANEJAR NOVO DIA */}
+                        {todayDateTasks.length > 0
+                            ? todayDateTasks.map(dateKey => renderTaskCard(dateKey))
+                            : shouldShowEmptyTodayCard && renderTaskCard(todayKey)
+                        }
+                        
                         <button onClick={() => setActiveView('calendar')} className="hidden lg:flex flex-col gap-2 border-2 border-dashed border-gray-700 rounded-2xl p-4 w-full items-center justify-center text-gray-400 h-24 hover:bg-gray-800/50 hover:border-purple-500 hover:text-white transition-all">
                             <CalendarIcon className="w-8 h-8"/><span className="font-semibold">Planejar um novo dia</span>
                         </button>
                         
-                        {/* CARDS FUTUROS */}
                         {futureDates.map(dateKey => renderTaskCard(dateKey))}
                     </div>
                 )}
