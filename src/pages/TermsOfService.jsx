@@ -1,53 +1,57 @@
 import React from 'react';
-import { StarIcon, ArrowLeftIcon } from '../components/ui/Icons';
+import { Link } from 'react-router-dom';
 
-const TermsOfService = ({ onBackToHomeClick }) => {
-    return (
-        <div className="min-h-screen bg-gray-900 text-gray-300 font-sans p-4 sm:p-6 md:p-8">
-            <div className="max-w-4xl mx-auto">
-                <div className="text-center mb-8">
-                    <StarIcon className="h-12 w-12 text-purple-400 mx-auto" />
-                    <h1 className="text-3xl font-bold mt-2 text-white">Termos de Serviço</h1>
-                    <p className="text-gray-400">Última atualização: 11 de setembro de 2025</p>
-                </div>
+const TermsOfService = () => {
+  return (
+    <div className="bg-gray-50 min-h-screen">
+      <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div className="bg-white shadow-md rounded-lg p-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">Termos de Serviço</h1>
+          <p className="text-gray-600 mb-4"><strong>Última atualização:</strong> 16 de setembro de 2025</p>
 
-                <div className="bg-gray-800/50 p-6 md:p-8 rounded-2xl border border-gray-700 space-y-6">
-                    <section>
-                        <h2 className="text-xl font-bold text-purple-300 mb-2">1. Aceitação dos Termos</h2>
-                        <p>Ao se cadastrar e utilizar o Sincro App, você concorda em cumprir estes Termos de Serviço e nossa Política de Privacidade. Se você não concordar com estes termos, não utilize o aplicativo.</p>
-                    </section>
-                    
-                    <section>
-                        <h2 className="text-xl font-bold text-purple-300 mb-2">2. Uso do Serviço</h2>
-                        <p>O Sincro App oferece um plano gratuito com funcionalidades limitadas e um plano Premium com acesso a todos os recursos. Você concorda em usar o serviço apenas para fins legais e de autoconhecimento, e não para qualquer atividade ilegal ou prejudicial.</p>
-                    </section>
+          <p className="text-gray-700 mb-6">
+            Estes Termos de Serviço ("Termos") governam o seu uso do aplicativo Sincro App ("Serviço"), operado por <strong>Studio MLK</strong> ("nós", "nosso").
+          </p>
 
-                    <section>
-                        <h2 className="text-xl font-bold text-purple-300 mb-2">3. Contas e Segurança</h2>
-                        <p>Você é responsável por manter a confidencialidade de sua senha e conta. Qualquer atividade que ocorra sob sua conta é de sua responsabilidade.</p>
-                    </section>
+          <h2 className="text-2xl font-semibold text-gray-800 mt-8 mb-4">1. Aceitação dos Termos</h2>
+          <p className="text-gray-700 mb-6">
+            Ao se cadastrar ou usar nosso Serviço, você concorda em cumprir estes Termos. Se você não concordar com qualquer parte dos termos, não poderá acessar o Serviço.
+          </p>
 
-                    <section>
-                        <h2 className="text-xl font-bold text-purple-300 mb-2">4. Pagamentos e Assinaturas</h2>
-                        <p>O acesso ao plano Premium é concedido após a confirmação do pagamento através do nosso parceiro, PagSeguro. Os detalhes sobre valores e formas de pagamento estarão disponíveis na página de upgrade.</p>
-                    </section>
+          <h2 className="text-2xl font-semibold text-gray-800 mt-8 mb-4">2. Contas</h2>
+          <p className="text-gray-700 mb-6">
+            Você é responsável por manter a confidencialidade de sua conta e senha. Você concorda em aceitar a responsabilidade por todas as atividades que ocorram em sua conta.
+          </p>
 
-                    <section>
-                        <h2 className="text-xl font-bold text-purple-300 mb-2">5. Propriedade Intelectual</h2>
-                        <p>Todo o conteúdo, design e tecnologia do SincroApp são de nossa propriedade. Você não pode copiar, modificar ou distribuir nosso conteúdo sem permissão explícita.</p>
-                    </section>
+          <h2 className="text-2xl font-semibold text-gray-800 mt-8 mb-4">3. Planos e Pagamentos</h2>
+          <p className="text-gray-700 mb-4">
+            O Sincro App oferece um plano gratuito e um plano pago ("Premium").
+          </p>
+          <ul className="list-disc list-inside text-gray-700 space-y-2 mb-6">
+            <li><strong>Plano Gratuito:</strong> Acesso a funcionalidades limitadas do Serviço.</li>
+            <li><strong>Plano Premium:</strong> Acesso a todas as funcionalidades mediante pagamento. Os pagamentos são processados através do PagSeguro, vinculado à conta de Guilherme Malickovski Correa (CPF: 025.559.230-20), em nome do Studio MLK.</li>
+            <li><strong>Alterações de Preço:</strong> Reservamo-nos o direito de ajustar os preços dos planos. Quaisquer alterações de preço entrarão em vigor após notificação prévia.</li>
+          </ul>
 
-                     <section>
-                        <h2 className="text-xl font-bold text-purple-300 mb-2">6. Rescisão</h2>
-                        <p>Nós nos reservamos o direito de suspender ou encerrar sua conta a qualquer momento, por qualquer motivo, incluindo a violação destes Termos.</p>
-                    </section>
-                </div>
-                 <button onClick={onBackToHomeClick} className="mt-8 text-sm text-gray-500 hover:text-white flex items-center mx-auto">
-                    <ArrowLeftIcon className="h-4 w-4 mr-2"/>Voltar para a página inicial
-                </button>
-            </div>
+          <h2 className="text-2xl font-semibold text-gray-800 mt-8 mb-4">4. Propriedade Intelectual</h2>
+          <p className="text-gray-700 mb-6">
+            O Serviço e seu conteúdo original, recursos e funcionalidades são e permanecerão propriedade exclusiva do Studio MLK.
+          </p>
+
+          <h2 className="text-2xl font-semibold text-gray-800 mt-8 mb-4">5. Rescisão</h2>
+          <p className="text-gray-700 mb-6">
+            Podemos rescindir ou suspender sua conta imediatamente, sem aviso prévio ou responsabilidade, por qualquer motivo, incluindo, sem limitação, se você violar os Termos.
+          </p>
+          
+          <div className="mt-10 text-center">
+            <Link to="/" className="text-indigo-600 hover:text-indigo-800 font-semibold">
+              &larr; Voltar para a página inicial
+            </Link>
+          </div>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default TermsOfService;

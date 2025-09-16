@@ -1,59 +1,64 @@
 import React from 'react';
-import { StarIcon, ArrowLeftIcon } from '../components/ui/Icons'; // Reutilizando ícones existentes
+import { Link } from 'react-router-dom';
 
-const PrivacyPolicy = ({ onBackToHomeClick }) => {
-    return (
-        <div className="min-h-screen bg-gray-900 text-gray-300 font-sans p-4 sm:p-6 md:p-8">
-            <div className="max-w-4xl mx-auto">
-                <div className="text-center mb-8">
-                    <StarIcon className="h-12 w-12 text-purple-400 mx-auto" />
-                    <h1 className="text-3xl font-bold mt-2 text-white">Política de Privacidade</h1>
-                    <p className="text-gray-400">Última atualização: 11 de setembro de 2025</p>
-                </div>
+const PrivacyPolicy = () => {
+  return (
+    <div className="bg-gray-50 min-h-screen">
+      <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div className="bg-white shadow-md rounded-lg p-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">Política de Privacidade</h1>
 
-                <div className="bg-gray-800/50 p-6 md:p-8 rounded-2xl border border-gray-700 space-y-6">
-                    <section>
-                        <h2 className="text-xl font-bold text-purple-300 mb-2">1. Coleta de Dados</h2>
-                        <p>Coletamos as informações que você nos fornece diretamente, como nome completo de nascimento, data de nascimento e e-mail. Estes dados são essenciais para a funcionalidade principal do Sincro App, permitindo a geração dos cálculos numerológicos e a criação de sua conta.</p>
-                    </section>
-                    
-                    <section>
-                        <h2 className="text-xl font-bold text-purple-300 mb-2">2. Uso de Dados</h2>
-                        <p>Os dados coletados são utilizados para:</p>
-                        <ul className="list-disc list-inside pl-4 mt-2 space-y-1">
-                            <li>Personalizar sua experiência no aplicativo, fornecendo seus números e arquétipos diários, mensais e anuais.</li>
-                            <li>Autenticar seu acesso à plataforma.</li>
-                            <li>Processar pagamentos para planos Premium (através de nosso parceiro PagSeguro).</li>
-                            <li>Comunicar informações importantes sobre sua conta e atualizações do serviço.</li>
-                        </ul>
-                    </section>
+          <p className="text-gray-600 mb-4"><strong>Última atualização:</strong> 16 de setembro de 2025</p>
 
-                    <section>
-                        <h2 className="text-xl font-bold text-purple-300 mb-2">3. Compartilhamento de Dados</h2>
-                        <p>Não compartilhamos suas informações pessoais com terceiros, exceto quando necessário para a prestação do serviço (como com o provedor de pagamentos PagSeguro, que possui suas próprias políticas de privacidade) ou quando exigido por lei.</p>
-                    </section>
+          <p className="text-gray-700 mb-6">
+            Bem-vindo à Política de Privacidade do Sincro App. Nós, do <strong>Studio MLK</strong>, levamos a sua privacidade a sério. Este documento explica quais dados pessoais coletamos, como os usamos e quais são os seus direitos.
+          </p>
 
-                    <section>
-                        <h2 className="text-xl font-bold text-purple-300 mb-2">4. Segurança dos Dados</h2>
-                        <p>Utilizamos as melhores práticas de segurança e as soluções do Firebase (Google) para proteger seus dados contra acesso não autorizado, alteração, divulgação ou destruição.</p>
-                    </section>
+          <h2 className="text-2xl font-semibold text-gray-800 mt-8 mb-4">1. Responsável pelo Tratamento dos Dados</h2>
+          <p className="text-gray-700 mb-6">
+            O Sincro App é um serviço oferecido por <strong>Studio MLK</strong>. Para fins de conformidade com a Lei Geral de Proteção de Dados (LGPD), o responsável pelo tratamento dos dados é:
+            <br />
+            <strong>Nome:</strong> Guilherme Malickovski Correa
+            <br />
+            <strong>CPF:</strong> 025.559.230-20
+          </p>
 
-                    <section>
-                        <h2 className="text-xl font-bold text-purple-300 mb-2">5. Cookies</h2>
-                        <p>Nosso site utiliza cookies essenciais para o funcionamento da plataforma, como manter sua sessão de login ativa. Ao utilizar o SincroApp, você concorda com o uso desses cookies.</p>
-                    </section>
+          <h2 className="text-2xl font-semibold text-gray-800 mt-8 mb-4">2. Dados que Coletamos</h2>
+          <p className="text-gray-700 mb-4">
+            Coletamos as seguintes informações para fornecer e melhorar nossos serviços:
+          </p>
+          <ul className="list-disc list-inside text-gray-700 space-y-2 mb-6">
+            <li><strong>Informações de Cadastro:</strong> Nome, endereço de e-mail e data de nascimento.</li>
+            <li><strong>Dados de Uso:</strong> Anotações no diário, metas, intenções e interações com a plataforma.</li>
+            <li><strong>Dados de Pagamento:</strong> Para usuários do plano Premium, as informações de pagamento são processadas diretamente pelo nosso parceiro PagSeguro e não são armazenadas em nossos servidores.</li>
+            <li><strong>Cookies e Tecnologias Semelhantes:</strong> Usamos cookies para manter sua sessão ativa e entender como você usa o Sincro App.</li>
+          </ul>
 
-                     <section>
-                        <h2 className="text-xl font-bold text-purple-300 mb-2">6. Seus Direitos</h2>
-                        <p>Você tem o direito de acessar, corrigir ou excluir suas informações pessoais a qualquer momento. Para fazer isso, entre em contato conosco através do e-mail: <a href="mailto:contato@sincroapp.com.br" className="text-purple-400 hover:underline">contato@sincroapp.com.br</a>.</p>
-                    </section>
-                </div>
-                 <button onClick={onBackToHomeClick} className="mt-8 text-sm text-gray-500 hover:text-white flex items-center mx-auto">
-                    <ArrowLeftIcon className="h-4 w-4 mr-2"/>Voltar para a página inicial
-                </button>
-            </div>
+          <h2 className="text-2xl font-semibold text-gray-800 mt-8 mb-4">3. Como Usamos Seus Dados</h2>
+          <p className="text-gray-700 mb-6">
+            Seus dados são usados para:
+          </p>
+          <ul className="list-disc list-inside text-gray-700 space-y-2 mb-6">
+            <li>Personalizar sua experiência no aplicativo, como o cálculo da sua numerologia diária.</li>
+            <li>Processar transações e gerenciar sua assinatura.</li>
+            <li>Comunicar sobre atualizações, ofertas e novidades.</li>
+            <li>Garantir a segurança da sua conta e da plataforma.</li>
+          </ul>
+
+          <h2 className="text-2xl font-semibold text-gray-800 mt-8 mb-4">4. Compartilhamento de Dados</h2>
+          <p className="text-gray-700 mb-6">
+            Não compartilhamos suas informações pessoais com terceiros, exceto quando necessário para a operação do serviço (ex: provedor de pagamentos PagSeguro) ou se exigido por lei.
+          </p>
+          
+          <div className="mt-10 text-center">
+            <Link to="/" className="text-indigo-600 hover:text-indigo-800 font-semibold">
+              &larr; Voltar para a página inicial
+            </Link>
+          </div>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default PrivacyPolicy;

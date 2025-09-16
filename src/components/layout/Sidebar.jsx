@@ -1,65 +1,28 @@
-import React, { useState } from 'react';
+// src/components/layout/Sidebar.jsx
+
+import React from 'react';
+import { NavLink, Link } from 'react-router-dom';
 import { HomeIcon, CalendarIcon, BookIcon, UserIcon, StarIcon, CheckSquareIcon, SettingsIcon, LogOutIcon } from '../ui/Icons';
-import UpgradeModal from '../ui/UpgradeModal';
 
-const Sidebar = ({ userData, activeView, setActiveView, isAdmin, isMobileOpen, closeMobileMenu, onLogout, onNavigateToSettings }) => {
-    const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
-    const [modalFeatureText, setModalFeatureText] = useState('');
-
-    const isPremium = userData?.plano !== 'gratuito';
-
-    // Lista de itens de navegação com controle de acesso
+const Sidebar = ({ isAdmin, isMobileOpen, closeMobileMenu, onLogout }) => {
+    
     const navItems = [
-        { 
-            id: 'dashboard', 
-            icon: <HomeIcon className="h-5 w-5" />, 
-            label: 'Sua Rota de Hoje',
-            premium: false 
-        },
-        { 
-            id: 'calendar', 
-            icon: <CalendarIcon className="h-5 w-5" />, 
-            label: 'Calendário',
-            premium: false
-        },
-        { 
-            id: 'journal', 
-            icon: <BookIcon className="h-5 w-5" />, 
-            label: 'Anotações do Dia',
-            premium: false // O controle de limite será feito dentro da própria página
-        },
-        { 
-            id: 'tasks', 
-            icon: isPremium ? <CheckSquareIcon className="h-5 w-5" /> : <StarIcon className="h-5 w-5 text-yellow-400" />, 
-            label: 'Diário de Tarefas',
-            premium: !isPremium, // Só é acessível se for premium
-            featureText: 'O Diário de Tarefas é uma funcionalidade exclusiva do plano Premium. Faça o upgrade para organizar seu dia com mais poder!'
-        },
+        { to: '/app/dashboard', icon: <HomeIcon className="h-5 w-5" />, label: 'Sua Rota de Hoje' },
+        { to: '/app/calendario', icon: <CalendarIcon className="h-5 w-5" />, label: 'Calendário' },
+        { to: '/app/diario', icon: <BookIcon className="h-5 w-5" />, label: 'Anotações' },
+        { to: '/app/tarefas', icon: <CheckSquareIcon className="h-5 w-5" />, label: 'Tarefas' },
     ];
 
     if (isAdmin) {
-        navItems.push({ id: 'admin', icon: <UserIcon className="h-5 w-5" />, label: 'Painel Admin', premium: false });
+        navItems.push({ to: '/app/admin', icon: <UserIcon className="h-5 w-5" />, label: 'Painel Admin' });
     }
 
-    const handleItemClick = (item) => {
-        if (item.premium) {
-            setModalFeatureText(item.featureText);
-            setIsUpgradeModalOpen(true);
-        } else {
-            setActiveView(item.id);
-        }
-        closeMobileMenu();
-    };
-    
-    const handleSettingsClick = () => {
-        onNavigateToSettings();
-        closeMobileMenu();
-    };
+    const baseLinkClasses = "flex items-center p-3 rounded-lg transition-colors duration-200 justify-center lg:justify-start";
+    const activeLinkClasses = "bg-purple-600 text-white";
+    const inactiveLinkClasses = "hover:bg-gray-800 hover:text-white";
 
     return (
         <>
-            {isUpgradeModalOpen && <UpgradeModal onClose={() => setIsUpgradeModalOpen(false)} customText={modalFeatureText} />}
-
             <div 
                 className={`fixed inset-0 bg-black/60 z-30 md:hidden transition-opacity ${isMobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                 onClick={closeMobileMenu}
@@ -79,25 +42,25 @@ const Sidebar = ({ userData, activeView, setActiveView, isAdmin, isMobileOpen, c
 
                 <nav className="flex-1 py-6 px-2 lg:px-4 space-y-2">
                     {navItems.map(item => (
-                        <a href="#" key={item.id} onClick={(e) => { e.preventDefault(); handleItemClick(item); }}
+                        <NavLink 
+                            to={item.to} 
+                            key={item.to}
+                            onClick={closeMobileMenu}
                             title={item.label}
-                            className={`flex items-center p-3 rounded-lg transition-colors duration-200 justify-center lg:justify-start ${ activeView === item.id ? 'bg-purple-600 text-white' : 'hover:bg-gray-800 hover:text-white'}`}>
+                            className={({ isActive }) => `${baseLinkClasses} ${isActive ? activeLinkClasses : inactiveLinkClasses}`}
+                        >
                             {item.icon}
-                            <span className={`ml-4 font-medium hidden lg:block ${item.id === 'tasks' && item.premium ? 'text-yellow-400' : ''}`}>{item.label}</span>
-                        </a>
+                            <span className="ml-4 font-medium hidden lg:block">{item.label}</span>
+                        </NavLink>
                     ))}
                 </nav>
 
                 <div className="py-4 px-2 lg:px-4 border-t border-gray-700 space-y-2">
-                     <a href="#" onClick={(e) => { e.preventDefault(); handleSettingsClick(); }}
-                        title="Configurações"
-                        className="flex items-center p-3 rounded-lg transition-colors duration-200 justify-center lg:justify-start hover:bg-gray-800 hover:text-white">
+                     <Link to="/settings" onClick={closeMobileMenu} title="Configurações" className={`${baseLinkClasses} ${inactiveLinkClasses}`}>
                         <SettingsIcon className="h-5 w-5" />
                         <span className="ml-4 font-medium hidden lg:block">Configurações</span>
-                    </a>
-                    <a href="#" onClick={(e) => { e.preventDefault(); onLogout(); }}
-                        title="Sair"
-                        className="flex items-center p-3 rounded-lg transition-colors duration-200 justify-center lg:justify-start text-red-400 hover:bg-red-500/20 hover:text-red-300">
+                    </Link>
+                    <a href="#" onClick={(e) => { e.preventDefault(); onLogout(); }} title="Sair" className={`${baseLinkClasses} text-red-400 hover:bg-red-500/20 hover:text-red-300`}>
                         <LogOutIcon className="h-5 w-5" />
                         <span className="ml-4 font-medium hidden lg:block">Sair</span>
                     </a>
