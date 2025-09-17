@@ -1,32 +1,40 @@
-// src/contexts/AuthContext.jsx
-
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, updatePassword as firebaseUpdatePassword, sendEmailVerification } from 'firebase/auth';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import {
+    createUserWithEmailAndPassword,
+    onAuthStateChanged,
+    signInWithEmailAndPassword,
+    signOut,
+    sendEmailVerification,
+    sendPasswordResetEmail
+} from 'firebase/auth';
 import { auth, db } from '../services/firebase';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 
 const AuthContext = createContext();
 
-export function useAuth() { return useContext(AuthContext); }
+export function useAuth() {
+    return useContext(AuthContext);
+}
 
 export function AuthProvider({ children }) {
     const [currentUser, setCurrentUser] = useState(null);
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    const refreshUserData = async (userId) => {
+        const userDocRef = doc(db, 'users', userId);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+            setUserData(userDocSnap.data());
+        }
+    };
+
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            setCurrentUser(user);
             if (user) {
-                setCurrentUser(user);
-                const userRef = doc(db, "users", user.uid);
-                const docSnap = await getDoc(userRef);
-                if (docSnap.exists()) {
-                    setUserData({ uid: user.uid, ...docSnap.data() });
-                } else {
-                    setUserData(null);
-                }
+                await refreshUserData(user.uid);
             } else {
-                setCurrentUser(null);
                 setUserData(null);
             }
             setLoading(false);
@@ -34,43 +42,72 @@ export function AuthProvider({ children }) {
         return unsubscribe;
     }, []);
 
-    function login(email, password) { return signInWithEmailAndPassword(auth, email, password); }
-    function logout() { return signOut(auth); }
-
-    // Função única e robusta para o cadastro completo
-    async function signupAndCreateUser(allData) {
-        const { email, password, firstName, lastName, nome, dataNasc } = allData;
-        
+    // Função 1: Cadastro inicial (apenas auth e dados básicos)
+    async function signup(formData) {
+        const { email, password, firstName, lastName } = formData;
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
-        const userRef = doc(db, "users", user.uid);
-        
-        const fullDocument = {
+
+        await setDoc(doc(db, "users", user.uid), {
+            uid: user.uid,
             email: user.email,
-            firstName,
-            lastName,
-            nome,
-            dataNasc,
+            nome: `${firstName} ${lastName}`,
+            plano: 'gratuito',
             isAdmin: false,
             createdAt: serverTimestamp(),
-        };
-
-        await setDoc(userRef, fullDocument);
+            isProfileComplete: false
+        });
+        
         await sendEmailVerification(user);
-
-        // Não atualizamos o estado local aqui. A fonte da verdade será
-        // o onAuthStateChanged quando o usuário fizer login.
-        return userCredential;
     }
     
-    function resetPassword(email) { return sendPasswordResetEmail(auth, email); }
-    function updatePassword(newPassword) { return firebaseUpdatePassword(currentUser, newPassword); }
+    // Função 2: Completar o perfil com os dados de análise
+    async function completeUserProfile(uid, profileData) {
+        const userDocRef = doc(db, 'users', uid);
+        const dataToUpdate = {
+            nomeNascimento: profileData.nomeNascimento,
+            dataNasc: profileData.dataNasc,
+            isProfileComplete: true
+        };
+        
+        // Primeiro, atualiza o banco de dados
+        await updateDoc(userDocRef, dataToUpdate);
+        
+        // *** CORREÇÃO CRÍTICA ***
+        // Atualiza o estado local IMEDIATAMENTE após a escrita no banco.
+        // Isso força a re-renderização do AppLayout com os dados corretos.
+        setUserData(prevUserData => ({
+            ...prevUserData,
+            ...dataToUpdate
+        }));
+    }
+
+    function login(email, password) {
+        return signInWithEmailAndPassword(auth, email, password);
+    }
+
+    function logout() {
+        return signOut(auth);
+    }
+    
+    function resetPassword(email) {
+        return sendPasswordResetEmail(auth, email);
+    }
 
     const value = {
-        currentUser, userData, loading,
-        login, logout, signupAndCreateUser,
-        resetPassword, updatePassword,
+        currentUser,
+        userData,
+        loading,
+        signup,
+        completeUserProfile,
+        login,
+        logout,
+        resetPassword
     };
 
-    return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
+    return (
+        <AuthContext.Provider value={value}>
+            {!loading && children}
+        </AuthContext.Provider>
+    );
 }
