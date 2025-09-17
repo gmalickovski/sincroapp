@@ -1,25 +1,25 @@
-// src/components/ui/SuccessModal.jsx
+// Arquivo: src/components/ui/SuccessModal.jsx
 
 import React from 'react';
+import { CheckIcon } from './Icons'; // CORREÇÃO 1: Importando o ícone correto pelo nome
 
 const SuccessModal = ({ onClose }) => {
     return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4">
-            <div className="bg-gray-800 text-white p-8 rounded-2xl shadow-2xl w-full max-w-md text-center" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-lg shadow-xl p-8 max-w-md w-full text-center">
                 <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-500 mb-4">
-                    <svg className="h-6 w-6 text-white" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                    </svg>
+                    {/* CORREÇÃO 2: Usando o componente importado diretamente */}
+                    <CheckIcon className="h-6 w-6 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold mb-2">Cadastro Realizado!</h2>
+                <h3 className="text-xl font-bold mb-2">Cadastro Realizado!</h3>
                 <p className="text-gray-400 mb-6">
-                    Um e-mail de confirmação foi enviado para sua caixa de entrada. Por favor, verifique seu e-mail para ativar sua conta.
+                    Enviamos um e-mail de confirmação para você. Por favor, verifique sua caixa de entrada e clique no link para ativar sua conta.
                 </p>
-                <button 
+                <button
                     onClick={onClose}
-                    className="w-full bg-purple-600 font-bold py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors"
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-md"
                 >
-                    Fazer Login
+                    Entendido, ir para o Login
                 </button>
             </div>
         </div>
