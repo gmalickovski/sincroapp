@@ -11,39 +11,36 @@ const AppLayout = () => {
     const { userData, loading: authLoading } = useAuth();
 
     // useMemo garante que o motor de cálculo só rode quando os dados do usuário mudarem.
-    // Esta é a forma correta de conectar os dados do AuthContext ao motor.
     const numerologyData = useMemo(() => {
-        // Se o perfil está completo, rodamos o cálculo.
         if (userData?.isProfileComplete) {
             try {
+                // Chama o motor de cálculo com os dados vindos do banco
                 return numerologyEngine(userData.nomeNascimento, userData.dataNasc);
             } catch (error) {
-                console.error("Erro ao executar o motor de numerologia:", error);
-                return null; // Em caso de erro, evitamos que o app quebre.
+                console.error("Erro fatal no motor de numerologia:", error);
+                return null; // Retorna nulo para indicar que o cálculo falhou
             }
         }
-        // Se o perfil não está completo, não há dados para calcular.
-        return null;
-    }, [userData]);
+        return null; // Retorna nulo se o perfil ainda não está completo
+    }, [userData]); // A dependência é apenas o objeto userData
 
-    // ESTADO 1: Se a autenticação inicial ainda está carregando.
+    // ESTADO 1: Carregando a autenticação inicial.
     if (authLoading) {
         return <div className="flex justify-center items-center h-screen bg-gray-900"><Spinner /></div>;
     }
 
-    // ESTADO 2: Se o usuário está logado, mas o perfil está incompleto, mostramos o onboarding.
-    // O 'onComplete' agora está vazio, pois o 'AuthContext' vai forçar a re-renderização desta página.
+    // ESTADO 2: Usuário carregado, mas o perfil está incompleto -> Mostrar Onboarding.
     if (userData && !userData.isProfileComplete) {
-        return <OnboardingModal onComplete={() => {}} />;
+        return <OnboardingModal />;
     }
-
-    // ESTADO 3: Se o perfil está completo, mas os cálculos ainda não foram gerados
-    // (cobrindo o pequeno delay entre a atualização do banco e a renderização).
+    
+    // ESTADO 3: Perfil completo, mas os dados de cálculo ainda não estão prontos -> Mostrar Spinner.
+    // Isso cobre o delay entre a atualização do Firestore e a re-renderização com os dados calculados.
     if (userData?.isProfileComplete && !numerologyData) {
-         return <div className="flex justify-center items-center h-screen bg-gray-900"><Spinner /></div>;
+        return <div className="flex justify-center items-center h-screen bg-gray-900"><Spinner /></div>;
     }
 
-    // ESTADO FINAL: Se tudo estiver pronto, mostramos o app.
+    // ESTADO FINAL: Tudo pronto, mostrar o aplicativo.
     return (
         <div className="flex h-screen bg-gray-900 text-white">
             <Sidebar />
