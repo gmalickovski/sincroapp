@@ -1,56 +1,74 @@
 // src/App.jsx
 
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
-
-// Componentes e Páginas
 import LoginPage from './pages/LoginPage';
 import LandingPage from './pages/LandingPage';
-import UserDetailsModal from './components/ui/UserDetailsModal';
 import AppLayout from './AppLayout';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import SettingsPage from './pages/SettingsPage';
 import CookieBanner from './components/ui/CookieBanner';
+import numerologyEngine from './services/numerologyEngine';
+import Spinner from './components/ui/Spinner';
 
-// Componente para rotas que exigem autenticação
-const ProtectedRoute = ({ children }) => {
-  const { currentUser } = useAuth();
-  return currentUser ? children : <Navigate to="/login" replace />;
-};
+const AppController = () => {
+    const { userData, logout } = useAuth();
+    const navigate = useNavigate();
+    const [numerologyData, setNumerologyData] = useState(null);
 
-// Componente para rotas que não devem ser acessadas por usuários logados
-const PublicOnlyRoute = ({ children }) => {
-  const { currentUser } = useAuth();
-  return !currentUser ? children : <Navigate to="/app" replace />;
+    useEffect(() => {
+        if (userData?.nome && userData?.dataNasc) {
+            setNumerologyData(numerologyEngine(userData.nome, userData.dataNasc));
+        } else if (userData) {
+            // Caso raro: usuário logado mas sem dados de análise.
+            // Poderíamos redirecionar para uma página de erro ou de completar perfil.
+            // Por enquanto, apenas logamos o erro.
+            console.error("Dados de análise ausentes para o usuário:", userData.uid);
+        }
+    }, [userData]);
+
+    if (!numerologyData) {
+        return <div className="h-screen w-screen bg-gray-900 flex items-center justify-center"><Spinner /></div>;
+    }
+
+    return <AppLayout userData={userData} numerologyData={numerologyData} onLogout={() => { logout(); navigate('/login'); }} />;
 };
 
 function App() {
-  const { currentUser, showDetailsModal, saveUserDetails } = useAuth();
+    const { currentUser, loading } = useAuth();
 
-  if (currentUser && showDetailsModal) {
-    return <UserDetailsModal onSave={saveUserDetails} />;
-  }
+    if (loading) {
+        return <div className="h-screen w-screen bg-gray-900 flex items-center justify-center"><Spinner /></div>;
+    }
 
-  return (
-    <>
-      <Routes>
+    return (
+        <>
+            <Routes>
+                <Route path="/*" element={!currentUser ? <PublicRoutes /> : <ProtectedRoutes />} />
+            </Routes>
+            <CookieBanner />
+        </>
+    );
+}
+
+const PublicRoutes = () => (
+    <Routes>
         <Route path="/" element={<LandingPage />} />
-        
-        <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
-        <Route path="/esqueci-senha" element={<PublicOnlyRoute><ForgotPasswordPage /></PublicOnlyRoute>} />
-        
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/politica-de-privacidade" element={<PrivacyPolicy />} />
         <Route path="/termos-de-servico" element={<TermsOfService />} />
-        
-        <Route path="/app/*" element={<ProtectedRoute><AppLayout /></ProtectedRoute>} />
-        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-      </Routes>
-      <CookieBanner />
-    </>
-  );
-}
+        <Route path="/esqueci-senha" element={<ForgotPasswordPage />} />
+        <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
+);
+
+const ProtectedRoutes = () => (
+    <Routes>
+        <Route path="/app/*" element={<AppController />} />
+        <Route path="*" element={<Navigate to="/app/dashboard" />} />
+    </Routes>
+);
 
 export default App;

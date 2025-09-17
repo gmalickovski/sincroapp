@@ -1,115 +1,76 @@
 // src/contexts/AuthContext.jsx
 
-import React, { useContext, useState, useEffect } from 'react';
-import {
-  onAuthStateChanged,
-  signOut,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
-  updatePassword as firebaseUpdatePassword // Renomeado para evitar conflito
-} from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, updatePassword as firebaseUpdatePassword, sendEmailVerification } from 'firebase/auth';
 import { auth, db } from '../services/firebase';
-import Spinner from '../components/ui/Spinner';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
-const AuthContext = React.createContext();
+const AuthContext = createContext();
 
-export function useAuth() {
-  return useContext(AuthContext);
-}
+export function useAuth() { return useContext(AuthContext); }
 
 export function AuthProvider({ children }) {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null);
+    const [userData, setUserData] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
-      if (user) {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists()) {
-          setUserData(userDoc.data());
-          setShowDetailsModal(false);
-        } else {
-          // Novo usuário que precisa completar o perfil
-          setUserData(null);
-          setShowDetailsModal(true);
-        }
-      } else {
-        setUserData(null);
-      }
-      setLoading(false);
-    });
-    return unsubscribe;
-  }, []);
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                setCurrentUser(user);
+                const userRef = doc(db, "users", user.uid);
+                const docSnap = await getDoc(userRef);
+                if (docSnap.exists()) {
+                    setUserData({ uid: user.uid, ...docSnap.data() });
+                } else {
+                    setUserData(null);
+                }
+            } else {
+                setCurrentUser(null);
+                setUserData(null);
+            }
+            setLoading(false);
+        });
+        return unsubscribe;
+    }, []);
 
-  async function login(email, password) {
-    return signInWithEmailAndPassword(auth, email, password);
-  }
+    function login(email, password) { return signInWithEmailAndPassword(auth, email, password); }
+    function logout() { return signOut(auth); }
 
-  async function signup(email, password) {
-    return createUserWithEmailAndPassword(auth, email, password);
-  }
+    // Função única e robusta para o cadastro completo
+    async function signupAndCreateUser(allData) {
+        const { email, password, firstName, lastName, nome, dataNasc } = allData;
+        
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        const userRef = doc(db, "users", user.uid);
+        
+        const fullDocument = {
+            email: user.email,
+            firstName,
+            lastName,
+            nome,
+            dataNasc,
+            isAdmin: false,
+            createdAt: serverTimestamp(),
+        };
 
-  async function logout() {
-    await signOut(auth);
-    // O redirecionamento será tratado pelo componente de Rota Protegida
-  }
+        await setDoc(userRef, fullDocument);
+        await sendEmailVerification(user);
 
-  async function resetPassword(email) {
-    return sendPasswordResetEmail(auth, email);
-  }
-
-  async function updatePassword(newPassword) {
-    if (currentUser) {
-      return firebaseUpdatePassword(currentUser, newPassword);
+        // Não atualizamos o estado local aqui. A fonte da verdade será
+        // o onAuthStateChanged quando o usuário fizer login.
+        return userCredential;
     }
-    throw new Error("Nenhum usuário logado para atualizar a senha.");
-  }
+    
+    function resetPassword(email) { return sendPasswordResetEmail(auth, email); }
+    function updatePassword(newPassword) { return firebaseUpdatePassword(currentUser, newPassword); }
 
-  async function saveUserDetails(details) {
-    if (currentUser) {
-      const newUserData = { 
-        email: currentUser.email, 
-        nome: details.nome, 
-        dataNasc: details.dataNasc, 
-        plano: "gratuito", 
-        isAdmin: false 
-      };
-      await setDoc(doc(db, "users", currentUser.uid), newUserData);
-      setUserData(newUserData);
-      setShowDetailsModal(false);
-      return newUserData;
-    }
-  }
+    const value = {
+        currentUser, userData, loading,
+        login, logout, signupAndCreateUser,
+        resetPassword, updatePassword,
+    };
 
-  const value = {
-    currentUser,
-    userData,
-    loading,
-    showDetailsModal,
-    login,
-    signup,
-    logout,
-    resetPassword,
-    updatePassword,
-    saveUserDetails
-  };
-
-  // Se estiver carregando, mostra um spinner em tela cheia.
-  // Isso evita que a aplicação "pisque" antes de saber se o usuário está logado.
-  return (
-    <AuthContext.Provider value={value}>
-      {loading ? (
-        <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-          <Spinner />
-        </div>
-      ) : (
-        children
-      )}
-    </AuthContext.Provider>
-  );
+    return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
 }

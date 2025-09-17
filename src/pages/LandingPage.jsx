@@ -1,117 +1,131 @@
+// src/pages/LandingPage.jsx
+
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { CheckCircle } from 'lucide-react';
+import { StarIcon, CheckCircleIcon } from '../components/ui/Icons';
+
+const Header = () => (
+    <header className="absolute top-0 left-0 w-full z-10 p-4">
+        <div className="container mx-auto flex justify-between items-center">
+            <Link to="/" className="flex items-center gap-2">
+                <StarIcon className="h-8 w-8 text-purple-400" />
+                <span className="text-xl font-bold text-white">SincroApp</span>
+            </Link>
+            <nav className="flex items-center gap-4">
+                <a href="#features" className="text-gray-300 hover:text-white transition-colors">Funcionalidades</a>
+                <a href="#pricing" className="text-gray-300 hover:text-white transition-colors">Planos</a>
+                <Link to="/login" className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    Acessar
+                </Link>
+            </nav>
+        </div>
+    </header>
+);
+
+const Footer = () => (
+    <footer className="bg-gray-900 text-gray-400 py-8 border-t border-gray-800">
+        <div className="container mx-auto text-center">
+            <p>&copy; {new Date().getFullYear()} SincroApp. Todos os direitos reservados.</p>
+            <div className="mt-4">
+                <Link to="/termos-de-servico" className="hover:text-white mx-2">Termos de Serviço</Link>
+                <Link to="/politica-de-privacidade" className="hover:text-white mx-2">Política de Privacidade</Link>
+            </div>
+        </div>
+    </footer>
+);
 
 const LandingPage = () => {
-  return (
-    <div className="bg-gray-50 text-gray-800">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 bg-white bg-opacity-80 backdrop-blur-md shadow-sm z-50">
-        <div className="container mx-auto px-6 py-3 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-indigo-600">Sincro App</h1>
-          <div className="flex items-center space-x-4">
-            <a href="#features" className="text-gray-600 hover:text-indigo-600">Funcionalidades</a>
-            <a href="#pricing" className="text-gray-600 hover:text-indigo-600">Planos</a>
-            <Link to="/login" className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition">
-              Acessar
-            </Link>
-          </div>
+    const features = [
+        "Dashboard com sua vibração diária pessoal",
+        "Calendário numerológico para planejamento",
+        "Diário para anotações e insights",
+        "Acompanhamento de tarefas alinhadas ao seu dia"
+    ];
+
+    return (
+        <div className="min-h-screen bg-gray-900 text-white font-sans">
+            <Header />
+
+            {/* Hero Section */}
+            <main className="pt-24 md:pt-32">
+                <section className="container mx-auto text-center px-6 py-16 md:py-24">
+                    <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight">
+                        Sincronize sua vida com o poder dos números.
+                    </h1>
+                    <p className="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-gray-300">
+                        O SincroApp é a sua ferramenta pessoal para navegar pela vida com mais clareza e propósito, usando a sabedoria da numerologia.
+                    </p>
+                    <div className="mt-10">
+                        <Link to="/login" className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg text-lg transition-transform transform hover:scale-105">
+                            Comece a sua jornada
+                        </Link>
+                    </div>
+                </section>
+
+                {/* Features Section */}
+                <section id="features" className="py-16 md:py-24 bg-gray-800/50">
+                    <div className="container mx-auto px-6">
+                        <div className="text-center mb-12">
+                            <h2 className="text-3xl md:text-4xl font-bold">Ferramentas para sua Evolução</h2>
+                            <p className="mt-4 text-gray-400">Descubra como o SincroApp pode te ajudar a viver em harmonia.</p>
+                        </div>
+                        <div className="max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {features.map((feature, index) => (
+                                <div key={index} className="flex items-start gap-4">
+                                    <CheckCircleIcon className="h-6 w-6 text-purple-400 flex-shrink-0 mt-1" />
+                                    <p className="text-gray-300">{feature}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+                
+                {/* Pricing Section */}
+                <section id="pricing" className="py-16 md:py-24">
+                    <div className="container mx-auto px-6">
+                         <div className="text-center mb-12">
+                            <h2 className="text-3xl md:text-4xl font-bold">Escolha o plano que sincroniza com você</h2>
+                            <p className="mt-4 text-gray-400">Comece gratuitamente e evolua para o Premium quando sentir o chamado.</p>
+                        </div>
+                        <div className="flex flex-col md:flex-row justify-center items-stretch gap-8 max-w-4xl mx-auto">
+                            {/* Free Plan */}
+                            <div className="bg-gray-800/50 border border-gray-700 rounded-2xl p-8 w-full md:w-1/2 flex flex-col">
+                                <h4 className="text-2xl font-semibold mb-2">Gratuito</h4>
+                                <p className="text-gray-400 mb-6">O essencial para começar.</p>
+                                <p className="text-4xl font-bold mb-6">R$0</p>
+                                <ul className="space-y-4 mb-8 flex-grow text-gray-300">
+                                    <li className="flex items-center"><CheckCircleIcon className="text-green-400 mr-3 h-5 w-5" /> Rota do dia atual</li>
+                                    <li className="flex items-center"><CheckCircleIcon className="text-green-400 mr-3 h-5 w-5" /> Diário de Bordo (limite de 5 notas)</li>
+                                    <li className="flex items-center"><CheckCircleIcon className="text-green-400 mr-3 h-5 w-5" /> Análise do Arcano do Dia</li>
+                                </ul>
+                                <Link to="/login" className="w-full text-center bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-600 transition">
+                                    Começar Agora
+                                </Link>
+                            </div>
+                             {/* Premium Plan */}
+                            <div className="bg-gray-800 border-2 border-purple-500 rounded-2xl p-8 w-full md:w-1/2 relative flex flex-col shadow-lg shadow-purple-500/10">
+                                <span className="bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full absolute -top-4 left-1/2 -translate-x-1/2">RECOMENDADO</span>
+                                <h4 className="text-2xl font-semibold mb-2 text-purple-300">Premium</h4>
+                                <p className="text-gray-400 mb-6">Acesse todo o potencial.</p>
+                                <p className="text-4xl font-bold mb-6">R$19,90<span className="text-lg font-normal text-gray-400">/mês</span></p>
+                                <ul className="space-y-4 mb-8 flex-grow text-gray-300">
+                                    <li className="flex items-center font-semibold"><CheckCircleIcon className="text-green-400 mr-3 h-5 w-5" /> Tudo do plano Gratuito, e mais:</li>
+                                    <li className="flex items-center"><CheckCircleIcon className="text-green-400 mr-3 h-5 w-5" /> Anotações e tarefas ilimitadas</li>
+                                    <li className="flex items-center"><CheckCircleIcon className="text-green-400 mr-3 h-5 w-5" /> Calendário de Oportunidades completo</li>
+                                    <li className="flex items-center"><CheckCircleIcon className="text-green-400 mr-3 h-5 w-5" /> Relatórios de Ciclos Pessoais</li>
+                                </ul>
+                                <Link to="/login" className="w-full text-center bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition">
+                                    Desbloquear Premium
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <Footer />
         </div>
-      </header>
-
-      <main className="pt-20">
-        {/* Hero Section */}
-        <section className="text-center py-20 px-6 bg-white">
-          <h2 className="text-4xl md:text-5xl font-extrabold mb-4 text-gray-900">
-            Navegue pela vida com propósito e clareza.
-          </h2>
-          <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            O Sincro App traduz a sabedoria da numerologia em uma bússola diária para suas decisões, metas e autoconhecimento. Sincronize suas ações com a sua energia.
-          </p>
-          <Link to="/login" className="bg-green-500 text-white px-8 py-3 rounded-full font-semibold text-lg hover:bg-green-600 transition shadow-lg">
-            Comece sua jornada gratuitamente
-          </Link>
-        </section>
-
-        {/* Features Section */}
-        <section id="features" className="py-20 px-6">
-          <div className="container mx-auto">
-            <h3 className="text-3xl font-bold text-center mb-12">Ferramentas para sua Evolução</h3>
-            <div className="grid md:grid-cols-3 gap-10">
-              <div className="bg-white p-8 rounded-lg shadow-md text-center">
-                <img src="/images/dashboard.png" alt="Dashboard Diário" className="w-full h-48 object-cover rounded-md mb-6 ring-1 ring-gray-200" />
-                <h4 className="text-xl font-semibold mb-2">Sua Rota de Hoje</h4>
-                <p className="text-gray-600">Receba orientações diárias baseadas na energia do dia. Saiba o que potencializar e o que evitar para fluir com mais facilidade.</p>
-              </div>
-              <div className="bg-white p-8 rounded-lg shadow-md text-center">
-                <img src="/images/calendar.png" alt="Calendário de Oportunidades" className="w-full h-48 object-cover rounded-md mb-6 ring-1 ring-gray-200" />
-                <h4 className="text-xl font-semibold mb-2">Calendário de Oportunidades</h4>
-                <p className="text-gray-600">Planeje suas metas e intenções. O Sincro App revela os melhores dias para iniciar projetos, tomar decisões importantes e agir.</p>
-              </div>
-              <div className="bg-white p-8 rounded-lg shadow-md text-center">
-                <img src="/images/journal.png" alt="Diário de Bordo" className="w-full h-48 object-cover rounded-md mb-6 ring-1 ring-gray-200" />
-                <h4 className="text-xl font-semibold mb-2">Diário de Bordo Inteligente</h4>
-                <p className="text-gray-600">Registre seus insights e acompanhe sua jornada. Descubra padrões em seus ciclos e acelere seu processo de autoconhecimento.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Pricing Section */}
-        <section id="pricing" className="py-20 px-6 bg-white">
-          <div className="container mx-auto">
-            <h3 className="text-3xl font-bold text-center mb-4">Escolha o plano que sincroniza com você</h3>
-            <p className="text-center text-gray-600 max-w-2xl mx-auto mb-12">Comece gratuitamente e evolua para o Premium quando sentir o chamado para aprofundar.</p>
-            <div className="flex flex-col md:flex-row justify-center items-stretch gap-8">
-              {/* Free Plan */}
-              <div className="border border-gray-200 rounded-lg p-8 w-full md:w-1/3 flex flex-col">
-                <h4 className="text-2xl font-semibold mb-2">Gratuito</h4>
-                <p className="text-gray-500 mb-6">O essencial para começar.</p>
-                <p className="text-4xl font-bold mb-6">R$0</p>
-                <ul className="space-y-4 mb-8 flex-grow">
-                  <li className="flex items-center"><CheckCircle className="text-green-500 mr-3" /> Dashboard do dia atual</li>
-                  <li className="flex items-center"><CheckCircle className="text-green-500 mr-3" /> Diário de Bordo (limite de 5 notas)</li>
-                  <li className="flex items-center"><CheckCircle className="text-green-500 mr-3" /> Análise do Arcano do Dia</li>
-                </ul>
-                <Link to="/login" className="w-full text-center bg-gray-200 text-gray-800 px-6 py-3 rounded-md font-semibold hover:bg-gray-300 transition">
-                  Começar Agora
-                </Link>
-              </div>
-              {/* Premium Plan */}
-              <div className="border-2 border-indigo-600 rounded-lg p-8 w-full md:w-1/3 relative flex flex-col shadow-lg">
-                <span className="bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full absolute -top-4 left-1/2 -translate-x-1/2">MAIS POPULAR</span>
-                <h4 className="text-2xl font-semibold mb-2 text-indigo-600">Premium</h4>
-                <p className="text-gray-500 mb-6">Acesse todo o potencial.</p>
-                <p className="text-4xl font-bold mb-6">R$19,90<span className="text-lg font-normal text-gray-500">/mês</span></p>
-                <ul className="space-y-4 mb-8 flex-grow">
-                  <li className="flex items-center"><CheckCircle className="text-green-500 mr-3" /> Tudo do plano Gratuito, e mais:</li>
-                  <li className="flex items-center font-semibold"><CheckCircle className="text-green-500 mr-3" /> Anotações e tarefas ilimitadas</li>
-                  <li className="flex items-center font-semibold"><CheckCircle className="text-green-500 mr-3" /> Calendário de Oportunidades completo</li>
-                  <li className="flex items-center font-semibold"><CheckCircle className="text-green-500 mr-3" /> Planejador de Metas e Intenções</li>
-                  <li className="flex items-center font-semibold"><CheckCircle className="text-green-500 mr-3" /> Relatórios de Ciclos Pessoais</li>
-                </ul>
-                <Link to="/login" className="w-full text-center bg-indigo-600 text-white px-6 py-3 rounded-md font-semibold hover:bg-indigo-700 transition">
-                  Desbloquear Premium
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white py-8 px-6">
-        <div className="container mx-auto text-center">
-          <p>&copy; 2025 Sincro App por Studio MLK. Todos os direitos reservados.</p>
-          <div className="mt-4 space-x-6">
-            <Link to="/privacy-policy" className="text-gray-400 hover:text-white">Política de Privacidade</Link>
-            <Link to="/terms-of-service" className="text-gray-400 hover:text-white">Termos de Serviço</Link>
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
+    );
 };
 
 export default LandingPage;

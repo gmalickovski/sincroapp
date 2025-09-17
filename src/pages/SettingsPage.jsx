@@ -1,12 +1,11 @@
 // /src/pages/SettingsPage.jsx
 
 import React, { useState } from 'react';
-import { auth } from '../services/firebase';
-import { updatePassword } from "firebase/auth";
+import { useAuth } from '../contexts/AuthContext'; // Usaremos o contexto para pegar o usuário
 import Spinner from '../components/ui/Spinner';
-import { ArrowLeftIcon } from '../components/ui/Icons';
 
-const SettingsPage = ({ user, userData, onBackToApp }) => {
+const SettingsPage = () => {
+    const { currentUser, userData, updatePassword } = useAuth(); // Pega os dados do contexto
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
@@ -30,13 +29,10 @@ const SettingsPage = ({ user, userData, onBackToApp }) => {
 
         setIsLoading(true);
         try {
-            const currentUser = auth.currentUser;
-            if (currentUser) {
-                await updatePassword(currentUser, newPassword);
-                setSuccess("Senha alterada com sucesso!");
-                setNewPassword('');
-                setConfirmPassword('');
-            }
+            await updatePassword(newPassword);
+            setSuccess("Senha alterada com sucesso!");
+            setNewPassword('');
+            setConfirmPassword('');
         } catch (error) {
             console.error("Erro ao alterar a senha:", error);
             if (error.code === 'auth/requires-recent-login') {
@@ -50,13 +46,8 @@ const SettingsPage = ({ user, userData, onBackToApp }) => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-900 p-4 md:p-8 text-white w-full">
+        <div className="min-h-full bg-gray-900 p-4 md:p-8 text-white w-full">
             <div className="max-w-3xl mx-auto">
-                <button onClick={onBackToApp} className="flex items-center gap-2 text-sm text-gray-400 hover:text-white mb-8">
-                    <ArrowLeftIcon className="w-4 h-4" />
-                    Voltar para o App
-                </button>
-
                 <h1 className="text-3xl font-bold mb-8">Configurações da Conta</h1>
 
                 <div className="bg-gray-800/50 border border-gray-700 rounded-2xl p-6">
@@ -64,15 +55,15 @@ const SettingsPage = ({ user, userData, onBackToApp }) => {
                     <div className="space-y-4">
                         <div>
                             <label className="text-sm font-medium text-gray-400">Nome de Nascimento</label>
-                            <p className="text-lg">{userData.nome}</p>
+                            <p className="text-lg">{userData?.nome || 'Não informado'}</p>
                         </div>
                         <div>
                             <label className="text-sm font-medium text-gray-400">Data de Nascimento</label>
-                            <p className="text-lg">{userData.dataNasc}</p>
+                            <p className="text-lg">{userData?.dataNasc || 'Não informado'}</p>
                         </div>
                          <div>
                             <label className="text-sm font-medium text-gray-400">Email</label>
-                            <p className="text-lg">{user.email}</p>
+                            <p className="text-lg">{currentUser?.email || 'Não informado'}</p>
                         </div>
                     </div>
                 </div>
@@ -105,7 +96,6 @@ const SettingsPage = ({ user, userData, onBackToApp }) => {
                         {success && <p className="text-green-400 text-sm">{success}</p>}
 
                         <div className="pt-2">
-                            {/* LINHA CORRIGIDA ABAIXO */}
                             <button type="submit" disabled={isLoading} className="bg-purple-600 font-bold py-2 px-6 rounded-lg hover:bg-purple-700 disabled:bg-gray-500 flex items-center justify-center min-w-[160px] h-10">
                                 {isLoading ? <Spinner /> : 'Salvar Alterações'}
                             </button>
