@@ -3,14 +3,15 @@
 import React from 'react';
 import DashboardCard from '../components/ui/DashboardCard';
 import { BookIcon, CheckSquareIcon, SunIcon, CompassIcon, MoonIcon, StarIcon, RepeatIcon } from '../components/ui/Icons';
+// Assumindo que seu content.js exporta todos estes objetos
 import { textosDescritivos, textosArcanos, bussolaAtividades, textosTooltips, textosCiclosDeVida } from '../data/content';
 import Spinner from '../components/ui/Spinner';
 import { db } from '../services/firebase';
 import { collection, query, where, onSnapshot, Timestamp, orderBy, limit, addDoc } from "firebase/firestore";
 import numerologyEngine from '../services/numerologyEngine';
-import UpgradeCard from '../components/ui/UpgradeCard'; // Importando o novo card
+import UpgradeCard from '../components/ui/UpgradeCard';
 
-// --- Subcomponentes (DailyTasksCard, QuickJournalCard) ---
+// --- Subcomponentes (Não foram alterados) ---
 const DailyTasksCard = ({ user, setActiveView }) => {
     const [tasks, setTasks] = React.useState([]);
     const [isLoading, setIsLoading] = React.useState(true);
@@ -67,14 +68,18 @@ function Dashboard({ user, userData, data, setActiveView }) {
         return <div className="p-4 md:p-6 text-white flex justify-center items-center h-full"><Spinner /></div>;
     }
     
-    const isPremium = userData?.plano !== 'gratuito'; // Verifica se o usuário é premium
+    const isPremium = userData?.plano !== 'gratuito';
 
     const { diaPessoal, mesPessoal, anoPessoal } = data.numeros;
     const { arcanoRegente, arcanoAtual, cicloDeVidaAtual } = data.estruturas;
 
+    // --- CORREÇÃO APLICADA AQUI ---
+    // Cada variável agora busca em sua respectiva chave no objeto de textos.
     const infoDia = textosDescritivos.diaPessoal[diaPessoal] || textosDescritivos.diaPessoal.default;
-    const infoMes = textosDescritivos.diaPessoal[diaPessoal] || textosDescritivos.diaPessoal.default;
-    const infoAno = textosDescritivos.diaPessoal[diaPessoal] || textosDescritivos.diaPessoal.default;
+    const infoMes = textosDescritivos.mesPessoal[mesPessoal] || textosDescritivos.mesPessoal.default;
+    const infoAno = textosDescritivos.anoPessoal[anoPessoal] || textosDescritivos.anoPessoal.default;
+    
+    // O restante da busca de textos permanece o mesmo
     const infoArcanoRegente = textosArcanos[arcanoRegente] || textosArcanos.default;
     const infoArcanoAtual = textosArcanos[arcanoAtual?.numero] || textosArcanos.default;
     const atividadesDoDia = bussolaAtividades[diaPessoal] || bussolaAtividades.default;
@@ -90,13 +95,13 @@ function Dashboard({ user, userData, data, setActiveView }) {
     );
 
     const VibracaoCard = ({ title, tooltipText, numero, info, icon, colorClass }) => (
-         <DashboardCard title={<Tooltip text={tooltipText}><span>{title}</span><span className="ml-2 h-4 w-4 flex items-center justify-center text-xs bg-gray-600 rounded-full">?</span></Tooltip>} icon={icon}>
-             <div className="flex items-center text-center gap-4">
-                <div className={`flex-shrink-0 w-20 h-20 ${colorClass.bg}/10 border ${colorClass.border}/50 rounded-lg flex items-center justify-center`}><span className={`text-4xl font-bold ${colorClass.text}`}>{numero}</span></div>
-                <div className="text-left"><h4 className="font-bold text-white text-lg">{info.titulo}</h4><p className="mt-1 text-sm text-gray-400">{info.desc}</p></div>
-            </div>
-            {info.tags && <div className="mt-4 flex flex-wrap gap-2">{info.tags.map(tag => (<span key={tag} className="bg-purple-500/30 text-purple-300 text-xs font-semibold px-3 py-1 rounded-full">{tag}</span>))}</div>}
-        </DashboardCard>
+       <DashboardCard title={<Tooltip text={tooltipText}><span>{title}</span><span className="ml-2 h-4 w-4 flex items-center justify-center text-xs bg-gray-600 rounded-full">?</span></Tooltip>} icon={icon}>
+           <div className="flex items-center text-center gap-4">
+               <div className={`flex-shrink-0 w-20 h-20 ${colorClass.bg}/10 border ${colorClass.border}/50 rounded-lg flex items-center justify-center`}><span className={`text-4xl font-bold ${colorClass.text}`}>{numero}</span></div>
+               <div className="text-left"><h4 className="font-bold text-white text-lg">{info.titulo}</h4><p className="mt-1 text-sm text-gray-400">{info.desc}</p></div>
+           </div>
+           {info.tags && <div className="mt-4 flex flex-wrap gap-2">{info.tags.map(tag => (<span key={tag} className="bg-purple-500/30 text-purple-300 text-xs font-semibold px-3 py-1 rounded-full">{tag}</span>))}</div>}
+       </DashboardCard>
     );
     
     const CicloDeVidaCard = ({ ciclo }) => (
@@ -107,10 +112,10 @@ function Dashboard({ user, userData, data, setActiveView }) {
             </Tooltip>
         } icon={<RepeatIcon />}>
             <div className="flex items-center text-center gap-4">
-                 <div className="flex-shrink-0 w-20 h-20 bg-green-500/10 border border-green-400/50 rounded-lg flex items-center justify-center">
+                <div className="flex-shrink-0 w-20 h-20 bg-green-500/10 border border-green-400/50 rounded-lg flex items-center justify-center">
                     <span className="text-4xl font-bold text-green-300">{ciclo.regente}</span>
-                 </div>
-                 <div className="text-left">
+                </div>
+                <div className="text-left">
                     <h4 className="font-bold text-white text-lg">{infoCicloAtual.titulo}</h4>
                     <p className="text-sm text-gray-400">{infoCicloAtual.descricao}</p>
                     <p className="text-xs text-gray-500 font-medium mt-2">Período: {ciclo.periodo}</p>

@@ -1,19 +1,188 @@
 // Textos para a Energia do Dia no Dashboard
 export const textosDescritivos = {
-    diaPessoal: {
-        1: { titulo: "Iniciativa e Liderança", desc: "Excelente para começar projetos, tomar decisões importantes e afirmar sua independência. A energia está a seu favor para liderar e inovar.", tags: ["#Início", "#Liderança", "#Ação"] },
-        2: { titulo: "Cooperação e Diplomacia", desc: "Dia ideal para parcerias, negociações e relacionamentos. A paciência e a colaboração trarão os melhores resultados.", tags: ["#Parceria", "#Diplomacia", "#Tato"] },
-        3: { titulo: "Comunicação e Criatividade", desc: "Dia ideal para socializar, expressar suas ideias e se dedicar a atividades criativas. A comunicação flui facilmente.", tags: ["#Expressão", "#Sociabilidade", "#Otimismo"] },
-        4: { titulo: "Trabalho e Organização", desc: "Foco na disciplina, no planejamento e no trabalho duro. Ótimo para organizar finanças, cuidar da casa e avançar em tarefas práticas.", tags: ["#Ordem", "#Trabalho", "#Estabilidade"] },
-        5: { titulo: "Mudança e Liberdade", desc: "Espere o inesperado! Dia de movimento, viagens, novas experiências e quebra de rotina. Abrace a versatilidade.", tags: ["#Mudança", "#Liberdade", "#Aventura"] },
-        6: { titulo: "Lar e Responsabilidade", desc: "Energia voltada para a família, o lar e a comunidade. Bom para resolver questões domésticas e cuidar de quem você ama.", tags: ["#Família", "#Harmonia", "#Dever"] },
-        7: { titulo: "Introspecção e Estudo", desc: "Momento de quietude, reflexão e busca por conhecimento. Ideal para meditar, estudar e analisar situações com profundidade.", tags: ["#Reflexão", "#Estudo", "#Espiritualidade"] },
-        8: { titulo: "Poder e Finanças", desc: "Foco em carreira, negócios e questões materiais. Um dia de grande poder pessoal para tomar decisões financeiras e estratégicas.", tags: ["#Poder", "#Negócios", "#Conquista"] },
-        9: { titulo: "Finalização e Compaixão", desc: "Dia de encerrar ciclos e deixar para trás o que não serve mais. A energia favorece o perdão, a generosidade e a visão humanitária.", tags: ["#FimDeCiclo", "#Compaixão", "#Universalismo"] },
-        11: { titulo: "Intuição e Revelação", desc: "Dia mestre com uma forte carga de intuição e espiritualidade. Preste atenção aos seus insights e sonhos. Grande potencial de inspiração.", tags: ["#Intuição", "#Mestria", "#Revelação"] },
-        22: { titulo: "Construção e Legado", desc: "Dia mestre com enorme potencial para realizações práticas e de grande escala. Ideal para transformar sonhos em realidade concreta.", tags: ["#Construção", "#Mestria", "#Legado"] },
-        default: { titulo: "Energia Neutra", desc: "Um dia sem vibrações numerológicas dominantes.", tags:[] }
+  // --- ANO PESSOAL ---
+  anoPessoal: {
+    1: {
+      titulo: "O Ano do Início",
+      desc: "Começo de um novo ciclo de nove anos. Momento de plantar sementes, tomar a iniciativa de novos projetos e focar na sua independência. A coragem é sua aliada.",
+      tags: ["#Recomeço", "#Independência", "#Ação"]
+    },
+    2: {
+      titulo: "O Ano da Cooperação",
+      desc: "Após o impulso inicial, é tempo de paciência e parcerias. O foco está na colaboração e diplomacia. Relacionamentos serão fundamentais para seu progresso.",
+      tags: ["#Paciência", "#Parcerias", "#União"]
+    },
+    3: {
+      titulo: "O Ano da Criatividade",
+      desc: "Sua expressão pessoal e criatividade florescem. Ano para socializar, comunicar e se divertir. A energia é leve e otimista. Expanda sua rede de contatos.",
+      tags: ["#Expansão", "#Criatividade", "#Comunicação"]
+    },
+    4: {
+      titulo: "O Ano da Estrutura",
+      desc: "Ano para construir bases sólidas com trabalho duro e disciplina. Dedique-se a construir segurança em todas as áreas: carreira, finanças e saúde. O esforço trará recompensas.",
+      tags: ["#Construção", "#TrabalhoDuro", "#Segurança"]
+    },
+    5: {
+      titulo: "O Ano da Mudança",
+      desc: "Prepare-se para liberdade e aventura. Este ano traz mudanças inesperadas e a necessidade de ser flexível. Quebre a rotina, viaje e abrace a versatilidade.",
+      tags: ["#Liberdade", "#Mudança", "#Versatilidade"]
+    },
+    6: {
+      titulo: "O Ano do Lar e da Responsabilidade",
+      desc: "O foco se volta para família, lar e comunidade. Ano para assumir responsabilidades afetivas, harmonizar relacionamentos e cuidar do seu ambiente.",
+      tags: ["#Responsabilidade", "#Família", "#Amor"]
+    },
+    7: {
+      titulo: "O Ano do Autoconhecimento",
+      desc: "Um período de introspecção e busca por sabedoria. Ano que convida a um mergulho interior, a estudos e à reflexão. Confie na sua intuição.",
+      tags: ["#Sabedoria", "#Introspecção", "#Fé"]
+    },
+    8: {
+      titulo: "O Ano da Colheita e do Poder",
+      desc: "Ano da ambição e da realização material. Sua capacidade de liderança está em alta. Foque em sua carreira, finanças e poder pessoal. É o momento de colher os frutos.",
+      tags: ["#Colheita", "#Sucesso", "#Poder"]
+    },
+    9: {
+      titulo: "O Ano da Finalização",
+      desc: "Fim de um ciclo de nove anos. Tempo de limpeza, balanço e desapego. Finalize projetos, resolva pendências e deixe para trás o que não serve mais.",
+      tags: ["#Encerramento", "#Balanço", "#Desapego"]
+    },
+    11: {
+      titulo: "O Ano da Intuição Mestra",
+      desc: "Um ano mestre de grande poder espiritual e intuição. Você será um canal de inspiração para os outros. Preste muita atenção aos seus insights e revelações.",
+      tags: ["#Espiritualidade", "#Intuição", "#Mestria"]
+    },
+    22: {
+      titulo: "O Ano do Construtor Mestre",
+      desc: "Ano mestre com potencial extraordinário para realizações concretas. Oportunidade de transformar grandes sonhos em realidade e construir algo de valor duradouro.",
+      tags: ["#Manifestação", "#Legado", "#Mestria"]
+    },
+    default: { titulo: "Energia Neutra", desc: "Um ano sem vibrações numerológicas dominantes.", tags:[] }
+  },
+
+  // --- MÊS PESSOAL ---
+  mesPessoal: {
+    1: {
+      titulo: "Iniciativa e Novos Começos",
+      desc: "Este é o seu mês para plantar sementes. A energia é de iniciativa, independência e coragem. Inicie novos projetos, defina metas claras e confie na sua capacidade de liderar.",
+      tags: ["#Início", "#Coragem", "#Liderança"]
+    },
+    2: {
+      titulo: "Parcerias e Paciência",
+      desc: "O foco deste mês está na colaboração. Fortaleça relacionamentos, trabalhe em equipe e use a diplomacia para resolver conflitos. O progresso virá através da cooperação.",
+      tags: ["#Cooperação", "#Paciência", "#Relacionamentos"]
+    },
+    3: {
+      titulo: "Criatividade e Socialização",
+      desc: "Sua expressão pessoal está em alta. Este é um mês para comunicar suas ideias, se dedicar a hobbies criativos e expandir sua vida social. O otimismo será contagiante.",
+      tags: ["#Criatividade", "#Comunicação", "#Alegria"]
+    },
+    4: {
+      titulo: "Trabalho e Estrutura",
+      desc: "É hora de arregaçar as mangas. Este mês pede foco, disciplina e organização. Dedique-se ao trabalho e construa bases sólidas para seus objetivos.",
+      tags: ["#Organização", "#Disciplina", "#Foco"]
+    },
+    5: {
+      titulo: "Mudanças e Oportunidades",
+      desc: "Prepare-se para o movimento! Este mês traz mudanças, novas oportunidades e a necessidade de ser flexível. Abrace o inesperado e saia da rotina.",
+      tags: ["#Mudança", "#Aventura", "#Flexibilidade"]
+    },
+    6: {
+      titulo: "Família e Harmonia",
+      desc: "As responsabilidades afetivas e domésticas chamam sua atenção. Este é um mês para cuidar do lar, fortalecer laços familiares e harmonizar seus relacionamentos.",
+      tags: ["#Família", "#Harmonia", "#Cuidado"]
+    },
+    7: {
+      titulo: "Reflexão e Autoconhecimento",
+      desc: "Um período para olhar para dentro. Este mês convida à introspecção, ao estudo e ao aprimoramento pessoal. Busque respostas e confie na sua intuição.",
+      tags: ["#Introspecção", "#Sabedoria", "#Análise"]
+    },
+    8: {
+      titulo: "Poder e Realização",
+      desc: "Seu poder de manifestação está no auge. Este é um mês para focar em sua carreira e finanças. Assuma o controle e tome decisões importantes.",
+      tags: ["#Sucesso", "#PoderPessoal", "#Conquista"]
+    },
+    9: {
+      titulo: "Conclusão e Balanço",
+      desc: "Este é um mês de encerramento de ciclos. É hora de fazer um balanço, finalizar projetos pendentes e se livrar do que não serve mais para abrir caminho para o novo.",
+      tags: ["#Finalização", "#Desapego", "#Balanço"]
+    },
+    11: {
+      titulo: "Intuição e Inspiração Mestra",
+      desc: "Um mês mestre de grande sensibilidade e conexão espiritual. Sua intuição estará extremamente aguçada, trazendo insights e revelações. Confie em sua voz interior.",
+      tags: ["#IntuiçãoMestra", "#Inspiração", "#Revelação"]
+    },
+    22: {
+      titulo: "Construção Mestra",
+      desc: "Este é um mês mestre com um potencial imenso para realizações práticas. Você tem a capacidade de transformar grandes sonhos em realidade. Foque em projetos de longo prazo.",
+      tags: ["#Realização", "#Legado", "#Mestria"]
+    },
+    default: { titulo: "Energia Neutra", desc: "Um mês sem vibrações numerológicas dominantes.", tags:[] }
+  },
+
+  // --- DIA PESSOAL (Padronizado) ---
+  diaPessoal: {
+    1: { 
+      titulo: "Iniciativa e Liderança", 
+      desc: "Excelente para começar projetos, tomar decisões importantes e afirmar sua independência. A energia está a seu favor para liderar e inovar.", 
+      tags: ["#Início", "#Liderança", "#Ação"] 
+    },
+    2: { 
+      titulo: "Cooperação e Diplomacia", 
+      desc: "Dia ideal para parcerias, negociações e relacionamentos. A paciência e a colaboração trarão os melhores resultados.", 
+      tags: ["#Parceria", "#Diplomacia", "#Tato"] 
+    },
+    3: { 
+      titulo: "Comunicação e Criatividade", 
+      desc: "Dia ideal para socializar, expressar suas ideias e se dedicar a atividades criativas. A comunicação flui facilmente.", 
+      tags: ["#Expressão", "#Sociabilidade", "#Otimismo"] 
+    },
+    4: { 
+      titulo: "Trabalho e Organização", 
+      desc: "Foco na disciplina, no planejamento e no trabalho duro. Ótimo para organizar finanças, cuidar da casa e avançar em tarefas práticas.", 
+      tags: ["#Ordem", "#Trabalho", "#Estabilidade"] 
+    },
+    5: { 
+      titulo: "Mudança e Liberdade", 
+      desc: "Espere o inesperado! Dia de movimento, viagens, novas experiências e quebra de rotina. Abrace a versatilidade.", 
+      tags: ["#Mudança", "#Liberdade", "#Aventura"] 
+    },
+    6: { 
+      titulo: "Lar e Responsabilidade", 
+      desc: "Energia voltada para a família, o lar e a comunidade. Bom para resolver questões domésticas e cuidar de quem você ama.", 
+      tags: ["#Família", "#Harmonia", "#Dever"] 
+    },
+    7: { 
+      titulo: "Introspecção e Estudo", 
+      desc: "Momento de quietude, reflexão e busca por conhecimento. Ideal para meditar, estudar e analisar situações com profundidade.", 
+      tags: ["#Reflexão", "#Estudo", "#Espiritualidade"] 
+    },
+    8: { 
+      titulo: "Poder e Finanças", 
+      desc: "Foco em carreira, negócios e questões materiais. Um dia de grande poder pessoal para tomar decisões financeiras e estratégicas.", 
+      tags: ["#Poder", "#Negócios", "#Conquista"] 
+    },
+    9: { 
+      titulo: "Finalização e Compaixão", 
+      desc: "Dia de encerrar ciclos e deixar para trás o que não serve mais. A energia favorece o perdão, a generosidade e a visão humanitária.", 
+      tags: ["#FimDeCiclo", "#Compaixão", "#Universalismo"] 
+    },
+    11: { 
+      titulo: "Intuição e Revelação", 
+      desc: "Dia mestre com uma forte carga de intuição e espiritualidade. Preste atenção aos seus insights e sonhos. Grande potencial de inspiração.", 
+      tags: ["#Intuição", "#Mestria", "#Revelação"] 
+    },
+    22: { 
+      titulo: "Construção e Legado", 
+      desc: "Dia mestre com enorme potencial para realizações práticas e de grande escala. Ideal para transformar sonhos em realidade concreta.", 
+      tags: ["#Construção", "#Mestria", "#Legado"] 
+    },
+    default: { 
+      titulo: "Energia Neutra", 
+      desc: "Um dia sem vibrações numerológicas dominantes.", 
+      tags:[] 
     }
+  }
 };
 
 // Textos para os Arcanos Regente e Vigente

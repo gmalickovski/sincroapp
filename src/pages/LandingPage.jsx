@@ -1,7 +1,11 @@
+// src/pages/LandingPage.jsx
+
 import React from 'react';
+import { Link } from 'react-router-dom'; // Importe o Link
 import { StarIcon, CompassIcon, CalendarIcon, BookIcon } from '../components/ui/Icons';
 
-const LandingPage = ({ onEnterClick, onNavigate }) => {
+// A página não precisa mais receber a prop onEnterClick
+const LandingPage = () => {
     return (
         <div className="bg-gray-900 text-white font-sans">
             {/* Header */}
@@ -11,9 +15,10 @@ const LandingPage = ({ onEnterClick, onNavigate }) => {
                         <StarIcon className="h-8 w-8 text-purple-400" />
                         <h1 className="text-xl font-bold">SincroApp</h1>
                     </div>
-                    <button onClick={onEnterClick} className="bg-white/10 border border-white/20 text-white font-semibold py-2 px-5 rounded-full hover:bg-white/20 transition-colors">
+                    {/* Botão "Entrar" agora é um Link para /login */}
+                    <Link to="/login" className="bg-white/10 border border-white/20 text-white font-semibold py-2 px-5 rounded-full hover:bg-white/20 transition-colors">
                         Entrar
-                    </button>
+                    </Link>
                 </div>
             </header>
 
@@ -26,13 +31,14 @@ const LandingPage = ({ onEnterClick, onNavigate }) => {
                     <p className="text-lg md:text-xl max-w-2xl mx-auto text-gray-300 mb-8">
                         Uma plataforma de autoconhecimento que integra numerologia e práticas holísticas para guiar seu dia a dia com intenção e clareza.
                     </p>
-                    <button onClick={onEnterClick} className="bg-purple-600 text-white font-bold py-3 px-8 rounded-full hover:bg-purple-700 transition-transform hover:scale-105">
+                    {/* Botão "Comece Agora" agora é um Link para /register */}
+                    <Link to="/register" className="bg-purple-600 text-white font-bold py-3 px-8 rounded-full hover:bg-purple-700 transition-transform hover:scale-105">
                         Comece Agora
-                    </button>
+                    </Link>
                 </div>
             </main>
 
-            {/* Seção de Funcionalidades */}
+            {/* Seção de Funcionalidades ... (o resto do arquivo continua igual) */}
             <section id="features" className="py-20 bg-gray-900">
                 <div className="container mx-auto px-4 text-center">
                     <h3 className="text-4xl font-bold mb-4">Sua Jornada de Autoconhecimento</h3>
@@ -81,9 +87,9 @@ const LandingPage = ({ onEnterClick, onNavigate }) => {
                                 <li className="flex items-center gap-3"><span className="text-green-400">✔</span> Diário de Tarefas</li>
                                 <li className="flex items-center gap-3"><span className="text-green-400">✔</span> Limite de 5 anotações no Diário</li>
                             </ul>
-                            <button onClick={onEnterClick} className="w-full bg-white/10 border border-white/20 font-semibold py-3 px-6 rounded-lg hover:bg-white/20 transition-colors">
+                            <Link to="/register" className="w-full block bg-white/10 border border-white/20 font-semibold py-3 px-6 rounded-lg hover:bg-white/20 transition-colors">
                                 Comece Agora
-                            </button>
+                            </Link>
                         </div>
                         
                         {/* Plano Premium */}
@@ -98,9 +104,9 @@ const LandingPage = ({ onEnterClick, onNavigate }) => {
                                 <li className="flex items-center gap-3"><span className="text-purple-400">✔</span> Relatórios mensais de ciclos (em breve)</li>
                                 <li className="flex items-center gap-3"><span className="text-purple-400">✔</span> Integração com Google Calendar (em breve)</li>
                             </ul>
-                            <button onClick={onEnterClick} className="w-full bg-purple-600 font-bold py-3 px-6 rounded-lg hover:bg-purple-700 transition-colors">
+                            <Link to="/register" className="w-full block bg-purple-600 font-bold py-3 px-6 rounded-lg hover:bg-purple-700 transition-colors">
                                 Seja Premium
-                            </button>
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -110,9 +116,9 @@ const LandingPage = ({ onEnterClick, onNavigate }) => {
             <footer className="w-full p-8 border-t border-gray-800">
                 <div className="container mx-auto text-center text-sm text-gray-500">
                     <p className="mb-2">Sincro App © {new Date().getFullYear()}</p>
-                    <button onClick={() => onNavigate('privacy')} className="hover:text-white transition-colors">Política de Privacidade</button>
+                    <Link to="/privacy-policy" className="hover:text-white transition-colors">Política de Privacidade</Link>
                     <span className="mx-2">|</span>
-                    <button onClick={() => onNavigate('terms')} className="hover:text-white transition-colors">Termos de Serviço</button>
+                    <Link to="/terms-of-service" className="hover:text-white transition-colors">Termos de Serviço</Link>
                 </div>
             </footer>
         </div>
