@@ -1,19 +1,14 @@
-// src/main.jsx
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext'; // Importe o AuthProvider
-import App from './App.jsx';
+import App from './App';
 import './styles/global.css';
-import './services/firebase.js'; // Apenas para inicializar o emulador
+
+// TESTE DEFINITIVO:
+// Esta linha vai nos mostrar o que o Vite está lendo ANTES de carregar o React.
+console.log("DEBUG INICIAL (main.jsx): ", import.meta.env);
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <AuthProvider> {/* Envolve o App com o AuthProvider */}
-        <App />
-      </AuthProvider>
-    </BrowserRouter>
+    <App />
   </React.StrictMode>,
-);
+)
