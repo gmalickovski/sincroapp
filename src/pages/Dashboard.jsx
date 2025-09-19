@@ -2,8 +2,8 @@
 
 import React from 'react';
 import DashboardCard from '../components/ui/DashboardCard';
-import { BookIcon, CheckSquareIcon, SunIcon, CompassIcon, MoonIcon, StarIcon, RepeatIcon } from '../components/ui/Icons';
-// Assumindo que seu content.js exporta todos estes objetos
+// Importando todos os ícones necessários, incluindo o TarotIcon
+import { BookIcon, CheckSquareIcon, SunIcon, CompassIcon, MoonIcon, StarIcon, RepeatIcon, TarotIcon } from '../components/ui/Icons';
 import { textosDescritivos, textosArcanos, bussolaAtividades, textosTooltips, textosCiclosDeVida } from '../data/content';
 import Spinner from '../components/ui/Spinner';
 import { db } from '../services/firebase';
@@ -11,7 +11,7 @@ import { collection, query, where, onSnapshot, Timestamp, orderBy, limit, addDoc
 import numerologyEngine from '../services/numerologyEngine';
 import UpgradeCard from '../components/ui/UpgradeCard';
 
-// --- Subcomponentes (Não foram alterados) ---
+// --- Subcomponentes e Tooltip (sem alterações) ---
 const DailyTasksCard = ({ user, setActiveView }) => {
     const [tasks, setTasks] = React.useState([]);
     const [isLoading, setIsLoading] = React.useState(true);
@@ -52,7 +52,6 @@ const QuickJournalCard = ({ user, userData, setActiveView }) => {
     };
     return (<DashboardCard title="Anotação Rápida" icon={<BookIcon />}><p className="text-sm text-gray-400 mb-3">Algum insight sobre a vibração de hoje? Anote aqui!</p><textarea className="w-full h-24 bg-gray-900 border border-gray-600 rounded-lg p-3 text-sm" placeholder="Digite suas reflexões..." value={note} onChange={(e) => setNote(e.target.value)} /><button onClick={handleSaveNote} disabled={isSaving || note.trim() === ''} className="mt-4 w-full bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 disabled:bg-gray-500 flex justify-center items-center h-10">{isSaving ? <Spinner /> : 'Salvar Anotação'}</button>{!isLoadingLatest && latestEntry && (<div className="mt-4 pt-4 border-t border-gray-700"><h4 className="text-sm font-bold text-gray-400 mb-2">Última Anotação:</h4><button onClick={() => setActiveView('journal')} className="w-full text-left bg-gray-900/50 p-3 rounded-lg hover:bg-gray-700/50 transition-colors"><p className="text-xs text-purple-300 font-semibold">{new Date(latestEntry.createdAt.seconds * 1000).toLocaleDateString('pt-BR', {day:'2-digit', month:'long'})}</p><p className="text-sm text-gray-300 truncate mt-1">{latestEntry.content}</p></button></div>)}</DashboardCard>);
 };
-
 const Tooltip = ({ text, children }) => (
     <div className="relative group flex items-center cursor-help">
         {children}
@@ -73,35 +72,36 @@ function Dashboard({ user, userData, data, setActiveView }) {
     const { diaPessoal, mesPessoal, anoPessoal } = data.numeros;
     const { arcanoRegente, arcanoAtual, cicloDeVidaAtual } = data.estruturas;
 
-    // --- CORREÇÃO APLICADA AQUI ---
-    // Cada variável agora busca em sua respectiva chave no objeto de textos.
     const infoDia = textosDescritivos.diaPessoal[diaPessoal] || textosDescritivos.diaPessoal.default;
     const infoMes = textosDescritivos.mesPessoal[mesPessoal] || textosDescritivos.mesPessoal.default;
     const infoAno = textosDescritivos.anoPessoal[anoPessoal] || textosDescritivos.anoPessoal.default;
-    
-    // O restante da busca de textos permanece o mesmo
     const infoArcanoRegente = textosArcanos[arcanoRegente] || textosArcanos.default;
     const infoArcanoAtual = textosArcanos[arcanoAtual?.numero] || textosArcanos.default;
     const atividadesDoDia = bussolaAtividades[diaPessoal] || bussolaAtividades.default;
     const infoCicloAtual = textosCiclosDeVida[cicloDeVidaAtual.regente] || textosCiclosDeVida.default;
 
+    // Card de Arcano com o ícone incluído
     const ArcanoCard = ({ number, info, title, tooltipText }) => (
-        <DashboardCard title={<Tooltip text={tooltipText}><span>{title}</span><span className="ml-2 h-4 w-4 flex items-center justify-center text-xs bg-gray-600 rounded-full">?</span></Tooltip>}>
-            <div className="flex flex-col md:flex-row items-center text-center md:text-left gap-4">
+        <DashboardCard 
+            title={<Tooltip text={tooltipText}><span>{title}</span><span className="ml-2 h-4 w-4 flex items-center justify-center text-xs bg-gray-600 rounded-full">?</span></Tooltip>}
+            icon={<TarotIcon />} // ÍCONE INCLUÍDO
+        >
+            <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-4">
                 <div className="flex-shrink-0 w-20 h-20 bg-gray-700/50 border border-gray-600 rounded-lg flex items-center justify-center"><span className="text-4xl font-bold text-purple-300">{number || '?'}</span></div>
                 <div><h4 className="font-bold text-white text-lg">{info.nomeTradicional || info.nome}</h4><p className="mt-1 text-sm text-gray-400">{info.descricao}</p></div>
             </div>
         </DashboardCard>
     );
 
+    // Card de Vibração com a correção de layout para mobile
     const VibracaoCard = ({ title, tooltipText, numero, info, icon, colorClass }) => (
-       <DashboardCard title={<Tooltip text={tooltipText}><span>{title}</span><span className="ml-2 h-4 w-4 flex items-center justify-center text-xs bg-gray-600 rounded-full">?</span></Tooltip>} icon={icon}>
-           <div className="flex items-center text-center gap-4">
-               <div className={`flex-shrink-0 w-20 h-20 ${colorClass.bg}/10 border ${colorClass.border}/50 rounded-lg flex items-center justify-center`}><span className={`text-4xl font-bold ${colorClass.text}`}>{numero}</span></div>
-               <div className="text-left"><h4 className="font-bold text-white text-lg">{info.titulo}</h4><p className="mt-1 text-sm text-gray-400">{info.desc}</p></div>
-           </div>
-           {info.tags && <div className="mt-4 flex flex-wrap gap-2">{info.tags.map(tag => (<span key={tag} className="bg-purple-500/30 text-purple-300 text-xs font-semibold px-3 py-1 rounded-full">{tag}</span>))}</div>}
-       </DashboardCard>
+         <DashboardCard title={<Tooltip text={tooltipText}><span>{title}</span><span className="ml-2 h-4 w-4 flex items-center justify-center text-xs bg-gray-600 rounded-full">?</span></Tooltip>} icon={icon}>
+             <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-4">
+                <div className={`flex-shrink-0 w-20 h-20 ${colorClass.bg}/10 border ${colorClass.border}/50 rounded-lg flex items-center justify-center`}><span className={`text-4xl font-bold ${colorClass.text}`}>{numero}</span></div>
+                <div className="text-left"><h4 className="font-bold text-white text-lg">{info.titulo}</h4><p className="mt-1 text-sm text-gray-400">{info.desc}</p></div>
+            </div>
+            {info.tags && <div className="mt-4 flex flex-wrap gap-2">{info.tags.map(tag => (<span key={tag} className="bg-purple-500/30 text-purple-300 text-xs font-semibold px-3 py-1 rounded-full">{tag}</span>))}</div>}
+        </DashboardCard>
     );
     
     const CicloDeVidaCard = ({ ciclo }) => (
@@ -112,10 +112,10 @@ function Dashboard({ user, userData, data, setActiveView }) {
             </Tooltip>
         } icon={<RepeatIcon />}>
             <div className="flex items-center text-center gap-4">
-                <div className="flex-shrink-0 w-20 h-20 bg-green-500/10 border border-green-400/50 rounded-lg flex items-center justify-center">
+                 <div className="flex-shrink-0 w-20 h-20 bg-green-500/10 border border-green-400/50 rounded-lg flex items-center justify-center">
                     <span className="text-4xl font-bold text-green-300">{ciclo.regente}</span>
-                </div>
-                <div className="text-left">
+                 </div>
+                 <div className="text-left">
                     <h4 className="font-bold text-white text-lg">{infoCicloAtual.titulo}</h4>
                     <p className="text-sm text-gray-400">{infoCicloAtual.descricao}</p>
                     <p className="text-xs text-gray-500 font-medium mt-2">Período: {ciclo.periodo}</p>
@@ -146,7 +146,6 @@ function Dashboard({ user, userData, data, setActiveView }) {
                 <VibracaoCard title="Vibração do Mês" tooltipText={textosTooltips.mesPessoal} numero={mesPessoal} info={infoMes} icon={<MoonIcon/>} colorClass={{text: 'text-indigo-300', border: 'border-indigo-400', bg: 'bg-indigo-500'}} />
                 <VibracaoCard title="Vibração do Ano" tooltipText={textosTooltips.anoPessoal} numero={anoPessoal} info={infoAno} icon={<StarIcon/>} colorClass={{text: 'text-amber-300', border: 'border-amber-400', bg: 'bg-amber-500'}} />
                 
-                {/* --- LÓGICA DE PLANOS EM AÇÃO --- */}
                 <div className="lg:col-span-3">
                     {isPremium ? (
                         <CicloDeVidaCard ciclo={cicloDeVidaAtual}/>

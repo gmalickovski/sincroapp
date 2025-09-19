@@ -5,11 +5,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
-// Corrigindo importações para o padrão do seu projeto (sem extensão)
 import { auth, db } from './services/firebase';
 import numerologyEngine from './services/numerologyEngine';
 
-// Páginas e Componentes
+// Importações de páginas e componentes
 import Spinner from './components/ui/Spinner';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -30,10 +29,10 @@ import NewNoteEditor from './NewNoteEditor';
 import InfoModal from './components/ui/InfoModal';
 import JournalEntryModal from './components/ui/JournalEntryModal';
 
+
 let handleSaveUserDetails;
 
-// --- PrivateRoute ATUALIZADO ---
-// Agora ele garante que userData não seja nulo antes de renderizar o AppLayout
+// --- PrivateRoute (sem alterações) ---
 const PrivateRoute = ({ user, userData, isLoading, showDetailsModal }) => {
     if (isLoading) {
         return <div className="min-h-screen bg-gray-900 flex items-center justify-center"><Spinner /></div>;
@@ -44,17 +43,13 @@ const PrivateRoute = ({ user, userData, isLoading, showDetailsModal }) => {
     if (showDetailsModal) {
         return <div className="min-h-screen bg-gray-900"><UserDetailsModal onSave={handleSaveUserDetails} /></div>;
     }
-    // CONDIÇÃO CRÍTICA ADICIONADA AQUI:
-    // Só renderiza o Outlet (que contém o AppLayout) se userData já estiver carregado.
-    // Isso previne que o AppLayout tente calcular com dados nulos.
     if (user && userData) {
         return <Outlet />;
     }
-    // Se chegou aqui, o usuário está logado mas os dados ainda não vieram do Firestore.
     return <div className="min-h-screen bg-gray-900 flex items-center justify-center"><Spinner /></div>;
 };
 
-// --- AppLayout (sem alterações na lógica de cálculo) ---
+// --- AppLayout ---
 const AppLayout = ({ user, userData }) => {
     const [numerologyData, setNumerologyData] = useState(null);
     const [activeView, setActiveView] = useState('dashboard');
@@ -65,11 +60,10 @@ const AppLayout = ({ user, userData }) => {
     const [newNoteDate, setNewNoteDate] = useState(null);
     const [infoModalData, setInfoModalData] = useState(null);
 
-    // Este useEffect agora só vai rodar quando tiver certeza que userData é válido,
-    // graças à proteção que adicionamos no PrivateRoute.
     useEffect(() => {
-        if (userData?.nome && userData?.dataNasc) {
-            const data = numerologyEngine(userData.nome, userData.dataNasc);
+        // Usa 'nomeAnalise' para o cálculo, garantindo precisão
+        if (userData?.nomeAnalise && userData?.dataNasc) {
+            const data = numerologyEngine(userData.nomeAnalise, userData.dataNasc);
             setNumerologyData(data);
         }
     }, [userData]);
@@ -135,7 +129,6 @@ function App() {
                 setUser(currentUser);
                 const userDocRef = doc(db, "users", currentUser.uid);
                 const userDoc = await getDoc(userDocRef);
-
                 if (userDoc.exists()) {
                     setUserData(userDoc.data());
                     setShowDetailsModal(false);
@@ -152,11 +145,24 @@ function App() {
         return () => unsubscribe();
     }, []);
 
-    handleSaveUserDetails = async ({ nome, dataNasc }) => {
+    handleSaveUserDetails = async ({ nomeAnalise, dataNasc }) => {
         if (user) {
-            const newUserData = { email: user.email, nome, dataNasc, plano: "gratuito", isAdmin: false };
+            // Pega o nome de cadastro do perfil do Auth
+            const displayName = user.displayName || '';
+            const nameParts = displayName.split(' ');
+            const primeiroNome = nameParts[0] || '';
+            const sobrenome = nameParts.slice(1).join(' ') || '';
+
+            const newUserData = { 
+                email: user.email,
+                primeiroNome: primeiroNome,
+                sobrenome: sobrenome,
+                nomeAnalise: nomeAnalise, // Nome completo para os cálculos
+                dataNasc: dataNasc,
+                plano: "gratuito", 
+                isAdmin: false 
+            };
             await setDoc(doc(db, "users", user.uid), newUserData);
-            // Esta linha é essencial para o recálculo
             setUserData(newUserData);
             setShowDetailsModal(false);
         }
