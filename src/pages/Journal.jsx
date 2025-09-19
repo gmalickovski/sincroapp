@@ -8,7 +8,8 @@ import UpgradeModal from '../components/ui/UpgradeModal';
 import { CalendarIcon, EditIcon, ChevronDownIcon, TrashIcon, FilterIcon, XIcon } from '../components/ui/Icons';
 import VibrationPill from '../components/ui/VibrationPill';
 
-// Card da Anotação com o design unificado, dentro da estrutura de linha do tempo
+// ### COMPONENTE REFEITO E CORRIGIDO ###
+// Estrutura refeita do zero, inspirada em componentes funcionais, para garantir a quebra de linha.
 const JournalEntryCard = ({ entry, setEditingEntry, handleDelete, onInfoClick }) => {
     const energyClasses = {
         1: { border: 'border-red-500', bg: 'bg-red-500/20', text: 'text-red-300' },
@@ -29,22 +30,38 @@ const JournalEntryCard = ({ entry, setEditingEntry, handleDelete, onInfoClick })
 
     return (
         <div className="relative pl-8">
-            <div className="absolute left-0 h-full w-px bg-gray-700"><div className="absolute top-1 left-1/2 w-3 h-3 bg-gray-600 rounded-full -translate-x-1/2"></div></div>
+            {/* Linha do tempo e bolinha */}
+            <div className="absolute left-0 h-full w-px bg-gray-700">
+                <div className="absolute top-1 left-1/2 w-3 h-3 bg-gray-600 rounded-full -translate-x-1/2"></div>
+            </div>
+
+            {/* Card principal */}
             <div 
                 onClick={() => setEditingEntry(entry)}
-                className={`w-full bg-gray-800/60 border ${currentEnergy.border} rounded-xl shadow-lg animate-fade-in group relative hover:border-purple-400/80 cursor-pointer transition-all duration-300 ml-4`}
+                className={`w-full bg-gray-800/60 border ${currentEnergy.border} rounded-xl shadow-lg animate-fade-in group relative hover:border-purple-400/80 cursor-pointer transition-all duration-300 ml-4 flex flex-col`}
             >
-                <div className={`p-4 rounded-t-xl ${currentEnergy.bg}`}>
-                    <div className="flex justify-between items-center">
-                        <h3 className={`font-bold capitalize ${currentEnergy.text}`}>{formattedDate}</h3>
+                {/* Cabeçalho do Card */}
+                <div className={`p-4 rounded-t-xl ${currentEnergy.bg} flex-shrink-0`}>
+                    <div className="flex justify-between items-center gap-4">
+                        <h3 className={`font-bold capitalize ${currentEnergy.text} truncate`}>{formattedDate}</h3>
                         <div className="flex items-center gap-2 flex-shrink-0">
                             <VibrationPill vibrationNumber={entry.personalDay} onClick={onInfoClick} />
-                            <button onClick={(e) => {e.stopPropagation(); handleDelete(entry.id);}} className="text-gray-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100" title="Excluir anotação"><TrashIcon className="h-4 w-4" /></button>
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); handleDelete(entry.id); }} 
+                                className="text-gray-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100" 
+                                title="Excluir anotação"
+                            >
+                                <TrashIcon className="h-4 w-4" />
+                            </button>
                         </div>
                     </div>
                 </div>
-                <div className="p-4">
-                    <p className="text-gray-300 whitespace-pre-wrap text-sm line-clamp-5 font-serif">{entry.content}</p>
+
+                {/* Corpo do Card - SOLUÇÃO DEFINITIVA */}
+                <div className="p-4 min-w-0">
+                    <p className="text-gray-300 whitespace-pre-wrap break-words text-sm line-clamp-5 font-serif">
+                        {entry.content}
+                    </p>
                 </div>
             </div>
         </div>
@@ -52,7 +69,7 @@ const JournalEntryCard = ({ entry, setEditingEntry, handleDelete, onInfoClick })
 };
 
 
-// Componente de Filtros
+// Componente de Filtros (sem alteração)
 const FilterPopover = ({ isVisible, onClose, filters, setFilters, dateInputRef }) => {
     if(!isVisible) return null;
     const { date, vibration } = filters;
@@ -81,7 +98,6 @@ const Journal = ({ user, userData, setEditingEntry, openNewNoteEditor, onInfoCli
     const [vibrationFilter, setVibrationFilter] = useState('all');
     const [dateFilter, setDateFilter] = useState('');
     const [isLoading, setIsLoading] = useState(true);
-    // (CORREÇÃO) O estado do modal de upgrade foi restaurado aqui
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [filtersVisible, setFiltersVisible] = useState(false);
     
@@ -111,7 +127,7 @@ const Journal = ({ user, userData, setEditingEntry, openNewNoteEditor, onInfoCli
             {showUpgradeModal && <UpgradeModal onClose={() => setShowUpgradeModal(false)} />}
             <div className="p-4 md:p-8 text-white w-full max-w-4xl mx-auto">
                 <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
-                    <h1 className="text-3xl font-bold">Diário de Bordo</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold">Diário de Bordo</h1>
                     <div className="relative" ref={filterButtonRef}>
                         <button onClick={() => setFiltersVisible(!filtersVisible)} className="flex items-center gap-2 text-sm font-semibold bg-gray-800/50 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors">
                             <FilterIcon className="w-4 h-4" /> Filtros
