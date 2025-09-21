@@ -57,12 +57,14 @@ const Tasks = ({ userData, setActiveView, onInfoClick, taskUpdater }) => {
     
     return (
         <div className="p-4 md:p-8 text-white w-full max-w-7xl mx-auto h-full">
+            {/* ### TÍTULO PADRONIZADO ADICIONADO ### */}
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6">Tarefas</h1>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-12">
                 
                 {/* Coluna da Esquerda: Foco no Dia Atual */}
                 <div className="lg:col-span-1">
                     <div className="lg:sticky lg:top-8">
-                         {/* TÍTULO AJUSTADO */}
                          <h2 className="text-lg font-semibold text-gray-400 mb-4">Lista de Hoje</h2>
                         <TaskSheet 
                             date={todayKey}
@@ -76,7 +78,6 @@ const Tasks = ({ userData, setActiveView, onInfoClick, taskUpdater }) => {
 
                 {/* Coluna da Direita: Arquivo Vivo */}
                 <div className="lg:col-span-1 mt-12 lg:mt-0">
-                    {/* TÍTULO AJUSTADO */}
                     <h2 className="text-lg font-semibold text-gray-400 mb-4">Listas Anteriores e Futuras</h2>
                     {visibleDays.length > 0 ? (
                         <div className="space-y-4">

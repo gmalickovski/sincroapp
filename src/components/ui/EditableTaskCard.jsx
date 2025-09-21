@@ -25,7 +25,6 @@ const EditableTaskCard = ({ date, tasks, personalDay, onInfoClick, taskUpdater }
 
     const currentEnergy = energyClasses[personalDay] || energyClasses.default;
     
-    // CORREÇÃO DA DATA: Garante que a string seja interpretada no fuso horário local
     const dateObj = new Date(date.replace(/-/g, '/'));
     
     const formattedDate = dateObj.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
@@ -35,22 +34,22 @@ const EditableTaskCard = ({ date, tasks, personalDay, onInfoClick, taskUpdater }
 
     return (
         <div className={`border rounded-xl w-full animate-fade-in transition-all duration-300 overflow-hidden ${isExpanded ? `${currentEnergy.border} bg-gray-800/60` : 'border-gray-700 bg-gray-800/50'}`}>
-            {/* Cabeçalho colorido e clicável */}
+            {/* ### AJUSTE APLICADO ### */}
+            {/* Trocado 'justify-between' por 'gap-4' e adicionado 'flex-1' ao span da data */}
             <button 
                 onClick={() => setIsExpanded(!isExpanded)} 
-                className={`w-full p-4 flex justify-between items-center text-left transition-colors ${isExpanded ? currentEnergy.bg : 'hover:bg-gray-700/50'}`}
+                className={`w-full p-4 flex items-center text-left gap-4 ${isExpanded ? currentEnergy.bg : 'hover:bg-gray-700/50'}`}
             >
-                <span className={`font-bold ${isExpanded ? currentEnergy.text : (isPast && allCompleted ? 'text-gray-500' : 'text-white')}`}>
+                <span className={`font-bold flex-1 min-w-0 ${isExpanded ? currentEnergy.text : (isPast && allCompleted ? 'text-gray-500' : 'text-white')}`}>
                     {formattedDate}
                 </span>
-                <div className="flex items-center gap-3">
-                    <span className="text-sm text-gray-400 font-medium">{completedCount} / {tasks.length}</span>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="text-sm text-gray-400 font-medium whitespace-nowrap">{completedCount} / {tasks.length}</span>
                     <VibrationPill vibrationNumber={personalDay} onClick={onInfoClick}/>
                     <ChevronDownIcon className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                 </div>
             </button>
             
-            {/* Corpo da lista, que aparece sem redundância */}
             {isExpanded && (
                  <TaskListBody tasks={tasks} taskUpdater={taskUpdater} dateForNewTasks={dateObj} />
             )}

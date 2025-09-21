@@ -44,7 +44,6 @@ export const TaskListBody = ({ tasks, taskUpdater, dateForNewTasks }) => {
     const newTaskInputRef = useRef(null);
     const sortedTasks = useMemo(() => tasks.sort((a, b) => a.createdAt.seconds - b.createdAt.seconds), [tasks]);
     
-    // CORREÇÃO: Usa a data recebida para garantir que novas tarefas sejam criadas no dia certo
     const handleAddTask = () => { if (newTaskText.trim() === '') return; taskUpdater({ type: 'ADD', payload: { date: dateForNewTasks, text: newTaskText } }); setNewTaskText(''); };
     
     const handleEnterOnNew = (e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddTask(); } };
@@ -85,7 +84,6 @@ export const TaskSheet = ({ date, tasks, personalDay, onInfoClick, taskUpdater }
         default: { bg: 'bg-gray-700/20', text: 'text-gray-300', border: 'border-gray-500', progress: 'bg-gray-400' }
     };
     
-    // CORREÇÃO DA DATA: Garante que a string seja interpretada no fuso horário local
     const dateObj = new Date(date.replace(/-/g, '/'));
 
     const currentEnergy = energyClasses[personalDay] || energyClasses.default;
@@ -96,14 +94,17 @@ export const TaskSheet = ({ date, tasks, personalDay, onInfoClick, taskUpdater }
     return (
         <div className={`bg-gray-800/60 border ${currentEnergy.border} rounded-xl shadow-lg w-full`}>
             <div className={`${currentEnergy.bg} p-4 rounded-t-xl`}>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-start gap-3">
                     <h2 className={`text-xl font-bold ${currentEnergy.text}`}>{formattedDate}</h2>
-                    <VibrationPill vibrationNumber={personalDay} onClick={onInfoClick} />
+                    <div className="flex-shrink-0">
+                        <VibrationPill vibrationNumber={personalDay} onClick={onInfoClick} />
+                    </div>
                 </div>
                 <div className="mt-3">
+                    {/* ### AJUSTE APLICADO ### */}
                     <div className="flex justify-between text-xs font-semibold text-gray-300 mb-1">
                         <span>Progresso</span>
-                        <span>{completedCount} / {tasks.length}</span>
+                        <span className="whitespace-nowrap">{completedCount} / {tasks.length}</span>
                     </div>
                     <div className="w-full bg-gray-900/50 rounded-full h-1.5"><div className={`${currentEnergy.progress} h-1.5 rounded-full transition-all duration-500`} style={{ width: `${progress}%` }}></div></div>
                 </div>

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import DashboardCard from '../components/ui/DashboardCard';
-// Importando todos os ícones necessários, incluindo o TarotIcon
+import InfoCard from '../components/ui/InfoCard'; // Usando nosso componente padrão
 import { BookIcon, CheckSquareIcon, SunIcon, CompassIcon, MoonIcon, StarIcon, RepeatIcon, TarotIcon } from '../components/ui/Icons';
 import { textosDescritivos, textosArcanos, bussolaAtividades, textosTooltips, textosCiclosDeVida } from '../data/content';
 import Spinner from '../components/ui/Spinner';
@@ -11,7 +11,7 @@ import { collection, query, where, onSnapshot, Timestamp, orderBy, limit, addDoc
 import numerologyEngine from '../services/numerologyEngine';
 import UpgradeCard from '../components/ui/UpgradeCard';
 
-// --- Subcomponentes e Tooltip (sem alterações) ---
+// --- Subcomponentes (mantidos do seu código original para preservar a funcionalidade) ---
 const DailyTasksCard = ({ user, setActiveView }) => {
     const [tasks, setTasks] = React.useState([]);
     const [isLoading, setIsLoading] = React.useState(true);
@@ -71,58 +71,35 @@ function Dashboard({ user, userData, data, setActiveView }) {
 
     const { diaPessoal, mesPessoal, anoPessoal } = data.numeros;
     const { arcanoRegente, arcanoAtual, cicloDeVidaAtual } = data.estruturas;
-
+    
     const infoDia = textosDescritivos.diaPessoal[diaPessoal] || textosDescritivos.diaPessoal.default;
     const infoMes = textosDescritivos.mesPessoal[mesPessoal] || textosDescritivos.mesPessoal.default;
     const infoAno = textosDescritivos.anoPessoal[anoPessoal] || textosDescritivos.anoPessoal.default;
-    const infoArcanoRegente = textosArcanos[arcanoRegente] || textosArcanos.default;
-    const infoArcanoAtual = textosArcanos[arcanoAtual?.numero] || textosArcanos.default;
     const atividadesDoDia = bussolaAtividades[diaPessoal] || bussolaAtividades.default;
-    const infoCicloAtual = textosCiclosDeVida[cicloDeVidaAtual.regente] || textosCiclosDeVida.default;
-
-    // Card de Arcano com o ícone incluído
-    const ArcanoCard = ({ number, info, title, tooltipText }) => (
-        <DashboardCard 
-            title={<Tooltip text={tooltipText}><span>{title}</span><span className="ml-2 h-4 w-4 flex items-center justify-center text-xs bg-gray-600 rounded-full">?</span></Tooltip>}
-            icon={<TarotIcon />} // ÍCONE INCLUÍDO
-        >
-            <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-4">
-                <div className="flex-shrink-0 w-20 h-20 bg-gray-700/50 border border-gray-600 rounded-lg flex items-center justify-center"><span className="text-4xl font-bold text-purple-300">{number || '?'}</span></div>
-                <div><h4 className="font-bold text-white text-lg">{info.nomeTradicional || info.nome}</h4><p className="mt-1 text-sm text-gray-400">{info.descricao}</p></div>
-            </div>
-        </DashboardCard>
-    );
-
-    // Card de Vibração com a correção de layout para mobile
-    const VibracaoCard = ({ title, tooltipText, numero, info, icon, colorClass }) => (
-         <DashboardCard title={<Tooltip text={tooltipText}><span>{title}</span><span className="ml-2 h-4 w-4 flex items-center justify-center text-xs bg-gray-600 rounded-full">?</span></Tooltip>} icon={icon}>
-             <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-4">
-                <div className={`flex-shrink-0 w-20 h-20 ${colorClass.bg}/10 border ${colorClass.border}/50 rounded-lg flex items-center justify-center`}><span className={`text-4xl font-bold ${colorClass.text}`}>{numero}</span></div>
-                <div className="text-left"><h4 className="font-bold text-white text-lg">{info.titulo}</h4><p className="mt-1 text-sm text-gray-400">{info.desc}</p></div>
-            </div>
-            {info.tags && <div className="mt-4 flex flex-wrap gap-2">{info.tags.map(tag => (<span key={tag} className="bg-purple-500/30 text-purple-300 text-xs font-semibold px-3 py-1 rounded-full">{tag}</span>))}</div>}
-        </DashboardCard>
-    );
     
-    const CicloDeVidaCard = ({ ciclo }) => (
-        <DashboardCard title={
-            <Tooltip text="Seu grande ciclo de vida atual, que define o tema principal da sua fase de vida.">
-                <span>{ciclo.nome}</span>
-                <span className="ml-2 h-4 w-4 flex items-center justify-center text-xs bg-gray-600 rounded-full">?</span>
-            </Tooltip>
-        } icon={<RepeatIcon />}>
-            <div className="flex items-center text-center gap-4">
-                 <div className="flex-shrink-0 w-20 h-20 bg-green-500/10 border border-green-400/50 rounded-lg flex items-center justify-center">
-                    <span className="text-4xl font-bold text-green-300">{ciclo.regente}</span>
-                 </div>
-                 <div className="text-left">
-                    <h4 className="font-bold text-white text-lg">{infoCicloAtual.titulo}</h4>
-                    <p className="text-sm text-gray-400">{infoCicloAtual.descricao}</p>
-                    <p className="text-xs text-gray-500 font-medium mt-2">Período: {ciclo.periodo}</p>
-                </div>
-            </div>
-        </DashboardCard>
-    );
+    // ### AJUSTE FINAL E CORRETO AQUI ###
+    // A lógica agora constrói o título formatado ANTES de passá-lo para o InfoCard.
+    const infoArcanoRegenteRaw = textosArcanos[arcanoRegente] || textosArcanos.default;
+    const infoArcanoRegente = {
+        ...infoArcanoRegenteRaw,
+        titulo: infoArcanoRegenteRaw.tituloTradicional 
+            ? `${infoArcanoRegenteRaw.titulo} - ${infoArcanoRegenteRaw.tituloTradicional}` 
+            : infoArcanoRegenteRaw.titulo,
+    };
+
+    const infoArcanoAtualRaw = textosArcanos[arcanoAtual?.numero] || textosArcanos.default;
+    const infoArcanoAtual = {
+        ...infoArcanoAtualRaw,
+        titulo: infoArcanoAtualRaw.tituloTradicional 
+            ? `${infoArcanoAtualRaw.titulo} - ${infoArcanoAtualRaw.tituloTradicional}`
+            : infoArcanoAtualRaw.titulo,
+    };
+    
+    const infoCicloAtualRaw = textosCiclosDeVida[cicloDeVidaAtual.regente] || textosCiclosDeVida.default;
+    const infoCicloAtual = {
+        ...infoCicloAtualRaw,
+        periodo: `Período: ${cicloDeVidaAtual.periodo}`
+    };
 
     const BussolaCard = () => (
         <DashboardCard title={<Tooltip text={textosTooltips.bussolaAtividades}><span>Bússola de Atividades</span><span className="ml-2 h-4 w-4 flex items-center justify-center text-xs bg-gray-600 rounded-full">?</span></Tooltip>} icon={<CompassIcon />} className="row-span-1 md:row-span-2">
@@ -142,20 +119,21 @@ function Dashboard({ user, userData, data, setActiveView }) {
     return (
         <div className="p-4 md:p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in text-gray-300">
-                <VibracaoCard title="Vibração do Dia" tooltipText={textosTooltips.vibracaoDia} numero={diaPessoal} info={infoDia} icon={<SunIcon/>} colorClass={{text: 'text-cyan-300', border: 'border-cyan-400', bg: 'bg-cyan-500'}} />
-                <VibracaoCard title="Vibração do Mês" tooltipText={textosTooltips.mesPessoal} numero={mesPessoal} info={infoMes} icon={<MoonIcon/>} colorClass={{text: 'text-indigo-300', border: 'border-indigo-400', bg: 'bg-indigo-500'}} />
-                <VibracaoCard title="Vibração do Ano" tooltipText={textosTooltips.anoPessoal} numero={anoPessoal} info={infoAno} icon={<StarIcon/>} colorClass={{text: 'text-amber-300', border: 'border-amber-400', bg: 'bg-amber-500'}} />
+                <InfoCard title="Vibração do Dia" tooltipText={textosTooltips.vibracaoDia} number={diaPessoal} info={infoDia} icon={<SunIcon/>} colorClass={{text: 'text-cyan-300', border: 'border-cyan-400', bg: 'bg-cyan-500'}} />
+                <InfoCard title="Vibração do Mês" tooltipText={textosTooltips.mesPessoal} number={mesPessoal} info={infoMes} icon={<MoonIcon/>} colorClass={{text: 'text-indigo-300', border: 'border-indigo-400', bg: 'bg-indigo-500'}} />
+                <InfoCard title="Vibração do Ano" tooltipText={textosTooltips.anoPessoal} number={anoPessoal} info={infoAno} icon={<StarIcon/>} colorClass={{text: 'text-amber-300', border: 'border-amber-400', bg: 'bg-amber-500'}} />
                 
                 <div className="lg:col-span-3">
                     {isPremium ? (
-                        <CicloDeVidaCard ciclo={cicloDeVidaAtual}/>
+                        <InfoCard title={cicloDeVidaAtual.nome} tooltipText={textosTooltips.cicloDeVida} number={cicloDeVidaAtual.regente} info={infoCicloAtual} icon={<RepeatIcon />} colorClass={{text: 'text-green-300', border: 'border-green-400', bg: 'bg-green-500'}} />
                     ) : (
                         <UpgradeCard title="Desbloqueie seus Ciclos de Vida" featureText="Entenda os grandes temas da sua jornada com o plano Premium." />
                     )}
                 </div>
 
-                <ArcanoCard number={arcanoRegente} info={infoArcanoRegente} title="Arcano Regente" tooltipText={textosTooltips.arcanoRegente} />
-                <ArcanoCard number={arcanoAtual?.numero} info={infoArcanoAtual} title="Arcano Vigente" tooltipText={textosTooltips.arcanoVigente}/>
+                <InfoCard title="Arcano Regente" tooltipText={textosTooltips.arcanoRegente} number={arcanoRegente} info={infoArcanoRegente} icon={<TarotIcon />} />
+                <InfoCard title="Arcano Vigente" tooltipText={textosTooltips.arcanoVigente} number={arcanoAtual?.numero} info={infoArcanoAtual} icon={<TarotIcon />} />
+                
                 <BussolaCard/>
 
                 {isPremium ? (

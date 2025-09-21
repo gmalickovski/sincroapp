@@ -8,107 +8,74 @@ import { ChevronLeft, ChevronRight, BookIcon, CheckSquareIcon, PlusIcon } from '
 import VibrationPill from '../components/ui/VibrationPill';
 import TaskModal from '../components/ui/TaskModal';
 
-// --- NOVOS COMPONENTES PARA O LAYOUT MOBILE ---
-
-// O novo Botão de Ação Flutuante (FAB)
+// ### COMPONENTE ATUALIZADO ###
+// O Botão Flutuante foi redesenhado para seguir o padrão das outras páginas.
 const FloatingActionButton = ({ onNewTask, onNewNote }) => {
     const [isOpen, setIsOpen] = useState(false);
 
-    const actionButtonClasses = "w-12 h-12 rounded-full bg-white/10 border border-white/20 backdrop-blur-lg text-purple-300 flex items-center justify-center shadow-lg transition-transform duration-200 ease-out";
-    const mainButtonClasses = `z-20 transition-transform duration-300 ${isOpen ? 'rotate-45' : 'rotate-0'}`;
+    // Estilo para os botões de ação secundários (Anotação, Tarefa)
+    const secondaryButtonClasses = "w-12 h-12 rounded-full bg-white/10 border border-white/20 backdrop-blur-lg text-purple-300 flex items-center justify-center shadow-lg transition-all duration-200 ease-out";
+    
+    // Estilo para o botão principal, agora seguindo o padrão das outras telas
+    const mainButtonClasses = `fixed bottom-6 right-6 flex items-center justify-center bg-purple-600 text-white rounded-full p-4 shadow-lg hover:bg-purple-700 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-500 z-30`;
+    const mainButtonIconClasses = `transition-transform duration-300 ${isOpen ? 'rotate-45' : 'rotate-0'}`;
 
     return (
-        <div className="fixed bottom-6 right-6 lg:hidden z-30">
+        <div className="fixed bottom-6 right-6 lg:hidden z-20">
             <div className="relative flex flex-col items-center gap-3">
-                {/* Botão de Anotação */}
-                <button
-                    onClick={() => { onNewNote(); setIsOpen(false); }}
-                    className={`${actionButtonClasses} ${isOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0 pointer-events-none'}`}
-                    title="Nova Anotação"
+                {/* Ações secundárias */}
+                <div 
+                    className={`flex flex-col items-center gap-3 transition-all duration-300 ${isOpen ? 'opacity-100 -translate-y-20' : 'opacity-0 translate-y-0 pointer-events-none'}`}
+                    style={{transitionDelay: isOpen ? '0ms' : '100ms'}}
                 >
-                    <BookIcon className="w-6 h-6" />
-                </button>
-                {/* Botão de Tarefa */}
-                 <button
-                    onClick={() => { onNewTask(); setIsOpen(false); }}
-                    className={`${actionButtonClasses} ${isOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0 pointer-events-none'}`}
-                    title="Nova Tarefa"
-                >
-                    <CheckSquareIcon className="w-6 h-6" />
-                </button>
-                {/* Botão Principal */}
-                <button onClick={() => setIsOpen(!isOpen)} className={`${actionButtonClasses} ${mainButtonClasses} bg-purple-600 text-white`}>
-                    <PlusIcon className="w-8 h-8" />
+                    <button onClick={() => { onNewNote(); setIsOpen(false); }} className={secondaryButtonClasses} title="Nova Anotação">
+                        <BookIcon className="w-6 h-6" />
+                    </button>
+                    <button onClick={() => { onNewTask(); setIsOpen(false); }} className={secondaryButtonClasses} title="Nova Tarefa">
+                        <CheckSquareIcon className="w-6 h-6" />
+                    </button>
+                </div>
+
+                {/* Botão Principal Padronizado */}
+                <button onClick={() => setIsOpen(!isOpen)} className={mainButtonClasses}>
+                    <PlusIcon className={`w-6 h-6 ${mainButtonIconClasses}`} />
                 </button>
             </div>
         </div>
     );
 };
 
-// O novo painel fixo de pré-visualização
+
 const MobilePreviewPanel = ({ selectedDay, onOpenTaskModal, setEditingEntry, onInfoClick }) => {
-    if (!selectedDay) {
-        return (
-            <div className="flex-1 p-4 flex items-center justify-center text-center text-gray-500">
-                <p>Selecione um dia no calendário para ver os detalhes.</p>
-            </div>
-        );
-    }
-    
+    if (!selectedDay) { return (<div className="flex-1 p-4 flex items-center justify-center text-center text-gray-500"><p>Selecione um dia no calendário para ver os detalhes.</p></div>); }
     const { date, items, personalDay } = selectedDay;
     const formattedDate = date.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric' });
-
-    const taskListItem = useMemo(() => {
-        if (items.tasks.length === 0) return null;
-        const completedCount = items.tasks.filter(t => t.completed).length;
-        return { id: 'task-list-summary', type: 'task_list', text: 'Lista de Tarefas', progress: `${completedCount}/${items.tasks.length}` };
-    }, [items.tasks]);
-
+    const taskListItem = useMemo(() => { if (items.tasks.length === 0) return null; const completedCount = items.tasks.filter(t => t.completed).length; return { id: 'task-list-summary', type: 'task_list', text: 'Lista de Tarefas', progress: `${completedCount}/${items.tasks.length}` }; }, [items.tasks]);
     const hasItems = taskListItem || items.journal.length > 0;
-
-    // ### COMPONENTE MODIFICADO ###
-    // Adicionada a classe 'break-words' para quebrar textos longos.
     const DetailItem = ({ item, onClick }) => {
-        const icon = item.type === 'task_list' 
-            ? <CheckSquareIcon className="w-4 h-4 text-blue-300 flex-shrink-0" /> 
-            : <BookIcon className="w-4 h-4 text-cyan-300 flex-shrink-0" />;
+        const icon = item.type === 'task_list' ? <CheckSquareIcon className="w-4 h-4 text-blue-300 flex-shrink-0" /> : <BookIcon className="w-4 h-4 text-cyan-300 flex-shrink-0" />;
         return (
-            <button onClick={onClick} className="w-full flex items-center gap-3 text-sm text-gray-300 bg-gray-900/50 p-3 rounded-lg animate-fade-in hover:bg-gray-700/80 transition-colors text-left">
+            <button onClick={onClick} className="w-full flex items-center gap-3 text-sm text-gray-300 bg-gray-900/50 p-3 rounded-lg animate-fade-in hover:bg-gray-700/80 transition-colors text-left active:bg-gray-700">
                 {icon}
-                <span className="flex-1 break-words">{item.text}</span>
+                <span className="flex-1 line-clamp-1 break-all">{item.text}</span>
                 {item.type === 'task_list' && <span className="text-xs text-gray-400 flex-shrink-0">{item.progress}</span>}
             </button>
         );
     };
-
     return (
         <div className="flex-1 flex flex-col p-4 pt-2 min-h-0">
-            {/* Cabeçalho */}
             <div className="flex items-center justify-between gap-3 mb-4 flex-shrink-0 border-b border-gray-700 pb-2">
                 <h2 className="text-xl font-bold capitalize">{formattedDate}</h2>
                 <VibrationPill vibrationNumber={personalDay} onClick={onInfoClick} />
             </div>
-            {/* Conteúdo com Rolagem */}
             <div className="flex-1 space-y-2 overflow-y-auto pr-2">
-                {hasItems ? (
-                    <>
-                        {taskListItem && <DetailItem item={taskListItem} onClick={onOpenTaskModal} />}
-                        {items.journal.map(entry => <DetailItem key={entry.id} item={entry} onClick={() => setEditingEntry(entry)} />)}
-                    </>
-                ) : (
-                    <div className="h-full flex items-center justify-center text-gray-500">
-                        <p>Nenhum item para este dia.</p>
-                    </div>
-                )}
+                {hasItems ? (<> {taskListItem && <DetailItem item={taskListItem} onClick={onOpenTaskModal} />} {items.journal.map(entry => <DetailItem key={entry.id} item={entry} onClick={() => setEditingEntry(entry)} />)} </>) 
+                : (<div className="h-full flex items-center justify-center text-gray-500"><p>Nenhum item para este dia.</p></div>)}
             </div>
         </div>
     );
 };
 
-
-// --- COMPONENTES ANTIGOS E PRINCIPAL ---
-
-// O painel lateral agora é exclusivo para Desktop
 const DesktopDetailPanel = ({ selectedDay, onOpenTaskModal, openNewNoteEditor, setEditingEntry, onInfoClick }) => {
     if (!selectedDay) return null;
     const { date, items, personalDay } = selectedDay;
@@ -184,7 +151,7 @@ const Calendar = ({ user, userData, openNewNoteEditor, setEditingEntry, onInfoCl
             <TaskModal isOpen={isTaskModalOpen} onClose={() => setIsTaskModalOpen(false)} dayData={{date: selectedDay?.date, tasks: selectedDay?.items.tasks}} userData={userData} taskUpdater={taskUpdater} onInfoClick={onInfoClick} />
             <div className="p-4 md:p-6 text-white h-full flex flex-col">
                 <div className="flex justify-between items-center mb-6 gap-4 flex-shrink-0">
-                    <h1 className="text-2xl sm:text-3xl font-bold capitalize">{`${currentDate.toLocaleString('pt-BR', { month: 'long' })} de ${currentDate.getFullYear()}`}</h1>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-white capitalize">{`${currentDate.toLocaleString('pt-BR', { month: 'long' })} de ${currentDate.getFullYear()}`}</h1>
                     <div className="flex items-center gap-2">
                         <button onClick={() => changeMonth(-1)} className="p-2 rounded-full hover:bg-gray-700"><ChevronLeft/></button>
                         <button onClick={() => { setCurrentDate(new Date()); setSelectedDay(null); }} className="text-sm font-semibold px-4 py-2 rounded-lg hover:bg-gray-700">Hoje</button>
