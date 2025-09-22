@@ -1,42 +1,55 @@
 // src/components/ui/InfoCard.jsx
 
 import React from 'react';
-import { TarotIcon } from './Icons'; 
 
-const Tooltip = ({ text, children }) => (
-    <div className="relative group flex items-center cursor-help">
+// O antigo componente Tooltip agora é apenas um invólucro para o clique e estilo.
+const ClickableTitle = ({ children, onClick, 'aria-label': ariaLabel }) => (
+    <div 
+        onClick={onClick} 
+        className="relative group flex items-center cursor-help"
+        role="button"
+        aria-label={ariaLabel}
+    >
         {children}
-        <div className="absolute bottom-full mb-2 w-max max-w-xs p-3 text-xs bg-gray-900 border border-gray-700 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-            {text}
-        </div>
+        {/* O balão de texto que aparecia no hover foi REMOVIDO daqui. */}
     </div>
 );
 
+
 const InfoCard = ({
     title,
-    tooltipText,
+    // A prop 'tooltipText' não é mais necessária e foi removida.
     icon,
     number,
     info,
-    colorClass = { text: 'text-purple-300', border: 'border-gray-600', bg: 'bg-gray-700' }
+    colorClass = { text: 'text-purple-300', border: 'border-gray-600', bg: 'bg-gray-700' },
+    infoKey,
+    onInfoClick
 }) => {
     const safeInfo = info || {};
 
-    // ### CORREÇÃO DEFINITIVA AQUI ###
-    // A lógica agora prioriza 'tituloTradicional' ou 'nome' para o título,
-    // e 'desc' ou 'descricao' para a descrição, tornando o componente flexível.
     const displayTitle = safeInfo.tituloTradicional || safeInfo.titulo || safeInfo.nome || '';
     const displayDesc = safeInfo.desc || safeInfo.descricao || '';
+
+    const handleInfoClick = () => {
+        if (onInfoClick && infoKey) {
+            onInfoClick(infoKey);
+        }
+    };
 
     return (
         <div className="bg-gray-800/80 backdrop-blur-lg border border-gray-700 rounded-2xl p-6 shadow-lg h-full flex flex-col">
             <div className="flex items-center text-gray-300 mb-4">
                 {icon && React.cloneElement(icon, { className: "h-6 w-6 mr-3 text-purple-400" })}
                 <h3 className="font-bold text-white">
-                    <Tooltip text={tooltipText}>
+                    <ClickableTitle 
+                        onClick={handleInfoClick} 
+                        aria-label={`Saiba mais sobre ${title}`}
+                    >
                         <span>{title}</span>
-                        <span className="ml-2 h-4 w-4 inline-flex items-center justify-center text-xs bg-gray-600 rounded-full">?</span>
-                    </Tooltip>
+                        {/* O efeito visual no '?' foi mantido para indicar interatividade */}
+                        <span className="ml-2 h-4 w-4 inline-flex items-center justify-center text-xs bg-gray-600 rounded-full transition-transform group-hover:scale-110 group-hover:bg-purple-500">?</span>
+                    </ClickableTitle>
                 </h3>
             </div>
             

@@ -216,3 +216,88 @@ export const textosCiclosDeVida = {
     9: { titulo: "A Finalização", desc: "O fim de um grande ciclo de 9 anos. É um período de limpeza, perdão e desapego, deixando para trás o que não serve mais para abrir espaço para o novo ciclo que virá." },
     default: { titulo: "Ciclo Indefinido", desc: "Não foi possível calcular o ciclo de vida." }
 };
+
+// ADICIONE ESTE NOVO OBJETO EXPORTADO AO SEU ARQUIVO
+export const textosExplicativos = {
+  default: {
+    titulo: "Informação não encontrada",
+    texto: "O conteúdo para esta vibração ainda não foi adicionado."
+  },
+  vibracaoDia: {
+    titulo: "O que é a Vibração do Dia?",
+    texto: "A Vibração do Dia, ou Dia Pessoal, representa a energia principal que influenciará suas atividades, emoções e interações hoje. É como a 'trilha sonora' do seu dia, sugerindo os temas e oportunidades que estarão mais presentes. Alinhar-se a essa vibração pode tornar seu dia mais fluido e produtivo."
+  },
+  mesPessoal: {
+    titulo: "O que é a Vibração do Mês?",
+    texto: "A Vibração do Mês, ou Mês Pessoal, define o tema geral e as lições que você estará trabalhando durante o mês corrente. Ela oferece um contexto mais amplo para as energias diárias, indicando áreas da sua vida que podem exigir mais foco e desenvolvimento ao longo das próximas semanas."
+  },
+  anoPessoal: {
+    titulo: "O que é a Vibração do Ano?",
+    texto: "A Vibração do Ano, ou Ano Pessoal, descreve o grande ciclo que você está vivenciando. Ela influencia seus projetos de longo prazo, seu desenvolvimento pessoal e os principais desafios e oportunidades que surgirão ao longo do ano. É o cenário principal onde as vibrações mensais e diárias atuam."
+  },
+  cicloDeVida: {
+    titulo: "O que são os Ciclos de Vida?",
+    texto: "Os Ciclos de Vida representam os grandes capítulos da sua jornada. Cada ciclo, regido por um número específico, traz um conjunto único de temas, aprendizados e focos de desenvolvimento. Entender seu ciclo atual ajuda a compreender o propósito por trás dos eventos e desafios que você está enfrentando em uma escala maior."
+  },
+  arcanoRegente: {
+    titulo: "O que é o Arcano Regente?",
+    texto: "O Arcano Regente é a carta do Tarot que se alinha com a energia numerológica do seu Dia Pessoal. Ele atua como um conselheiro, oferecendo um arquétipo, um símbolo e uma sabedoria específica para te guiar através das vibrações do dia. Ele revela a 'qualidade' da energia que você está vivenciando hoje."
+  },
+  arcanoVigente: {
+    titulo: "O que é o Arcano Vigente?",
+    texto: "O Arcano Vigente, também conhecido como Arcano Pessoal ou de Nascimento, é a carta do Tarot que representa a sua essência, sua missão de vida e os aprendizados fundamentais da sua jornada. Diferente do Arcano Regente (que muda diariamente), o Arcano Vigente é uma energia fixa que te acompanha por toda a vida."
+  }
+};
+
+// Adicione este novo objeto ao final do seu arquivo /src/data/content.js
+
+export const textosVibracoes = {
+  default: {
+    titulo: "Vibração Desconhecida",
+    texto: "Não há informações disponíveis para esta vibração no momento. Verifique se o cálculo está correto."
+  },
+  1: {
+    titulo: "Vibração 1: O Início",
+    texto: "Representa a iniciativa, a independência e a liderança. A energia de hoje pede coragem para começar algo novo, tomar decisões e confiar em sua própria força. É um dia para plantar sementes e agir."
+  },
+  2: {
+    titulo: "Vibração 2: A Parceria",
+    texto: "O foco está na cooperação, diplomacia e paciência. É um dia para trabalhar em equipe, ouvir os outros e buscar harmonia nos relacionamentos. A sensibilidade está em alta, então seja gentil consigo e com os outros."
+  },
+  3: {
+    titulo: "Vibração 3: A Comunicação",
+    texto: "Energia de criatividade, expressão e sociabilidade. Ideal para se comunicar, ter novas ideias, socializar e se divertir. O otimismo está no ar, permitindo que você se conecte com leveza e alegria."
+  },
+  4: {
+    titulo: "Vibração 4: A Estrutura",
+    texto: "Um dia de trabalho, organização e planejamento. A energia pede foco, disciplina e atenção aos detalhes. É o momento de construir bases sólidas para seus projetos e cuidar de assuntos práticos."
+  },
+  5: {
+    titulo: "Vibração 5: A Mudança",
+    texto: "Abrace a liberdade, a aventura e o inesperado. A energia de hoje favorece a mudança e a versatilidade. Fuja da rotina, experimente algo novo e esteja aberto a novas oportunidades e experiências."
+  },
+  6: {
+    titulo: "Vibração 6: A Harmonia",
+    texto: "Foco no lar, na família e nas responsabilidades afetivas. É um dia para cuidar dos outros, buscar equilíbrio nos relacionamentos e embelezar o ambiente ao seu redor. A energia do amor e do serviço predomina."
+  },
+  7: {
+    titulo: "Vibração 7: A Introspecção",
+    texto: "Um chamado para a análise, o estudo e a busca interior. É um dia perfeito para meditar, refletir e confiar na sua intuição. Busque o silêncio e a quietude para encontrar as respostas que procura."
+  },
+  8: {
+    titulo: "Vibração 8: O Poder",
+    texto: "Energia de ambição, poder pessoal e sucesso material. O foco está na carreira e nas finanças. Um ótimo dia para tomar decisões importantes, assumir o controle e colher os frutos do seu trabalho com justiça."
+  },
+  9: {
+    titulo: "Vibração 9: A Finalização",
+    texto: "Dia de concluir ciclos e deixar ir o que não serve mais. A energia é de compaixão, perdão e humanitarismo. Limpe o terreno, resolva pendências e prepare-se para o novo que está por vir."
+  },
+  11: {
+    titulo: "Vibração Mestre 11: A Intuição",
+    texto: "Um dia de alta sensibilidade e inspiração espiritual. Sua intuição está extremamente aguçada. Confie nos seus insights e revelações. É um dia para inspirar os outros e seguir sua verdade interior."
+  },
+  22: {
+    titulo: "Vibração Mestre 22: A Construção",
+    texto: "Potencial imenso para transformar sonhos em realidade. É a energia do 'construtor mestre'. Um dia para pensar grande, mas agir com planejamento e pragmatismo para manifestar projetos de grande impacto."
+  }
+};

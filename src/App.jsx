@@ -7,6 +7,8 @@ import { doc, getDoc, setDoc, collection, addDoc, updateDoc, deleteDoc, Timestam
 
 import { auth, db } from './services/firebase';
 import numerologyEngine from './services/numerologyEngine';
+// ATUALIZADO: Importando os dois objetos de texto para o modal
+import { textosExplicativos, textosVibracoes } from './data/content'; 
 
 // Importações de páginas e componentes
 import Spinner from './components/ui/Spinner';
@@ -25,7 +27,7 @@ import Journal from './pages/Journal';
 import Tasks from './pages/Tasks';
 import SettingsPage from './pages/SettingsPage';
 import AdminPanel from './pages/AdminPanel';
-import NewNoteEditor from './components/ui/NewNoteEditor'; // Caminho corrigido
+import NewNoteEditor from './components/ui/NewNoteEditor';
 import InfoModal from './components/ui/InfoModal';
 
 let handleSaveUserDetails;
@@ -43,10 +45,7 @@ const AppLayout = ({ user, userData, taskUpdater }) => {
     const [activeView, setActiveView] = useState('dashboard');
     const [mobileState, setMobileState] = useState('closed'); 
     const [desktopState, setDesktopState] = useState('expanded'); 
-    
-    // Estado unificado para os dados do editor de anotações
     const [journalEditorData, setJournalEditorData] = useState(null); 
-    
     const [infoModalData, setInfoModalData] = useState(null);
 
     useEffect(() => {
@@ -58,29 +57,47 @@ const AppLayout = ({ user, userData, taskUpdater }) => {
     
     const handleLogout = async () => await signOut(auth);
     
-    // Funções para abrir o editor em modo de criação ou edição
-    const handleOpenNewNote = (date) => {
-        setJournalEditorData({ date: date || new Date() });
-    };
-    const handleEditNote = (entry) => {
-        setJournalEditorData(entry);
-    };
+    const handleOpenNewNote = (date) => setJournalEditorData({ date: date || new Date() });
+    const handleEditNote = (entry) => setJournalEditorData(entry);
 
-    const handleInfoClick = (vibrationNumber) => {
-        // Lógica de placeholder, pois a original está incompleta
-        const info = { numero: vibrationNumber, titulo: `Vibração ${vibrationNumber}`, desc: 'Descrição detalhada sobre esta vibração estará disponível em breve.' };
-        setInfoModalData(info);
-    };
+    // ### LÓGICA ATUALIZADA E UNIFICADA ###
+    // Esta função agora lida com cliques de cards (string) e pílulas (número).
+    const handleInfoClick = useCallback((identifier) => {
+        let info = null;
+        if (typeof identifier === 'string') {
+            // Se for string, busca nos textos explicativos dos cards
+            info = textosExplicativos[identifier] || textosExplicativos.default;
+        } else if (typeof identifier === 'number') {
+            // Se for número, busca nos textos das vibrações
+            info = textosVibracoes[identifier] || textosVibracoes.default;
+        }
+        
+        if (info) {
+            setInfoModalData(info);
+        }
+    }, []); // As dependências (textos) são estáticas, então o array pode ficar vazio.
     
     const renderView = () => {
+        // Passamos a função unificada 'handleInfoClick' para todos os componentes filhos
+        const viewProps = {
+            user,
+            userData,
+            data: numerologyData,
+            setActiveView,
+            openNewNoteEditor: handleOpenNewNote,
+            setEditingEntry: handleEditNote,
+            onInfoClick: handleInfoClick, // <-- Usando a nova função inteligente!
+            taskUpdater
+        };
+
         switch (activeView) {
-            case 'dashboard': return <Dashboard user={user} userData={userData} data={numerologyData} setActiveView={setActiveView} />;
-            case 'calendar': return <Calendar user={user} userData={userData} openNewNoteEditor={handleOpenNewNote} setEditingEntry={handleEditNote} onInfoClick={handleInfoClick} taskUpdater={taskUpdater} />;
-            case 'journal': return <Journal user={user} userData={userData} openNewNoteEditor={handleOpenNewNote} setEditingEntry={handleEditNote} onInfoClick={handleInfoClick} />;
-            case 'tasks': return <Tasks user={user} userData={userData} setActiveView={setActiveView} onInfoClick={handleInfoClick} taskUpdater={taskUpdater} />;
+            case 'dashboard': return <Dashboard {...viewProps} />;
+            case 'calendar': return <Calendar {...viewProps} />;
+            case 'journal': return <Journal {...viewProps} />;
+            case 'tasks': return <Tasks {...viewProps} />;
             case 'settings': return <SettingsPage />;
             case 'admin': return userData?.isAdmin ? <AdminPanel /> : <Navigate to="/app" />;
-            default: return <Dashboard user={user} userData={userData} data={numerologyData} setActiveView={setActiveView} />;
+            default: return <Dashboard {...viewProps} />;
         }
     };
     
@@ -97,7 +114,6 @@ const AppLayout = ({ user, userData, taskUpdater }) => {
                 <main className="flex-1 overflow-y-auto overflow-x-hidden"> {renderView()} </main>
             </div>
 
-            {/* Renderiza o editor unificado com os dados corretos */}
             {journalEditorData && <NewNoteEditor 
                 onClose={() => setJournalEditorData(null)} 
                 entryData={journalEditorData} 

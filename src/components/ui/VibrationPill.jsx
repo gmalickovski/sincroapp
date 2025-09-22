@@ -19,7 +19,9 @@ const VibrationPill = ({ vibrationNumber, onClick, className = '' }) => {
     return (
         <button 
             onClick={handleInteraction}
-            className={`text-xs font-bold px-2 py-1 rounded-full cursor-help transition-colors ${energyClasses[vibrationNumber] || energyClasses.default} ${className}`}
+            // SUGESTÃO DE MELHORIA: Adicionado efeito de hover para indicar que é clicável
+            className={`text-xs font-bold px-2 py-1 rounded-full cursor-help transition-transform hover:scale-105 active:scale-100 ${energyClasses[vibrationNumber] || energyClasses.default} ${className}`}
+            title={`Saiba mais sobre a Vibração ${vibrationNumber}`} // Adicionado para acessibilidade
         >
             Vibração {vibrationNumber}
         </button>
