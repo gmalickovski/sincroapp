@@ -3,11 +3,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc, setDoc, collection, addDoc, updateDoc, deleteDoc, Timestamp } from "firebase/firestore";
+import { doc, onSnapshot, setDoc, collection, addDoc, updateDoc, deleteDoc, Timestamp } from "firebase/firestore";
 
 import { auth, db } from './services/firebase';
 import numerologyEngine from './services/numerologyEngine';
-// ATUALIZADO: Importando os dois objetos de texto para o modal
 import { textosExplicativos, textosVibracoes } from './data/content'; 
 
 // Importações de páginas e componentes
@@ -25,10 +24,10 @@ import Dashboard from './pages/Dashboard';
 import Calendar from './pages/Calendar';
 import Journal from './pages/Journal';
 import Tasks from './pages/Tasks';
-import SettingsPage from './pages/SettingsPage';
 import AdminPanel from './pages/AdminPanel';
 import NewNoteEditor from './components/ui/NewNoteEditor';
 import InfoModal from './components/ui/InfoModal';
+import SettingsModal from './components/ui/SettingsModal'; 
 
 let handleSaveUserDetails;
 
@@ -47,6 +46,7 @@ const AppLayout = ({ user, userData, taskUpdater }) => {
     const [desktopState, setDesktopState] = useState('expanded'); 
     const [journalEditorData, setJournalEditorData] = useState(null); 
     const [infoModalData, setInfoModalData] = useState(null);
+    const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
     useEffect(() => {
         if (userData?.nomeAnalise && userData?.dataNasc) {
@@ -60,69 +60,71 @@ const AppLayout = ({ user, userData, taskUpdater }) => {
     const handleOpenNewNote = (date) => setJournalEditorData({ date: date || new Date() });
     const handleEditNote = (entry) => setJournalEditorData(entry);
 
-    // ### LÓGICA ATUALIZADA E UNIFICADA ###
-    // Esta função agora lida com cliques de cards (string) e pílulas (número).
     const handleInfoClick = useCallback((identifier) => {
         let info = null;
         if (typeof identifier === 'string') {
-            // Se for string, busca nos textos explicativos dos cards
             info = textosExplicativos[identifier] || textosExplicativos.default;
         } else if (typeof identifier === 'number') {
-            // Se for número, busca nos textos das vibrações
             info = textosVibracoes[identifier] || textosVibracoes.default;
         }
-        
-        if (info) {
-            setInfoModalData(info);
-        }
-    }, []); // As dependências (textos) são estáticas, então o array pode ficar vazio.
+        if (info) { setInfoModalData(info); }
+    }, []);
     
     const renderView = () => {
-        // Passamos a função unificada 'handleInfoClick' para todos os componentes filhos
-        const viewProps = {
-            user,
-            userData,
-            data: numerologyData,
-            setActiveView,
-            openNewNoteEditor: handleOpenNewNote,
-            setEditingEntry: handleEditNote,
-            onInfoClick: handleInfoClick, // <-- Usando a nova função inteligente!
-            taskUpdater
-        };
+        const viewProps = { user, userData, data: numerologyData, setActiveView, openNewNoteEditor: handleOpenNewNote, setEditingEntry: handleEditNote, onInfoClick: handleInfoClick, taskUpdater };
 
         switch (activeView) {
             case 'dashboard': return <Dashboard {...viewProps} />;
             case 'calendar': return <Calendar {...viewProps} />;
             case 'journal': return <Journal {...viewProps} />;
             case 'tasks': return <Tasks {...viewProps} />;
-            case 'settings': return <SettingsPage />;
             case 'admin': return userData?.isAdmin ? <AdminPanel /> : <Navigate to="/app" />;
             default: return <Dashboard {...viewProps} />;
         }
     };
     
     const contentMarginClass = () => {
-        if (typeof window !== 'undefined' && window.innerWidth >= 1024) { return desktopState === 'collapsed' ? 'lg:ml-20' : 'lg:ml-64'; }
+        if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+            // ### CORREÇÃO APLICADA AQUI ###
+            // Trocado 'lg:w-64' por 'lg:ml-64' para aplicar a margem correta
+            return desktopState === 'collapsed' ? 'lg:ml-20' : 'lg:ml-64';
+        }
         return mobileState === 'pinned' ? 'ml-20' : 'ml-0';
     };
 
     return (
         <div className="h-screen w-screen flex bg-gray-900 text-gray-200 overflow-hidden">
-            <Sidebar activeView={activeView} setActiveView={setActiveView} onLogout={handleLogout} userData={userData} mobileState={mobileState} setMobileState={setMobileState} desktopState={desktopState} setDesktopState={setDesktopState} />
+            <Sidebar 
+                activeView={activeView} 
+                setActiveView={setActiveView} 
+                onLogout={handleLogout} 
+                userData={userData} 
+                mobileState={mobileState} 
+                setMobileState={setMobileState} 
+                desktopState={desktopState} 
+                setDesktopState={setDesktopState}
+                onSettingsClick={() => setIsSettingsModalOpen(true)}
+            />
             <div className={`flex-1 flex flex-col h-screen transition-[margin] duration-300 ease-in-out ${contentMarginClass()}`}>
-                <Header userData={userData} onMenuClick={() => setMobileState(s => s === 'drawer' ? 'closed' : 'drawer')} isMobileMenuPinned={mobileState === 'pinned'} />
+                <Header 
+                    userData={userData} 
+                    onMenuClick={() => setMobileState(s => s === 'drawer' ? 'closed' : 'drawer')} 
+                    isMobileMenuPinned={mobileState === 'pinned'}
+                    onSettingsClick={() => setIsSettingsModalOpen(true)}
+                />
                 <main className="flex-1 overflow-y-auto overflow-x-hidden"> {renderView()} </main>
             </div>
 
-            {journalEditorData && <NewNoteEditor 
-                onClose={() => setJournalEditorData(null)} 
-                entryData={journalEditorData} 
-                user={user} 
-                userData={userData} 
-                onInfoClick={handleInfoClick} 
-            />}
-            
+            {journalEditorData && <NewNoteEditor onClose={() => setJournalEditorData(null)} entryData={journalEditorData} user={user} userData={userData} onInfoClick={handleInfoClick} />}
             {infoModalData && <InfoModal info={infoModalData} onClose={() => setInfoModalData(null)} />}
+            
+            {isSettingsModalOpen && (
+                <SettingsModal 
+                    user={user}
+                    userData={userData}
+                    onClose={() => setIsSettingsModalOpen(false)}
+                />
+            )}
         </div>
     );
 };
@@ -135,22 +137,35 @@ function App() {
     const [showDetailsModal, setShowDetailsModal] = useState(false);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+        const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
             if (currentUser) {
                 setUser(currentUser);
                 const userDocRef = doc(db, "users", currentUser.uid);
-                const userDoc = await getDoc(userDocRef);
-                if (userDoc.exists()) {
-                    setUserData(userDoc.data());
-                    setShowDetailsModal(false);
-                } else {
-                    setUserData(null); 
-                    setShowDetailsModal(true);
-                }
-            } else { setUser(null); setUserData(null); }
-            setIsLoading(false);
+
+                const unsubscribeUser = onSnapshot(userDocRef, (doc) => {
+                    if (doc.exists()) {
+                        setUserData(doc.data());
+                        setShowDetailsModal(false);
+                    } else {
+                        setUserData(null); 
+                        setShowDetailsModal(true);
+                    }
+                    setIsLoading(false);
+                }, (error) => {
+                    console.error("Erro ao ouvir dados do usuário:", error);
+                    setIsLoading(false);
+                });
+
+                return () => unsubscribeUser();
+
+            } else {
+                setUser(null);
+                setUserData(null);
+                setIsLoading(false);
+            }
         });
-        return () => unsubscribe();
+
+        return () => unsubscribeAuth();
     }, []);
 
     handleSaveUserDetails = async ({ nomeAnalise, dataNasc }) => {

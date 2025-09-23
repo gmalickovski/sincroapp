@@ -11,7 +11,8 @@ const Sidebar = ({
     mobileState,
     setMobileState,
     desktopState,
-    setDesktopState
+    setDesktopState,
+    onSettingsClick
 }) => {
     
     const isAdmin = userData?.isAdmin || false;
@@ -59,44 +60,11 @@ const Sidebar = ({
 
             <aside 
                 className={`fixed top-0 left-0 h-full bg-gray-900 text-gray-300 flex flex-col z-40
-                           border-r border-gray-700/50 ${getSidebarClasses()}`}
+                            border-r border-gray-700/50 ${getSidebarClasses()}`}
             >
-                <div className="h-16 md:h-20 flex-shrink-0 flex items-center border-b border-gray-700/50 relative px-4 justify-center">
-                    <div className="hidden lg:flex items-center">
-                         <StarIcon className={`h-8 w-8 text-purple-400 flex-shrink-0 transition-transform duration-300 ${desktopState === 'collapsed' ? 'lg:scale-110' : ''}`} />
-                         <h1 className={`ml-3 text-xl font-bold text-white whitespace-nowrap transition-opacity duration-200 ${desktopState === 'collapsed' ? 'opacity-0 hidden' : 'opacity-100'}`}>
-                            SincroApp
-                        </h1>
-                    </div>
-
-                    {/* Ícone de fixar/recolher SÓ APARECE se o menu mobile NÃO estiver fechado */}
-                    {mobileState !== 'closed' && (
-                         <button 
-                            onClick={() => setMobileState(s => s === 'pinned' ? 'closed' : 'pinned')}
-                            className={`absolute top-1/2 -right-3 transform -translate-y-1/2 bg-gray-700 hover:bg-purple-600 text-white
-                                    h-6 w-6 rounded-full flex items-center justify-center
-                                    ring-8 ring-gray-900
-                                    lg:hidden transition-transform duration-300
-                                    ${mobileState === 'pinned' ? 'rotate-180' : 'rotate-0'}`}
-                            title={mobileState === 'pinned' ? "Recolher menu" : "Fixar menu"}
-                        >
-                            <PanelLeftCloseIcon className="h-4 w-4" />
-                        </button>
-                    )}
-                    
-                    {/* Botão para recolher/expandir (desktop) */}
-                    <button 
-                        onClick={() => setDesktopState(s => s === 'expanded' ? 'collapsed' : 'expanded')} 
-                        className={`absolute top-1/2 -right-3 transform -translate-y-1/2 bg-gray-700 hover:bg-purple-600 text-white
-                                   h-6 w-6 rounded-full items-center justify-center ring-8 ring-gray-900
-                                   hidden lg:flex transition-transform duration-300 ${desktopState === 'collapsed' ? 'rotate-180' : 'rotate-0'}`}
-                        title={desktopState === 'collapsed' ? "Expandir" : "Recolher"}
-                    >
-                        <PanelLeftCloseIcon className="h-4 w-4" />
-                    </button>
-                </div>
-
-                <nav className={`flex-1 py-6 px-2 space-y-2`}>
+                {/* O cabeçalho da sidebar foi removido para eliminar o espaço em branco */}
+                
+                <nav className={`flex-1 pt-6 px-2 space-y-2`}>
                     {navItems.map(item => (
                         <a href="#" key={item.id} onClick={(e) => { e.preventDefault(); handleItemClick(item.id); }}
                             title={item.label}
@@ -112,26 +80,55 @@ const Sidebar = ({
                 </nav>
 
                 <div className={`py-4 px-2 border-t border-gray-700/50 space-y-2`}>
-                     <a href="#" onClick={(e) => { e.preventDefault(); handleItemClick('settings'); }}
+                     <a href="#" onClick={(e) => { e.preventDefault(); onSettingsClick(); }}
                         title="Configurações"
                         className={`flex items-center p-3 rounded-lg transition-colors duration-200 
-                                  ${!isTextVisible ? 'justify-center' : 'justify-start'}
-                                  ${ activeView === 'settings' ? 'bg-purple-600 text-white' : 'hover:bg-gray-800 hover:text-white'}`}>
-                        <SettingsIcon className="h-5 w-5" />
-                        <span className={`ml-4 font-medium whitespace-nowrap transition-opacity duration-200 ${!isTextVisible ? 'opacity-0 hidden' : 'opacity-100'}`}>
-                            Configurações
-                        </span>
-                    </a>
-                    <a href="#" onClick={(e) => { e.preventDefault(); onLogout(); }}
+                                    ${!isTextVisible ? 'justify-center' : 'justify-start'}
+                                    ${ activeView === 'settings' ? 'bg-purple-600 text-white' : 'hover:bg-gray-800 hover:text-white'}`}>
+                         <SettingsIcon className="h-5 w-5" />
+                         <span className={`ml-4 font-medium whitespace-nowrap transition-opacity duration-200 ${!isTextVisible ? 'opacity-0 hidden' : 'opacity-100'}`}>
+                             Configurações
+                         </span>
+                     </a>
+                     <a href="#" onClick={(e) => { e.preventDefault(); onLogout(); }}
                         title="Sair"
                         className={`flex items-center p-3 rounded-lg transition-colors duration-200 text-red-400 hover:bg-red-500/20 hover:text-red-300
-                                  ${!isTextVisible ? 'justify-center' : 'justify-start'}`}>
-                        <LogOutIcon className="h-5 w-5" />
-                        <span className={`ml-4 font-medium whitespace-nowrap transition-opacity duration-200 ${!isTextVisible ? 'opacity-0 hidden' : 'opacity-100'}`}>
-                            Sair
-                        </span>
-                    </a>
+                                    ${!isTextVisible ? 'justify-center' : 'justify-start'}`}>
+                         <LogOutIcon className="h-5 w-5" />
+                         <span className={`ml-4 font-medium whitespace-nowrap transition-opacity duration-200 ${!isTextVisible ? 'opacity-0 hidden' : 'opacity-100'}`}>
+                             Sair
+                         </span>
+                     </a>
                 </div>
+                
+                {/* Botões de controle agora ficam fixos na parte inferior para um design mais limpo */}
+                 <div className="py-2 px-2 border-t border-gray-700/50">
+                    {mobileState !== 'closed' && (
+                         <button 
+                             onClick={() => setMobileState(s => s === 'pinned' ? 'closed' : 'pinned')}
+                             className={`w-full flex items-center p-3 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white
+                                        ${!isTextVisible ? 'justify-center' : 'justify-start'}`}
+                             title={mobileState === 'pinned' ? "Recolher menu" : "Fixar menu"}
+                         >
+                            <PanelLeftCloseIcon className={`h-5 w-5 transition-transform duration-300 ${mobileState === 'pinned' ? 'rotate-180' : ''}`} />
+                            <span className={`ml-4 font-medium whitespace-nowrap transition-opacity duration-200 ${!isTextVisible ? 'opacity-0 hidden' : 'opacity-100'}`}>
+                                 Fixar Menu
+                             </span>
+                         </button>
+                    )}
+                     <button 
+                        onClick={() => setDesktopState(s => s === 'expanded' ? 'collapsed' : 'expanded')} 
+                        className={`w-full items-center p-3 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white
+                                    hidden lg:flex
+                                    ${!isTextVisible ? 'justify-center' : 'justify-start'}`}
+                        title={desktopState === 'collapsed' ? "Expandir" : "Recolher"}
+                    >
+                        <PanelLeftCloseIcon className={`h-5 w-5 transition-transform duration-300 ${desktopState === 'collapsed' ? 'rotate-180' : ''}`} />
+                        <span className={`ml-4 font-medium whitespace-nowrap transition-opacity duration-200 ${!isTextVisible ? 'opacity-0 hidden' : 'opacity-100'}`}>
+                             Recolher
+                         </span>
+                    </button>
+                 </div>
             </aside>
         </>
     );

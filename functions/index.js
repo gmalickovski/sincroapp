@@ -9,9 +9,6 @@ const N8N_WEBHOOK_URL = "https://n8n.studiomlk.com.br/webhook/sincroapp";
 
 const sendToWebhook = async (payload) => {
   try {
-    // IMPORTANTE: O emulador bloqueia chamadas externas por padrão.
-    // Esta chamada só funcionará em produção (deploy).
-    // No emulador, ela vai falhar, mas não vai quebrar a função.
     functions.logger.info("Tentando enviar dados para o n8n:", payload);
     await axios.post(N8N_WEBHOOK_URL, payload);
     functions.logger.info("Webhook enviado com sucesso para n8n.");
@@ -19,7 +16,6 @@ const sendToWebhook = async (payload) => {
     functions.logger.error("ERRO AO ENVIAR WEBHOOK (esperado no emulador):", {
       errorMessage: error.message,
     });
-    // Não lançamos o erro para não marcar a execução como falha no emulador
   }
 };
 
@@ -39,7 +35,7 @@ exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
   await sendToWebhook(payload);
   functions.logger.info("Função onUserCreate (V1) concluída.");
   functions.logger.info("==========================================================");
-  return null; // Retornar null ou uma Promise resolvida é necessário na V1
+  return null;
 });
 
 // Gatilho de atualização de documento de usuário (SINTAXE V1)
@@ -65,4 +61,61 @@ exports.onUserUpdate = functions.firestore.document("users/{userId}").onUpdate(a
 
   functions.logger.info("==========================================================");
   return null;
+});
+
+// ### NOVA FUNÇÃO ADICIONADA AQUI ###
+/**
+ * Gatilho de Autenticação que é acionado na exclusão de um usuário.
+ * Esta função limpa os dados do usuário no Firestore.
+ */
+exports.onUserDeleted = functions.auth.user().onDelete(async (user) => {
+  const userId = user.uid;
+  const logger = functions.logger;
+
+  logger.info(`Iniciando limpeza de dados para o usuário deletado: ${userId}`);
+
+  const firestore = admin.firestore();
+
+  try {
+    // 1. Deleta o documento principal do usuário (ex: /users/{userId})
+    await firestore.collection("users").doc(userId).delete();
+    logger.log(`Documento do usuário ${userId} em /users deletado com sucesso.`);
+
+    // NOTA IMPORTANTE: Para deletar subcoleções (tasks, journalEntries),
+    // a melhor prática é usar a extensão oficial "Delete User Data" do Firebase.
+    // O código abaixo é uma demonstração de como fazer isso manualmente,
+    // mas a extensão é mais robusta para produção.
+
+    // 2. Deleta subcoleção 'tasks'
+    const tasksRef = firestore.collection("users").doc(userId).collection("tasks");
+    const tasksSnapshot = await tasksRef.get();
+    const batch = firestore.batch();
+    tasksSnapshot.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+    await batch.commit();
+    logger.log(`Subcoleção 'tasks' do usuário ${userId} deletada.`);
+
+    // 3. Deleta subcoleção 'journalEntries'
+    const journalRef = firestore.collection("users").doc(userId).collection("journalEntries");
+    const journalSnapshot = await journalRef.get();
+    const journalBatch = firestore.batch();
+    journalSnapshot.docs.forEach((doc) => {
+        journalBatch.delete(doc.ref);
+    });
+    await journalBatch.commit();
+    logger.log(`Subcoleção 'journalEntries' do usuário ${userId} deletada.`);
+
+
+    return {
+      status: "success",
+      message: `Dados do usuário ${userId} limpos com sucesso.`,
+    };
+  } catch (error) {
+    logger.error(`Erro ao limpar dados para o usuário ${userId}:`, error);
+    return {
+      status: "error",
+      message: `Falha ao limpar dados para o usuário ${userId}.`,
+    };
+  }
 });
