@@ -8,12 +8,13 @@ import { EditIcon, XIcon, HomeIcon, UserIcon, BookIcon, CheckCircleIcon, AlertTr
 import { runMigration } from '../migration';
 
 // --- Subcomponente: Cartão de Estatística Reutilizável ---
+// Adicionadas classes para garantir que o conteúdo não "empurre" o layout.
 const StatCard = ({ title, value, icon }) => (
-    <div className="bg-gray-800/50 p-6 rounded-lg border border-gray-700 flex items-center gap-4">
-        {icon && React.cloneElement(icon, { className: "h-8 w-8 text-purple-400" })}
-        <div>
-            <h3 className="text-sm font-medium text-gray-400">{title}</h3>
-            <p className="text-3xl font-bold mt-1">{value}</p>
+    <div className="bg-gray-800/50 p-6 rounded-lg border border-gray-700 flex items-center gap-4 overflow-hidden">
+        {icon && React.cloneElement(icon, { className: "h-8 w-8 text-purple-400 flex-shrink-0" })}
+        <div className="min-w-0"> {/* Permite que o conteúdo interno encolha e quebre a linha */}
+            <h3 className="text-sm font-medium text-gray-400 truncate">{title}</h3>
+            <p className="text-3xl font-bold mt-1 break-words">{value}</p> {/* Garante que números longos quebrem a linha */}
         </div>
     </div>
 );
@@ -60,7 +61,7 @@ const AdminDashboardView = () => {
     );
 };
 
-// --- Subcomponente: Modal de Edição de Usuário ---
+// --- Subcomponentes de Usuários e Conteúdo (sem alterações) ---
 const EditUserModal = ({ user, onClose, onSave }) => {
     const [userData, setUserData] = useState(user);
     const [isSaving, setIsSaving] = useState(false);
@@ -99,8 +100,6 @@ const EditUserModal = ({ user, onClose, onSave }) => {
         </div>
     );
 };
-
-// --- Subcomponente: Seção de Gerenciamento de Usuários ---
 const UserManagementView = () => {
     const [users, setUsers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -165,8 +164,6 @@ const UserManagementView = () => {
         </>
     );
 };
-
-// --- Subcomponente: Seção de Gerenciamento de Conteúdo ---
 const EditContentModal = ({ contentData, onClose, onSave, contentKey }) => {
     const [data, setData] = useState(contentData.data);
     const [isSaving, setIsSaving] = useState(false);
@@ -243,41 +240,54 @@ const AdminPanel = () => {
     };
 
     return (
-        <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row text-white">
-            {/* Mobile Header */}
-            <div className="lg:hidden p-4 md:p-6 flex-shrink-0">
-                <h1 className="text-2xl font-bold mb-4">Painel Admin</h1>
-                <div className="border-b border-gray-700">
-                    <nav className="flex items-center -mb-px space-x-2 sm:space-x-4 overflow-x-auto">
-                        {navItems.map(item => (
-                            <button key={item.id} onClick={() => setActiveView(item.id)} className={`flex items-center gap-2 py-3 px-3 text-sm font-semibold whitespace-nowrap transition-colors ${activeView === item.id ? 'text-white border-b-2 border-purple-500' : 'text-gray-400 hover:text-white'}`}>
-                                {item.icon}
-                                <span>{item.label}</span>
-                            </button>
-                        ))}
-                    </nav>
+        // --- CORREÇÃO DEFINITIVA ---
+        // Removidas todas as classes de layout flex do container principal.
+        // Ele agora se comporta como um div simples, assim como no Dashboard.jsx,
+        // permitindo que o conteúdo interno dite o layout verticalmente em telas pequenas.
+        // A sidebar e o conteúdo principal são tratados como blocos separados.
+        <div className="w-full max-w-7xl mx-auto text-white">
+            {/* O layout de duas colunas (sidebar + main) é criado apenas em telas grandes (lg) com CSS Grid */}
+            <div className="lg:grid lg:grid-cols-[256px_1fr] lg:gap-6">
+                
+                {/* Desktop Sidebar (Fixo e Pegajoso) */}
+                <aside className="hidden lg:block">
+                    <div className="lg:sticky lg:top-0 p-6">
+                        <h1 className="text-2xl font-bold mb-6 px-3">Painel Admin</h1>
+                        <nav className="space-y-2">
+                            {navItems.map(item => (
+                                <button key={item.id} onClick={() => setActiveView(item.id)} className={`w-full flex items-center p-3 rounded-lg transition-colors text-left ${activeView === item.id ? 'bg-purple-600 text-white' : 'hover:bg-gray-800 hover:text-white'}`}>
+                                    {item.icon}
+                                    <span className="ml-3 font-medium">{item.label}</span>
+                                </button>
+                            ))}
+                        </nav>
+                    </div>
+                </aside>
+                
+                {/* Conteúdo (Header Móvel + Conteúdo Principal) */}
+                <div>
+                    {/* Mobile Header */}
+                    <div className="lg:hidden p-4 md:p-6 flex-shrink-0">
+                        <h1 className="text-2xl font-bold mb-4">Painel Admin</h1>
+                        <div className="border-b border-gray-700">
+                            {/* Garante que a navegação possa rolar sem empurrar a página */}
+                            <nav className="flex items-center -mb-px space-x-2 sm:space-x-4 overflow-x-auto">
+                                {navItems.map(item => (
+                                    <button key={item.id} onClick={() => setActiveView(item.id)} className={`flex items-center gap-2 py-3 px-3 text-sm font-semibold whitespace-nowrap transition-colors ${activeView === item.id ? 'text-white border-b-2 border-purple-500' : 'text-gray-400 hover:text-white'}`}>
+                                        {item.icon}
+                                        <span>{item.label}</span>
+                                    </button>
+                                ))}
+                            </nav>
+                        </div>
+                    </div>
+
+                    {/* Conteúdo Principal */}
+                    <main className="p-4 md:p-6 bg-gray-900/50 lg:rounded-2xl lg:border lg:border-gray-700 lg:my-6">
+                        {renderView()}
+                    </main>
                 </div>
             </div>
-
-            {/* Desktop Sidebar (Fixo e Pegajoso) */}
-            <aside className="hidden lg:block w-64 flex-shrink-0">
-                <div className="lg:sticky lg:top-0 p-6">
-                    <h1 className="text-2xl font-bold mb-6 px-3">Painel Admin</h1>
-                    <nav className="space-y-2">
-                        {navItems.map(item => (
-                            <button key={item.id} onClick={() => setActiveView(item.id)} className={`w-full flex items-center p-3 rounded-lg transition-colors text-left ${activeView === item.id ? 'bg-purple-600 text-white' : 'hover:bg-gray-800 hover:text-white'}`}>
-                                {item.icon}
-                                <span className="ml-3 font-medium">{item.label}</span>
-                            </button>
-                        ))}
-                    </nav>
-                </div>
-            </aside>
-            
-            {/* Conteúdo Principal */}
-            <main className="flex-1 p-4 md:p-6 bg-gray-900/50 lg:rounded-2xl lg:border lg:border-gray-700 lg:my-6">
-                {renderView()}
-            </main>
         </div>
     );
 };

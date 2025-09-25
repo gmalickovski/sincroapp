@@ -18,3 +18,42 @@ body {
 .journal-paper {
     @apply bg-[#F7F4EB] text-gray-800 font-serif leading-7 p-6 rounded-lg;
 }
+
+/* Estilização da barra de rolagem para navegadores WebKit (Chrome, Safari, Edge) */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background-color: #374151; /* Cor de fundo da trilha (cinza escuro) */
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #8b5cf6; /* Cor da barra (roxo) */
+  border-radius: 10px;
+  border: 2px solid #374151; /* Borda da mesma cor da trilha para um efeito mais fino */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #a78bfa; /* Cor da barra ao passar o mouse */
+}
+
+/* Estilização para a barra de rolagem no tema claro (folha de anotação) */
+.custom-scrollbar-light::-webkit-scrollbar {
+  width: 10px;
+}
+
+.custom-scrollbar-light::-webkit-scrollbar-track {
+  background-color: transparent; /* Fundo transparente */
+}
+
+.custom-scrollbar-light::-webkit-scrollbar-thumb {
+  background-color: #dcd6c0; /* Cor da barra (um tom mais escuro que a folha) */
+  border-radius: 10px;
+  border: 2px solid #FBF3D9; /* Borda da cor da folha para dar espaçamento */
+}
+
+.custom-scrollbar-light::-webkit-scrollbar-thumb:hover {
+  background-color: #c9c2a9; /* Cor da barra ao passar o mouse */
+}

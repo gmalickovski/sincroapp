@@ -82,37 +82,34 @@ const AppLayout = ({ user, userData, taskUpdater }) => {
             default: return <Dashboard {...viewProps} />;
         }
     };
-    
-    const contentMarginClass = () => {
-        if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
-            // ### CORREÇÃO APLICADA AQUI ###
-            // Trocado 'lg:w-64' por 'lg:ml-64' para aplicar a margem correta
-            return desktopState === 'collapsed' ? 'lg:ml-20' : 'lg:ml-64';
-        }
-        return mobileState === 'pinned' ? 'ml-20' : 'ml-0';
-    };
 
     return (
-        <div className="h-screen w-screen flex bg-gray-900 text-gray-200 overflow-hidden">
-            <Sidebar 
-                activeView={activeView} 
-                setActiveView={setActiveView} 
-                onLogout={handleLogout} 
+        <div className="h-screen w-screen flex flex-col bg-gray-900 text-gray-200 overflow-hidden">
+            <Header 
                 userData={userData} 
-                mobileState={mobileState} 
-                setMobileState={setMobileState} 
-                desktopState={desktopState} 
-                setDesktopState={setDesktopState}
+                onMenuClick={() => setMobileState(s => (s === 'closed') ? 'drawer' : 'closed')} 
                 onSettingsClick={() => setIsSettingsModalOpen(true)}
+                desktopState={desktopState}
+                setDesktopState={setDesktopState}
             />
-            <div className={`flex-1 flex flex-col h-screen transition-[margin] duration-300 ease-in-out ${contentMarginClass()}`}>
-                <Header 
+            
+            <div className="flex flex-1 overflow-hidden">
+                <Sidebar 
+                    activeView={activeView} 
+                    setActiveView={setActiveView} 
+                    onLogout={handleLogout} 
                     userData={userData} 
-                    onMenuClick={() => setMobileState(s => s === 'drawer' ? 'closed' : 'drawer')} 
-                    isMobileMenuPinned={mobileState === 'pinned'}
+                    mobileState={mobileState} 
+                    setMobileState={setMobileState} 
+                    desktopState={desktopState} 
+                    setDesktopState={setDesktopState}
                     onSettingsClick={() => setIsSettingsModalOpen(true)}
                 />
-                <main className="flex-1 overflow-y-auto overflow-x-hidden"> {renderView()} </main>
+
+                {/* A classe de margem agora é aplicada diretamente no <main> e só para o mobile no modo 'pinned' */}
+                <main className={`flex-1 overflow-y-auto overflow-x-hidden transition-all duration-300 ease-in-out ${mobileState === 'pinned' ? 'max-lg:ml-16' : ''}`}>
+                    {renderView()}
+                </main>
             </div>
 
             {journalEditorData && <NewNoteEditor onClose={() => setJournalEditorData(null)} entryData={journalEditorData} user={user} userData={userData} onInfoClick={handleInfoClick} />}
@@ -129,8 +126,9 @@ const AppLayout = ({ user, userData, taskUpdater }) => {
     );
 };
 
-// Componente App Raiz
+// Componente App Raiz (Sem alterações)
 function App() {
+    // ... (todo o resto do seu componente App permanece exatamente igual)
     const [user, setUser] = useState(null);
     const [userData, setUserData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);

@@ -1,7 +1,7 @@
 // src/components/ui/TaskSheet.jsx
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { PlusIcon, TrashIcon, CheckIcon } from './Icons';
+import { PlusIcon, TrashIcon, CheckIcon, CheckAllIcon, ChevronDownIcon } from './Icons';
 import VibrationPill from './VibrationPill';
 
 // --- Função Utilitária para debounce ---
@@ -33,7 +33,10 @@ const TaskItem = ({ task, onUpdate, onDelete, onToggle, onEnter }) => {
         <div className="flex items-center group bg-gray-800/50 hover:bg-gray-800/90 rounded-lg p-2 transition-colors">
             <CustomCheckbox />
             <input type="text" value={text} onChange={handleChange} onBlur={handleBlur} onKeyDown={handleKeyDown} placeholder="Escreva uma tarefa..." className={`flex-1 mx-3 bg-transparent focus:outline-none text-sm leading-tight ${task.completed ? 'line-through text-gray-500' : 'text-gray-200'}`} />
-            <button onClick={() => onDelete(task.id)} className="flex-shrink-0 text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity" title="Excluir tarefa"><TrashIcon className="w-4 h-4" /></button>
+            
+            {/* ### CORREÇÃO FINAL APLICADA AQUI ### */}
+            {/* O ícone agora tem 'opacity-50' em telas pequenas por padrão, e o comportamento de hover só no desktop ('lg') */}
+            <button onClick={() => onDelete(task.id)} className="flex-shrink-0 text-gray-600 hover:text-red-400 opacity-50 lg:opacity-0 group-hover:opacity-100 transition-opacity" title="Excluir tarefa"><TrashIcon className="w-4 h-4" /></button>
         </div>
     );
 };
@@ -42,7 +45,7 @@ const TaskItem = ({ task, onUpdate, onDelete, onToggle, onEnter }) => {
 export const TaskListBody = ({ tasks, taskUpdater, dateForNewTasks }) => {
     const [newTaskText, setNewTaskText] = useState('');
     const newTaskInputRef = useRef(null);
-    const sortedTasks = useMemo(() => tasks.sort((a, b) => a.createdAt.seconds - b.createdAt.seconds), [tasks]);
+    const sortedTasks = useMemo(() => tasks.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)), [tasks]);
     
     const handleAddTask = () => { if (newTaskText.trim() === '') return; taskUpdater({ type: 'ADD', payload: { date: dateForNewTasks, text: newTaskText } }); setNewTaskText(''); };
     
@@ -68,7 +71,9 @@ export const TaskListBody = ({ tasks, taskUpdater, dateForNewTasks }) => {
 };
 
 // --- Componente Principal da Folha de Tarefas ---
-export const TaskSheet = ({ date, tasks, personalDay, onInfoClick, taskUpdater }) => {
+export const TaskSheet = ({ date, tasks, personalDay, onInfoClick, taskUpdater, isMobile = false }) => {
+    const [isExpanded, setIsExpanded] = useState(true);
+
     const energyClasses = {
         1: { bg: 'bg-red-500/20', text: 'text-red-300', border: 'border-red-500', progress: 'bg-red-500' },
         2: { bg: 'bg-orange-500/20', text: 'text-orange-300', border: 'border-orange-500', progress: 'bg-orange-500' },
@@ -84,24 +89,66 @@ export const TaskSheet = ({ date, tasks, personalDay, onInfoClick, taskUpdater }
         default: { bg: 'bg-gray-700/20', text: 'text-gray-300', border: 'border-gray-500', progress: 'bg-gray-400' }
     };
     
-    const dateObj = new Date(date.replace(/-/g, '/'));
+    const dateObj = useMemo(() => {
+        if (!date) return new Date();
+        if (typeof date === 'string') {
+            return new Date(date.replace(/-/g, '/'));
+        }
+        return date;
+    }, [date]);
 
     const currentEnergy = energyClasses[personalDay] || energyClasses.default;
     const formattedDate = dateObj.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
     const completedCount = tasks.filter(t => t.completed).length;
     const progress = tasks.length > 0 ? (completedCount / tasks.length) * 100 : 0;
+    const allCompleted = tasks.length > 0 && completedCount === tasks.length;
+
+    const handleMarkAllComplete = () => {
+        tasks.forEach(task => {
+            if (!task.completed) {
+                taskUpdater({ type: 'UPDATE', payload: { id: task.id, completed: true } });
+            }
+        });
+    };
+
+    const HeaderContent = () => (
+        <>
+            <div className="flex-1 flex items-start gap-3">
+                <div className="flex items-center gap-2 mt-1">
+                    <button
+                        onClick={(e) => { e.stopPropagation(); handleMarkAllComplete(); }}
+                        className="text-gray-200 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+                        disabled={allCompleted}
+                        title="Marcar todas como concluídas"
+                    >
+                        <CheckAllIcon className="w-5 h-5"/>
+                    </button>
+                    <h2 className={`text-xl font-bold ${currentEnergy.text}`}>{formattedDate}</h2>
+                </div>
+            </div>
+            <div className="flex-shrink-0 flex items-center gap-2">
+                <div onClick={(e) => { e.stopPropagation(); onInfoClick(personalDay); }}>
+                    <VibrationPill vibrationNumber={personalDay} />
+                </div>
+                {isMobile && <ChevronDownIcon className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />}
+            </div>
+        </>
+    );
 
     return (
-        <div className={`bg-gray-800/60 border ${currentEnergy.border} rounded-xl shadow-lg w-full`}>
-            <div className={`${currentEnergy.bg} p-4 rounded-t-xl`}>
-                <div className="flex justify-between items-start gap-3">
-                    <h2 className={`text-xl font-bold ${currentEnergy.text}`}>{formattedDate}</h2>
-                    <div className="flex-shrink-0">
-                        <VibrationPill vibrationNumber={personalDay} onClick={onInfoClick} />
-                    </div>
+        <div className={`bg-gray-800/60 border ${currentEnergy.border} rounded-xl shadow-lg w-full transition-opacity ${allCompleted ? 'opacity-50' : ''}`}>
+            {isMobile ? (
+                <div onClick={() => setIsExpanded(!isExpanded)} className={`w-full text-left cursor-pointer ${currentEnergy.bg} p-4 rounded-t-xl flex justify-between items-start gap-3`}>
+                    <HeaderContent />
                 </div>
-                <div className="mt-3">
-                    {/* ### AJUSTE APLICADO ### */}
+            ) : (
+                <div className={`${currentEnergy.bg} p-4 rounded-t-xl flex justify-between items-start gap-3`}>
+                    <HeaderContent />
+                </div>
+            )}
+            
+            <div className="mt-1">
+                <div className="px-4">
                     <div className="flex justify-between text-xs font-semibold text-gray-300 mb-1">
                         <span>Progresso</span>
                         <span className="whitespace-nowrap">{completedCount} / {tasks.length}</span>
@@ -109,7 +156,10 @@ export const TaskSheet = ({ date, tasks, personalDay, onInfoClick, taskUpdater }
                     <div className="w-full bg-gray-900/50 rounded-full h-1.5"><div className={`${currentEnergy.progress} h-1.5 rounded-full transition-all duration-500`} style={{ width: `${progress}%` }}></div></div>
                 </div>
             </div>
-            <TaskListBody tasks={tasks} taskUpdater={taskUpdater} dateForNewTasks={dateObj} />
+            
+            {(!isMobile || isExpanded) && (
+                <TaskListBody tasks={tasks} taskUpdater={taskUpdater} dateForNewTasks={dateObj} />
+            )}
         </div>
     );
 };

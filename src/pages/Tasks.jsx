@@ -5,22 +5,19 @@ import { db, auth } from '../services/firebase';
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import Spinner from '../components/ui/Spinner';
 import numerologyEngine from '../services/numerologyEngine';
-import { CalendarIcon, ChevronDownIcon } from '../components/ui/Icons';
+// --- CORREÇÃO DO CAMINHO DA IMPORTAÇÃO ---
+import { CalendarIcon } from '../components/ui/Icons';
 import { TaskSheet } from '../components/ui/TaskSheet';
 import EditableTaskCard from '../components/ui/EditableTaskCard';
-
-const TASKS_INITIAL_LOAD = 5;
-const TASKS_PER_LOAD = 10;
 
 const Tasks = ({ userData, setActiveView, onInfoClick, taskUpdater }) => {
     const [allTasks, setAllTasks] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [visibleCount, setVisibleCount] = useState(TASKS_INITIAL_LOAD);
     const user = auth.currentUser;
 
     useEffect(() => {
         if (!user) { setIsLoading(false); return; }
-        const q = query(collection(db, 'users', user.uid, 'tasks'), orderBy('createdAt', 'asc'));
+        const q = query(collection(db, 'users', user.uid, 'tasks'), orderBy('createdAt', 'desc'));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const tasksFromDb = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
             setAllTasks(tasksFromDb);
@@ -29,59 +26,51 @@ const Tasks = ({ userData, setActiveView, onInfoClick, taskUpdater }) => {
         return () => unsubscribe();
     }, [user]);
 
-    const { todayData, otherDays } = useMemo(() => {
+    const { todayData, otherDays, todayKey } = useMemo(() => {
+        const today = new Date();
+        const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
         const groups = allTasks.reduce((acc, task) => {
-            const dateKey = task.createdAt.toDate().toISOString().split('T')[0];
+            if (!task.createdAt) return acc;
+            const date = task.createdAt.toDate();
+            const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            
             if (!acc[dateKey]) acc[dateKey] = [];
             acc[dateKey].push(task);
             return acc;
         }, {});
         
-        const todayKey = new Date().toISOString().split('T')[0];
         const todayTasks = groups[todayKey] || [];
         delete groups[todayKey];
 
-        const otherTaskGroups = Object.entries(groups)
-            .sort(([dateA], [dateB]) => new Date(dateB) - new Date(dateA));
+        const otherTaskGroups = Object.entries(groups);
 
-        return { todayData: todayTasks, otherDays: otherTaskGroups };
+        return { todayData: todayTasks, otherDays: otherTaskGroups, todayKey };
     }, [allTasks]);
-
-    const todayKey = new Date().toISOString().split('T')[0];
-    const visibleDays = otherDays.slice(0, visibleCount);
-    const loadMore = () => setVisibleCount(prevCount => prevCount + TASKS_PER_LOAD);
 
     if (isLoading) {
         return <div className="flex justify-center mt-16"><Spinner /></div>;
     }
     
     return (
-        <div className="p-4 md:p-8 text-white w-full max-w-7xl mx-auto h-full">
-            {/* ### TÍTULO PADRONIZADO ADICIONADO ### */}
-            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6">Tarefas</h1>
+        <div className="p-4 md:p-8 text-white w-full max-w-7xl mx-auto h-full flex flex-col">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6 flex-shrink-0">Tarefas</h1>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-12">
-                
-                {/* Coluna da Esquerda: Foco no Dia Atual */}
-                <div className="lg:col-span-1">
-                    <div className="lg:sticky lg:top-8">
-                         <h2 className="text-lg font-semibold text-gray-400 mb-4">Lista de Hoje</h2>
-                        <TaskSheet 
-                            date={todayKey}
-                            tasks={todayData}
-                            personalDay={numerologyEngine.calculatePersonalDayForDate(new Date(), userData.dataNasc)}
-                            onInfoClick={onInfoClick}
-                            taskUpdater={taskUpdater}
-                        />
-                    </div>
+            {/* Layout Desktop */}
+            <div className="hidden lg:grid grid-cols-2 gap-12 flex-1 overflow-hidden">
+                <div className="h-full overflow-y-auto pr-2 custom-scrollbar">
+                    <TaskSheet 
+                        date={todayKey}
+                        tasks={todayData}
+                        personalDay={numerologyEngine.calculatePersonalDayForDate(new Date(), userData.dataNasc)}
+                        onInfoClick={onInfoClick}
+                        taskUpdater={taskUpdater}
+                    />
                 </div>
-
-                {/* Coluna da Direita: Arquivo Vivo */}
-                <div className="lg:col-span-1 mt-12 lg:mt-0">
-                    <h2 className="text-lg font-semibold text-gray-400 mb-4">Listas Anteriores e Futuras</h2>
-                    {visibleDays.length > 0 ? (
+                <div className="h-full overflow-y-auto pr-2 custom-scrollbar">
+                    {otherDays.length > 0 ? (
                         <div className="space-y-4">
-                            {visibleDays.map(([dateKey, tasks]) => (
+                            {otherDays.map(([dateKey, tasks]) => (
                                 <EditableTaskCard
                                     key={dateKey}
                                     date={dateKey}
@@ -91,19 +80,39 @@ const Tasks = ({ userData, setActiveView, onInfoClick, taskUpdater }) => {
                                     taskUpdater={taskUpdater}
                                 />
                             ))}
-                            {otherDays.length > visibleCount && (
-                                <button 
-                                    onClick={loadMore} 
-                                    className="w-full mt-4 text-center text-sm text-purple-400 hover:text-purple-300 font-semibold p-3 bg-gray-800/50 rounded-lg flex items-center justify-center gap-2"
-                                >
-                                    <ChevronDownIcon className="w-5 h-5" /> Carregar mais antigos
-                                </button>
-                            )}
                         </div>
                     ) : (
-                         <div className="bg-gray-800/50 border-2 border-dashed border-gray-700 rounded-xl p-8 h-48 flex items-center justify-center">
+                        <div className="bg-gray-800/50 border-2 border-dashed border-gray-700 rounded-xl p-8 h-48 flex items-center justify-center">
                             <p className="text-gray-400 text-center">Seu histórico de listas aparecerá aqui.</p>
                         </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Layout Mobile */}
+            <div className="lg:hidden flex-1 flex flex-col overflow-hidden">
+                <div className="flex-shrink-0 z-10 p-1">
+                    <TaskSheet 
+                        date={todayKey}
+                        tasks={todayData}
+                        personalDay={numerologyEngine.calculatePersonalDayForDate(new Date(), userData.dataNasc)}
+                        onInfoClick={onInfoClick}
+                        taskUpdater={taskUpdater}
+                        isMobile={true}
+                    />
+                </div>
+                <div className="flex-1 overflow-y-auto pt-4 space-y-4 pr-2 custom-scrollbar">
+                    {otherDays.length > 0 && (
+                        otherDays.map(([dateKey, tasks]) => (
+                            <EditableTaskCard
+                                key={dateKey}
+                                date={dateKey}
+                                tasks={tasks}
+                                personalDay={numerologyEngine.calculatePersonalDayForDate(new Date(dateKey.replace(/-/g, '/')), userData.dataNasc)}
+                                onInfoClick={onInfoClick}
+                                taskUpdater={taskUpdater}
+                            />
+                        ))
                     )}
                 </div>
             </div>

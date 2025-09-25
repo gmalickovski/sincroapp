@@ -1,105 +1,126 @@
 // src/components/ui/NewNoteEditor.jsx
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { addDoc, updateDoc, collection, doc, Timestamp } from "firebase/firestore";
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { doc, getDoc, setDoc, updateDoc, addDoc, collection, Timestamp } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import numerologyEngine from '../../services/numerologyEngine';
-import Spinner from './Spinner';
+import { XIcon, CheckIcon } from './Icons';
 import VibrationPill from './VibrationPill';
-import { XIcon, CheckCircleIcon } from './Icons';
-
-// Hook customizado para debouncing
-function useDebounce(value, delay) {
-    const [debouncedValue, setDebouncedValue] = useState(value);
-    useEffect(() => {
-        const handler = setTimeout(() => { setDebouncedValue(value); }, delay);
-        return () => { clearTimeout(handler); };
-    }, [value, delay]);
-    return debouncedValue;
-}
 
 const NewNoteEditor = ({ onClose, entryData, user, userData, onInfoClick }) => {
-    const isEditing = !!entryData?.id;
-    const [content, setContent] = useState(entryData?.content || '');
-    const [docId, setDocId] = useState(entryData?.id || null);
-    const [status, setStatus] = useState('Salvo');
-    const initialContentRef = useRef(entryData?.content || '');
-    const debouncedContent = useDebounce(content, 1500);
+    const [localContent, setLocalContent] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
+    // Guarda o ID do documento se estivermos editando
+    const [docId, setDocId] = useState(entryData?.id || null); 
+    const textAreaRef = useRef(null);
 
-    const handleSave = useCallback(async (textToSave) => {
-        if (textToSave.trim() === '' && !isEditing) return;
-        if (!user?.uid || !userData?.dataNasc) return;
-        setStatus('Salvando');
-        const dateForNote = entryData?.createdAt?.toDate() || entryData?.date || new Date();
-        const personalDayForNote = numerologyEngine.calculatePersonalDayForDate(dateForNote, userData.dataNasc);
-        const data = { content: textToSave, createdAt: Timestamp.fromDate(dateForNote), personalDay: personalDayForNote };
-        try {
-            if (docId) {
-                await updateDoc(doc(db, 'users', user.uid, 'journalEntries', docId), data);
-            } else {
-                const newDocRef = await addDoc(collection(db, 'users', user.uid, 'journalEntries'), data);
-                setDocId(newDocRef.id);
-            }
-            initialContentRef.current = textToSave;
-            setStatus('Salvo');
-        } catch (error) { console.error("Erro ao salvar anotação:", error); setStatus('Erro'); }
-    }, [docId, user, userData, entryData, isEditing]);
+    const date = entryData.date ? (entryData.date instanceof Date ? entryData.date : entryData.date.toDate()) : new
+     Date();
 
     useEffect(() => {
-        if (debouncedContent !== initialContentRef.current) { handleSave(debouncedContent); }
-    }, [debouncedContent, handleSave]);
+        const fetchEntry = async () => {
+            setIsLoading(true);
+            if (entryData.id) {
+                // Se estamos editando, busca o conteúdo existente
+                const docRef = doc(db, 'users', user.uid, 'journalEntries', entryData.id);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    setLocalContent(docSnap.data().content || '');
+                }
+            } else {
+                // Se é uma nova nota, começa em branco
+                setLocalContent(entryData.content || '');
+            }
+            setIsLoading(false);
+        };
+        fetchEntry();
+    }, [entryData, user.uid]);
 
-    const handleContentChange = (e) => {
-        setContent(e.target.value);
-        if (status === 'Salvo') { setStatus('Editando'); }
-    };
+    useEffect(() => {
+        if (!isLoading) {
+            textAreaRef.current?.focus();
+        }
+    }, [isLoading]);
 
-    const displayDate = entryData?.createdAt?.toDate() || entryData?.date || new Date();
-    const personalDay = numerologyEngine.calculatePersonalDayForDate(displayDate, userData.dataNasc);
+    // --- FUNÇÃO DE SALVAMENTO RESTAURADA E ADAPTADA ---
+    const handleSave = useCallback(async () => {
+        if (!user?.uid || !userData?.dataNasc) return;
+        
+        // Prepara os dados para salvar
+        const dataToSave = {
+            content: localContent,
+            date: Timestamp.fromDate(date),
+            personalDay: numerologyEngine.calculatePersonalDayForDate(date, userData.dataNasc),
+            userId: user.uid,
+            updatedAt: Timestamp.now(),
+        };
 
-    const SaveStatusIndicator = () => {
-        if (status === 'Salvando') return <div className="flex items-center gap-2 text-sm text-gray-500"><Spinner /><span>Salvando...</span></div>;
-        if (status === 'Salvo') return <div className="flex items-center gap-2 text-sm text-green-600"><CheckCircleIcon className="w-4 h-4" /><span>Salvo</span></div>;
-        if (status === 'Erro') return <span className="text-sm text-red-500">Erro ao salvar</span>;
-        return <span className="text-sm text-gray-500">Editando...</span>;
-    };
-
-    // (AJUSTE) Estilo da folha de papel definido aqui, SEM as linhas
-    const paperStyle = {
-        backgroundColor: '#F7F4EB', // Cor de papel antigo
-        lineHeight: '2', 
-    };
+        try {
+            if (docId) {
+                // Se JÁ EXISTE um docId, atualizamos o documento existente
+                const docRef = doc(db, 'users', user.uid, 'journalEntries', docId);
+                await updateDoc(docRef, dataToSave);
+            } else {
+                // Se NÃO EXISTE um docId, criamos um novo documento
+                const collectionRef = collection(db, 'users', user.uid, 'journalEntries');
+                const newDocRef = await addDoc(collectionRef, { ...dataToSave, createdAt: Timestamp.now() });
+                setDocId(newDocRef.id); // Guarda o ID do novo documento
+            }
+            onClose(); // Fecha o modal após salvar
+        } catch (error) {
+            console.error("Erro ao salvar anotação:", error);
+        }
+    }, [docId, user, userData, date, localContent, onClose]);
     
-    const textareaStyle = {
-        lineHeight: '2',
-    };
+    const personalDay = numerologyEngine.calculatePersonalDayForDate(date, userData.dataNasc);
+    const formattedDate = date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
 
+    if (isLoading) {
+        return (
+            <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+                <p className="text-white">Carregando...</p>
+            </div>
+        );
+    }
+    
     return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4" onClick={onClose}>
-            <div className="w-full max-w-2xl h-[90vh] flex flex-col relative" onClick={e => e.stopPropagation()}>
-                <button onClick={onClose} className="absolute -top-3 -right-3 p-2 rounded-full text-gray-300 bg-gray-900 border border-gray-700 hover:bg-gray-800 z-10">
-                    <XIcon className="w-5 h-5" />
-                </button>
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-fade-in-fast">
+            <div className="relative w-full max-w-2xl">
+                <div className="absolute top-0 right-0 -mt-3 -mr-3 flex gap-2 z-10">
+                    <button 
+                        onClick={handleSave} 
+                        className="bg-green-500 text-white rounded-full p-2 shadow-lg hover:bg-green-600 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-green-400"
+                        title="Salvar Anotação"
+                    >
+                        <CheckIcon className="w-6 h-6" />
+                    </button>
+                    <button 
+                        onClick={onClose} 
+                        className="bg-red-500 text-white rounded-full p-2 shadow-lg hover:bg-red-600 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-red-400"
+                        title="Fechar (não salvar)"
+                    >
+                        <XIcon className="w-6 h-6" />
+                    </button>
+                </div>
                 
-                <div
-                    style={paperStyle}
-                    className="text-gray-800 font-serif p-6 sm:p-8 rounded-lg shadow-2xl flex-1 flex flex-col"
-                >
-                    <div className="flex justify-between items-center text-gray-600 border-b border-gray-300 pb-4 mb-4 flex-shrink-0">
-                        <h3 className="text-base sm:text-lg font-bold capitalize">{displayDate.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}</h3>
-                        <div className="flex items-center gap-4">
-                            <SaveStatusIndicator />
-                            <VibrationPill vibrationNumber={personalDay} onClick={onInfoClick} />
+                <div className="bg-[#FBF3D9] rounded-lg shadow-2xl w-full h-[80vh] flex flex-col">
+                    <header className="flex-shrink-0 mb-4 px-8 pt-12 pb-4 flex justify-between items-center">
+                        <h2 className="text-gray-700 font-serif font-bold text-xl">{formattedDate}</h2>
+                        <div onClick={() => onInfoClick(personalDay)}>
+                            <VibrationPill vibrationNumber={personalDay} />
                         </div>
+                    </header>
+
+                    {/* Container da área de texto com overflow 'auto' */}
+                    <div className="flex-1 overflow-y-auto custom-scrollbar-light px-8 pb-8">
+                        <textarea
+                            ref={textAreaRef}
+                            value={localContent}
+                            onChange={(e) => setLocalContent(e.target.value)}
+                            placeholder="Comece a escrever aqui..."
+                            className="w-full h-full bg-transparent text-gray-800 placeholder-gray-500 focus:outline-none resize-none font-serif text-lg leading-relaxed"
+                        />
                     </div>
-                    <textarea
-                        style={textareaStyle}
-                        value={content}
-                        onChange={handleContentChange}
-                        className="w-full h-full bg-transparent focus:outline-none text-base resize-none"
-                        placeholder="Comece a escrever seus pensamentos, sentimentos ou insights do dia..."
-                        autoFocus
-                    />
                 </div>
             </div>
         </div>

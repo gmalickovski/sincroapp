@@ -1,7 +1,7 @@
 // src/components/layout/Sidebar.jsx
 
-import React from 'react';
-import { HomeIcon, CalendarIcon, BookIcon, StarIcon, CheckSquareIcon, SettingsIcon, LogOutIcon, UserIcon, PanelLeftCloseIcon } from '../ui/Icons';
+import React, { useEffect } from 'react';
+import { HomeIcon, CalendarIcon, BookIcon, CheckSquareIcon, SettingsIcon, LogOutIcon, UserIcon, PanelLeftCloseIcon } from '../ui/Icons';
 
 const Sidebar = ({ 
     activeView, 
@@ -15,17 +15,6 @@ const Sidebar = ({
     onSettingsClick
 }) => {
     
-    const isAdmin = userData?.isAdmin || false;
-    const navItems = [
-        { id: 'dashboard', icon: <HomeIcon className="h-5 w-5" />, label: 'Sua Rota de Hoje' },
-        { id: 'calendar', icon: <CalendarIcon className="h-5 w-5" />, label: 'Calendário' },
-        { id: 'journal', icon: <BookIcon className="h-5 w-5" />, label: 'Anotações do Dia' },
-        { id: 'tasks', icon: <CheckSquareIcon className="h-5 w-5" />, label: 'Diário de Tarefas' },
-    ];
-    if (isAdmin) {
-        navItems.push({ id: 'admin', icon: <UserIcon className="h-5 w-5" />, label: 'Painel Admin' });
-    }
-
     const handleItemClick = (viewId) => {
         setActiveView(viewId);
         if (mobileState === 'drawer') {
@@ -33,22 +22,23 @@ const Sidebar = ({
         }
     };
     
-    const getSidebarClasses = () => {
-        let classes = 'transition-transform duration-300 ease-in-out ';
-        classes += `lg:transition-[width] ${desktopState === 'collapsed' ? 'lg:w-20' : 'lg:w-64'} lg:translate-x-0 `;
-        if (mobileState === 'closed') {
-            classes += 'max-lg:-translate-x-full';
-        } else if (mobileState === 'pinned') {
-            classes += 'max-lg:translate-x-0 max-lg:w-20';
-        } else { // drawer
-            classes += 'max-lg:translate-x-0 max-lg:w-64';
-        }
+    const getSidebarWidthClass = () => {
+        let classes = `${desktopState === 'collapsed' ? 'lg:w-16' : 'lg:w-64'} `;
+        classes += `${mobileState === 'pinned' ? 'max-lg:w-16' : 'max-lg:w-64'}`;
         return classes;
     };
 
-    const isTextVisible = (typeof window !== 'undefined' && window.innerWidth >= 1024) 
-        ? desktopState === 'expanded' 
-        : mobileState === 'drawer';
+    const isTextVisible = (window.innerWidth >= 1024 && desktopState === 'expanded') || (window.innerWidth < 1024 && mobileState === 'drawer');
+
+    const navItems = [
+        { id: 'dashboard', icon: <HomeIcon className="h-5 w-5 flex-shrink-0" />, label: 'Sua Rota de Hoje' },
+        { id: 'calendar', icon: <CalendarIcon className="h-5 w-5 flex-shrink-0" />, label: 'Calendário' },
+        { id: 'journal', icon: <BookIcon className="h-5 w-5 flex-shrink-0" />, label: 'Anotações do Dia' },
+        { id: 'tasks', icon: <CheckSquareIcon className="h-5 w-5 flex-shrink-0" />, label: 'Diário de Tarefas' },
+    ];
+    if (userData?.isAdmin) {
+        navItems.push({ id: 'admin', icon: <UserIcon className="h-5 w-5 flex-shrink-0" />, label: 'Painel Admin' });
+    }
 
     return (
         <>
@@ -59,76 +49,63 @@ const Sidebar = ({
             ></div>
 
             <aside 
-                className={`fixed top-0 left-0 h-full bg-gray-900 text-gray-300 flex flex-col z-40
-                            border-r border-gray-700/50 ${getSidebarClasses()}`}
+                className={`
+                    flex-shrink-0 bg-gray-900 text-gray-300 flex flex-col border-r border-gray-700/50 z-30
+                    transition-all duration-300 ease-in-out
+                    ${getSidebarWidthClass()}
+                    max-lg:fixed max-lg:h-full max-lg:top-0 max-lg:left-0
+                    ${mobileState === 'closed' ? 'max-lg:-translate-x-full' : 'max-lg:translate-x-0'}
+                `}
             >
-                {/* O cabeçalho da sidebar foi removido para eliminar o espaço em branco */}
+                <div className="lg:hidden flex-shrink-0 h-16 flex items-center justify-center border-b border-gray-700/50">
+                    <button 
+                        onClick={() => setMobileState(s => (s === 'pinned' ? 'drawer' : 'pinned'))}
+                        className="flex items-center p-3 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white"
+                        title={mobileState === 'pinned' ? "Expandir menu" : "Fixar menu"}
+                    >
+                        <PanelLeftCloseIcon className={`h-5 w-5 flex-shrink-0 transition-transform duration-300 ${mobileState === 'pinned' ? 'rotate-180' : ''}`} />
+                    </button>
+                </div>
                 
-                <nav className={`flex-1 pt-6 px-2 space-y-2`}>
+                <nav className="flex-1 pt-4 px-2 space-y-2 overflow-y-auto">
                     {navItems.map(item => (
                         <a href="#" key={item.id} onClick={(e) => { e.preventDefault(); handleItemClick(item.id); }}
-                            title={item.label}
+                            title={isTextVisible ? undefined : item.label}
                             className={`flex items-center p-3 rounded-lg transition-colors duration-200 
-                                      ${!isTextVisible ? 'justify-center' : 'justify-start'}
-                                      ${ activeView === item.id ? 'bg-purple-600 text-white' : 'hover:bg-gray-800 hover:text-white'}`}>
+                                     ${!isTextVisible ? 'justify-center' : 'justify-start'}
+                                     ${ activeView === item.id ? 'bg-purple-600 text-white' : 'hover:bg-gray-800 hover:text-white'}`}>
                             {item.icon}
-                            <span className={`ml-4 font-medium whitespace-nowrap transition-opacity duration-200 ${!isTextVisible ? 'opacity-0 hidden' : 'opacity-100'}`}>
+                            {/* CORREÇÃO DE CENTRALIZAÇÃO: A margem 'ml-4' agora é condicional */}
+                            <span className={`font-medium whitespace-nowrap overflow-hidden transition-opacity duration-200 ${isTextVisible ? 'ml-4 opacity-100' : 'opacity-0 w-0'}`}>
                                 {item.label}
                             </span>
                         </a>
                     ))}
                 </nav>
 
-                <div className={`py-4 px-2 border-t border-gray-700/50 space-y-2`}>
-                     <a href="#" onClick={(e) => { e.preventDefault(); onSettingsClick(); }}
-                        title="Configurações"
-                        className={`flex items-center p-3 rounded-lg transition-colors duration-200 
-                                    ${!isTextVisible ? 'justify-center' : 'justify-start'}
-                                    ${ activeView === 'settings' ? 'bg-purple-600 text-white' : 'hover:bg-gray-800 hover:text-white'}`}>
-                         <SettingsIcon className="h-5 w-5" />
-                         <span className={`ml-4 font-medium whitespace-nowrap transition-opacity duration-200 ${!isTextVisible ? 'opacity-0 hidden' : 'opacity-100'}`}>
-                             Configurações
-                         </span>
-                     </a>
-                     <a href="#" onClick={(e) => { e.preventDefault(); onLogout(); }}
-                        title="Sair"
-                        className={`flex items-center p-3 rounded-lg transition-colors duration-200 text-red-400 hover:bg-red-500/20 hover:text-red-300
-                                    ${!isTextVisible ? 'justify-center' : 'justify-start'}`}>
-                         <LogOutIcon className="h-5 w-5" />
-                         <span className={`ml-4 font-medium whitespace-nowrap transition-opacity duration-200 ${!isTextVisible ? 'opacity-0 hidden' : 'opacity-100'}`}>
-                             Sair
-                         </span>
-                     </a>
+                <div className="py-4 px-2 border-t border-gray-700/50 space-y-2">
+                       <a href="#" onClick={(e) => { e.preventDefault(); onSettingsClick(); }}
+                           title="Configurações"
+                           className={`flex items-center p-3 rounded-lg transition-colors duration-200 
+                                     ${!isTextVisible ? 'justify-center' : 'justify-start'}
+                                     ${ activeView === 'settings' ? 'bg-purple-600 text-white' : 'hover:bg-gray-800 hover:text-white'}`}>
+                           <SettingsIcon className="h-5 w-5 flex-shrink-0" />
+                           {/* CORREÇÃO DE CENTRALIZAÇÃO: A margem 'ml-4' agora é condicional */}
+                           <span className={`font-medium whitespace-nowrap overflow-hidden transition-opacity duration-200 ${isTextVisible ? 'ml-4 opacity-100' : 'opacity-0 w-0'}`}>
+                               Configurações
+                           </span>
+                       </a>
+                       <a href="#" onClick={(e) => { e.preventDefault(); onLogout(); }}
+                           title="Sair"
+                           className={`flex items-center p-3 rounded-lg transition-colors duration-200 text-red-400 hover:bg-red-500/20 hover:text-red-300
+                                     ${!isTextVisible ? 'justify-center' : 'justify-start'}`}>
+                           <LogOutIcon className="h-5 w-5 flex-shrink-0" />
+                           {/* CORREÇÃO DE CENTRALIZAÇÃO: A margem 'ml-4' agora é condicional */}
+                           <span className={`font-medium whitespace-nowrap overflow-hidden transition-opacity duration-200 ${isTextVisible ? 'ml-4 opacity-100' : 'opacity-0 w-0'}`}>
+                               Sair
+                           </span>
+                       </a>
                 </div>
-                
-                {/* Botões de controle agora ficam fixos na parte inferior para um design mais limpo */}
-                 <div className="py-2 px-2 border-t border-gray-700/50">
-                    {mobileState !== 'closed' && (
-                         <button 
-                             onClick={() => setMobileState(s => s === 'pinned' ? 'closed' : 'pinned')}
-                             className={`w-full flex items-center p-3 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white
-                                        ${!isTextVisible ? 'justify-center' : 'justify-start'}`}
-                             title={mobileState === 'pinned' ? "Recolher menu" : "Fixar menu"}
-                         >
-                            <PanelLeftCloseIcon className={`h-5 w-5 transition-transform duration-300 ${mobileState === 'pinned' ? 'rotate-180' : ''}`} />
-                            <span className={`ml-4 font-medium whitespace-nowrap transition-opacity duration-200 ${!isTextVisible ? 'opacity-0 hidden' : 'opacity-100'}`}>
-                                 Fixar Menu
-                             </span>
-                         </button>
-                    )}
-                     <button 
-                        onClick={() => setDesktopState(s => s === 'expanded' ? 'collapsed' : 'expanded')} 
-                        className={`w-full items-center p-3 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white
-                                    hidden lg:flex
-                                    ${!isTextVisible ? 'justify-center' : 'justify-start'}`}
-                        title={desktopState === 'collapsed' ? "Expandir" : "Recolher"}
-                    >
-                        <PanelLeftCloseIcon className={`h-5 w-5 transition-transform duration-300 ${desktopState === 'collapsed' ? 'rotate-180' : ''}`} />
-                        <span className={`ml-4 font-medium whitespace-nowrap transition-opacity duration-200 ${!isTextVisible ? 'opacity-0 hidden' : 'opacity-100'}`}>
-                             Recolher
-                         </span>
-                    </button>
-                 </div>
             </aside>
         </>
     );

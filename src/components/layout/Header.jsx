@@ -1,7 +1,7 @@
 // src/components/layout/Header.jsx
 
 import React from 'react';
-import { StarIcon } from '../ui/Icons';
+import { StarIcon, PanelLeftCloseIcon } from '../ui/Icons'; //
 
 const getInitials = (firstName = '', lastName = '') => {
     const firstInitial = firstName ? firstName[0] : '';
@@ -9,15 +9,24 @@ const getInitials = (firstName = '', lastName = '') => {
     return `${firstInitial}${lastInitial}`.toUpperCase();
 };
 
-const Header = ({ userData, onMenuClick, onSettingsClick }) => {
-    const safeUserData = userData || {};
-    const initials = getInitials(safeUserData.primeiroNome, safeUserData.sobrenome);
+const Header = ({ userData, onMenuClick, onSettingsClick, desktopState, setDesktopState }) => {
+    const safeUserData = userData || {}; //
+    const initials = getInitials(safeUserData.primeiroNome, safeUserData.sobrenome); //
 
     return (
-        <header className="flex-shrink-0 bg-gray-900/80 backdrop-blur-md border-b border-gray-700/50 h-16 flex items-center justify-between px-4 sm:px-6 relative">
+        <header className="flex-shrink-0 bg-gray-900/80 backdrop-blur-md border-b border-gray-700/50 h-16 flex items-center justify-between px-4 sm:px-6 relative z-20">
             
-            {/* Elemento da Esquerda (Botão de Menu Mobile) */}
-            <div className="flex-1 flex justify-start">
+            <div className="flex-1 flex justify-start items-center">
+                {/* Botão de Recolher/Expandir para DESKTOP */}
+                <button 
+                    onClick={() => setDesktopState(s => (s === 'expanded' ? 'collapsed' : 'expanded'))}
+                    className="hidden lg:block text-gray-400 hover:text-white p-2"
+                    title={desktopState === 'expanded' ? "Recolher menu" : "Expandir menu"}
+                >
+                    <PanelLeftCloseIcon className={`h-6 w-6 transition-transform duration-300 ${desktopState === 'collapsed' ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* Botão de Menu para MOBILE */}
                 <div className="lg:hidden">
                     <button
                         onClick={onMenuClick}
@@ -31,13 +40,11 @@ const Header = ({ userData, onMenuClick, onSettingsClick }) => {
                 </div>
             </div>
 
-            {/* Logo Centralizado (Agora em todas as telas) */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
                 <StarIcon className="h-6 w-6 text-purple-400" />
                 <span className="text-xl font-bold text-white tracking-wider">SincroApp</span>
             </div>
             
-            {/* Elemento da Direita (Avatar do Usuário) */}
             <div className="flex-1 flex justify-end">
                 <button 
                     onClick={onSettingsClick} 
@@ -51,5 +58,4 @@ const Header = ({ userData, onMenuClick, onSettingsClick }) => {
     );
 };
 
-// ### CORREÇÃO APLICADA AQUI ###
 export default Header;
