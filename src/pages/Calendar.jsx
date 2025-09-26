@@ -8,22 +8,15 @@ import { ChevronLeft, ChevronRight, BookIcon, CheckSquareIcon, PlusIcon } from '
 import VibrationPill from '../components/ui/VibrationPill';
 import TaskModal from '../components/ui/TaskModal';
 
-// ### COMPONENTE ATUALIZADO ###
-// O Botão Flutuante foi redesenhado para seguir o padrão das outras páginas.
 const FloatingActionButton = ({ onNewTask, onNewNote }) => {
     const [isOpen, setIsOpen] = useState(false);
-
-    // Estilo para os botões de ação secundários (Anotação, Tarefa)
     const secondaryButtonClasses = "w-12 h-12 rounded-full bg-white/10 border border-white/20 backdrop-blur-lg text-purple-300 flex items-center justify-center shadow-lg transition-all duration-200 ease-out";
-    
-    // Estilo para o botão principal, agora seguindo o padrão das outras telas
     const mainButtonClasses = `fixed bottom-6 right-6 flex items-center justify-center bg-purple-600 text-white rounded-full p-4 shadow-lg hover:bg-purple-700 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-500 z-30`;
     const mainButtonIconClasses = `transition-transform duration-300 ${isOpen ? 'rotate-45' : 'rotate-0'}`;
 
     return (
         <div className="fixed bottom-6 right-6 lg:hidden z-20">
             <div className="relative flex flex-col items-center gap-3">
-                {/* Ações secundárias */}
                 <div 
                     className={`flex flex-col items-center gap-3 transition-all duration-300 ${isOpen ? 'opacity-100 -translate-y-20' : 'opacity-0 translate-y-0 pointer-events-none'}`}
                     style={{transitionDelay: isOpen ? '0ms' : '100ms'}}
@@ -35,8 +28,6 @@ const FloatingActionButton = ({ onNewTask, onNewNote }) => {
                         <CheckSquareIcon className="w-6 h-6" />
                     </button>
                 </div>
-
-                {/* Botão Principal Padronizado */}
                 <button onClick={() => setIsOpen(!isOpen)} className={mainButtonClasses}>
                     <PlusIcon className={`w-6 h-6 ${mainButtonIconClasses}`} />
                 </button>
@@ -49,37 +40,51 @@ const FloatingActionButton = ({ onNewTask, onNewNote }) => {
 const MobilePreviewPanel = ({ selectedDay, onOpenTaskModal, setEditingEntry, onInfoClick }) => {
     if (!selectedDay) { return (<div className="flex-1 p-4 flex items-center justify-center text-center text-gray-500"><p>Selecione um dia no calendário para ver os detalhes.</p></div>); }
     const { date, items, personalDay } = selectedDay;
-    const formattedDate = date.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric' });
+    const formattedDate = date.toLocaleString('pt-BR', { weekday: 'long', day: 'numeric' });
     const taskListItem = useMemo(() => { if (items.tasks.length === 0) return null; const completedCount = items.tasks.filter(t => t.completed).length; return { id: 'task-list-summary', type: 'task_list', text: 'Lista de Tarefas', progress: `${completedCount}/${items.tasks.length}` }; }, [items.tasks]);
     const hasItems = taskListItem || items.journal.length > 0;
+    
+    // ========== ALTERAÇÃO APLICADA AQUI (PADDING) ==========
+    // O padding interno foi reduzido de p-3 para p-2
     const DetailItem = ({ item, onClick }) => {
         const icon = item.type === 'task_list' ? <CheckSquareIcon className="w-4 h-4 text-blue-300 flex-shrink-0" /> : <BookIcon className="w-4 h-4 text-cyan-300 flex-shrink-0" />;
         return (
-            <button onClick={onClick} className="w-full flex items-center gap-3 text-sm text-gray-300 bg-gray-900/50 p-3 rounded-lg animate-fade-in hover:bg-gray-700/80 transition-colors text-left active:bg-gray-700">
+            <button onClick={onClick} className="w-full flex items-center gap-3 text-sm text-gray-300 bg-gray-900/50 p-2 rounded-lg animate-fade-in hover:bg-gray-700/80 transition-colors text-left active:bg-gray-700">
                 {icon}
                 <span className="flex-1 line-clamp-1 break-all">{item.text}</span>
                 {item.type === 'task_list' && <span className="text-xs text-gray-400 flex-shrink-0">{item.progress}</span>}
             </button>
         );
     };
+    
     return (
         <div className="flex-1 flex flex-col p-4 pt-2 min-h-0">
             <div className="flex items-center justify-between gap-3 mb-4 flex-shrink-0 border-b border-gray-700 pb-2">
                 <h2 className="text-xl font-bold capitalize">{formattedDate}</h2>
                 <VibrationPill vibrationNumber={personalDay} onClick={onInfoClick} />
             </div>
+            
+            {/* ========== ALTERAÇÃO APLICADA AQUI (ESPAÇAMENTO) ========== */}
+            {/* O espaçamento voltou para o original 'space-y-2' */}
             <div className="flex-1 space-y-2 overflow-y-auto pr-2">
-                {hasItems ? (<> {taskListItem && <DetailItem item={taskListItem} onClick={onOpenTaskModal} />} {items.journal.map(entry => <DetailItem key={entry.id} item={entry} onClick={() => setEditingEntry(entry)} />)} </>) 
-                : (<div className="h-full flex items-center justify-center text-gray-500"><p>Nenhum item para este dia.</p></div>)}
+                {hasItems ? (
+                    <>
+                        {taskListItem && <DetailItem item={taskListItem} onClick={onOpenTaskModal} />}
+                        {items.journal.map(entry => <DetailItem key={entry.id} item={entry} onClick={() => setEditingEntry(entry)} />)}
+                    </>
+                ) : (
+                    <div className="h-full flex items-center justify-center text-gray-500"><p>Nenhum item para este dia.</p></div>
+                )}
             </div>
         </div>
     );
 };
 
+
 const DesktopDetailPanel = ({ selectedDay, onOpenTaskModal, openNewNoteEditor, setEditingEntry, onInfoClick }) => {
     if (!selectedDay) return null;
     const { date, items, personalDay } = selectedDay;
-    const formattedDate = date.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric' });
+    const formattedDate = date.toLocaleString('pt-BR', { weekday: 'long', day: 'numeric' });
     const taskListItem = useMemo(() => { if (items.tasks.length === 0) return null; const completedCount = items.tasks.filter(t => t.completed).length; return { id: 'task-list-summary', type: 'task_list', text: 'Lista de Tarefas', progress: `${completedCount}/${items.tasks.length}` }; }, [items.tasks]);
     const hasItems = taskListItem || items.journal.length > 0;
     const DetailItem = ({ item, onClick }) => { const icon = item.type === 'task_list' ? <CheckSquareIcon className="w-4 h-4 text-blue-300 flex-shrink-0" /> : <BookIcon className="w-4 h-4 text-cyan-300 flex-shrink-0" />; return ( <button onClick={onClick} className="w-full flex items-center gap-3 text-sm text-gray-300 bg-gray-900/50 p-3 rounded-lg animate-fade-in hover:bg-gray-700 transition-colors text-left"> {icon} <span className="flex-1 truncate">{item.text}</span> {item.type === 'task_list' && <span className="text-xs text-gray-400 flex-shrink-0">{item.progress}</span>} </button> ); };

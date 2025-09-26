@@ -1,16 +1,17 @@
 // src/components/ui/NewNoteEditor.jsx
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { doc, getDoc, setDoc, updateDoc, addDoc, collection, Timestamp } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, addDoc, collection, Timestamp } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import numerologyEngine from '../../services/numerologyEngine';
 import { XIcon, CheckIcon } from './Icons';
 import VibrationPill from './VibrationPill';
+import Spinner from './Spinner'; // Importe o Spinner
 
 const NewNoteEditor = ({ onClose, entryData, user, userData, onInfoClick }) => {
     const [localContent, setLocalContent] = useState('');
     const [isLoading, setIsLoading] = useState(true);
-    // Guarda o ID do documento se estivermos editando
+    const [isSaving, setIsSaving] = useState(false); // Novo estado para feedback de salvamento
     const [docId, setDocId] = useState(entryData?.id || null); 
     const textAreaRef = useRef(null);
 
@@ -21,14 +22,12 @@ const NewNoteEditor = ({ onClose, entryData, user, userData, onInfoClick }) => {
         const fetchEntry = async () => {
             setIsLoading(true);
             if (entryData.id) {
-                // Se estamos editando, busca o conteúdo existente
                 const docRef = doc(db, 'users', user.uid, 'journalEntries', entryData.id);
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
                     setLocalContent(docSnap.data().content || '');
                 }
             } else {
-                // Se é uma nova nota, começa em branco
                 setLocalContent(entryData.content || '');
             }
             setIsLoading(false);
@@ -41,12 +40,16 @@ const NewNoteEditor = ({ onClose, entryData, user, userData, onInfoClick }) => {
             textAreaRef.current?.focus();
         }
     }, [isLoading]);
-
-    // --- FUNÇÃO DE SALVAMENTO RESTAURADA E ADAPTADA ---
+    
+    // ========== FUNÇÃO DE SALVAMENTO ATUALIZADA ==========
     const handleSave = useCallback(async () => {
-        if (!user?.uid || !userData?.dataNasc) return;
+        if (!user?.uid || !userData?.dataNasc || isSaving) return;
         
-        // Prepara os dados para salvar
+        setIsSaving(true); // Ativa o estado de "salvando"
+        
+        // UI Otimista: Fecha o modal imediatamente para o usuário
+        onClose();
+
         const dataToSave = {
             content: localContent,
             date: Timestamp.fromDate(date),
@@ -57,20 +60,20 @@ const NewNoteEditor = ({ onClose, entryData, user, userData, onInfoClick }) => {
 
         try {
             if (docId) {
-                // Se JÁ EXISTE um docId, atualizamos o documento existente
                 const docRef = doc(db, 'users', user.uid, 'journalEntries', docId);
                 await updateDoc(docRef, dataToSave);
             } else {
-                // Se NÃO EXISTE um docId, criamos um novo documento
                 const collectionRef = collection(db, 'users', user.uid, 'journalEntries');
-                const newDocRef = await addDoc(collectionRef, { ...dataToSave, createdAt: Timestamp.now() });
-                setDocId(newDocRef.id); // Guarda o ID do novo documento
+                // Não precisamos mais do newDocRef aqui, pois o componente será desmontado
+                await addDoc(collectionRef, { ...dataToSave, createdAt: Timestamp.now() });
             }
-            onClose(); // Fecha o modal após salvar
+            // Opcional: Adicionar um toast/notificação de sucesso aqui
         } catch (error) {
-            console.error("Erro ao salvar anotação:", error);
+            console.error("Erro ao salvar anotação em segundo plano:", error);
+            // Opcional: Adicionar um toast/notificação de erro aqui
         }
-    }, [docId, user, userData, date, localContent, onClose]);
+        // O setIsSaving(false) não é estritamente necessário, pois o componente já foi fechado.
+    }, [docId, user, userData, date, localContent, onClose, isSaving]);
     
     const personalDay = numerologyEngine.calculatePersonalDayForDate(date, userData.dataNasc);
     const formattedDate = date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
@@ -89,14 +92,16 @@ const NewNoteEditor = ({ onClose, entryData, user, userData, onInfoClick }) => {
                 <div className="absolute top-0 right-0 -mt-3 -mr-3 flex gap-2 z-10">
                     <button 
                         onClick={handleSave} 
-                        className="bg-green-500 text-white rounded-full p-2 shadow-lg hover:bg-green-600 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-green-400"
+                        disabled={isSaving}
+                        className="bg-green-500 text-white rounded-full p-2 w-10 h-10 flex items-center justify-center shadow-lg hover:bg-green-600 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-green-400 disabled:bg-gray-500 disabled:scale-100"
                         title="Salvar Anotação"
                     >
-                        <CheckIcon className="w-6 h-6" />
+                        {isSaving ? <Spinner /> : <CheckIcon className="w-6 h-6" />}
                     </button>
                     <button 
-                        onClick={onClose} 
-                        className="bg-red-500 text-white rounded-full p-2 shadow-lg hover:bg-red-600 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-red-400"
+                        onClick={onClose}
+                        disabled={isSaving}
+                        className="bg-red-500 text-white rounded-full p-2 shadow-lg hover:bg-red-600 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-red-400 disabled:bg-gray-500 disabled:scale-100"
                         title="Fechar (não salvar)"
                     >
                         <XIcon className="w-6 h-6" />
@@ -110,8 +115,7 @@ const NewNoteEditor = ({ onClose, entryData, user, userData, onInfoClick }) => {
                             <VibrationPill vibrationNumber={personalDay} />
                         </div>
                     </header>
-
-                    {/* Container da área de texto com overflow 'auto' */}
+                    
                     <div className="flex-1 overflow-y-auto custom-scrollbar-light px-8 pb-8">
                         <textarea
                             ref={textAreaRef}

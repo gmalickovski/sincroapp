@@ -1,3 +1,5 @@
+// functions/index.js
+
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const axios = require("axios");
@@ -13,30 +15,47 @@ const sendToWebhook = async (payload) => {
     await axios.post(N8N_WEBHOOK_URL, payload);
     functions.logger.info("Webhook enviado com sucesso para n8n.");
   } catch (error) {
-    functions.logger.error("ERRO AO ENVIAR WEBHOOK (esperado no emulador):", {
+    functions.logger.error("ERRO AO ENVIAR WEBHOOK:", {
       errorMessage: error.message,
     });
   }
 };
 
-// Gatilho de criação de usuário (SINTAXE V1)
-exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
-  functions.logger.info("================ onUserCreate ACIONADA (V1) ================");
-  functions.logger.info("Novo usuário criado:", { uid: user.uid, email: user.email });
+// ==================================================================
+// ### FUNÇÃO ANTIGA (REMOVIDA) ###
+// A função onUserCreate(functions.auth.user().onCreate) foi removida 
+// porque ela é disparada antes dos dados do usuário (nome, sobrenome)
+// serem salvos no Firestore.
+// ==================================================================
+
+
+// ==================================================================
+// ### NOVA FUNÇÃO CORRIGIDA ###
+// Esta nova função é acionada QUANDO um novo documento de usuário é
+// CRIADO no Firestore, garantindo que temos todos os dados.
+exports.onNewUserDocumentCreate = functions.firestore.document("users/{userId}").onCreate(async (snapshot, context) => {
+  functions.logger.info("================ onNewUserDocumentCreate ACIONADA ================");
+  const userData = snapshot.data();
+  const userId = context.params.userId;
+
+  functions.logger.info("Novo documento de usuário criado:", { uid: userId, data: userData });
 
   const payload = {
     event: "user_created",
-    email: user.email,
-    name: user.displayName || user.email.split('@')[0],
-    plan: "gratuito",
-    userId: user.uid,
+    email: userData.email,
+    // CORREÇÃO: Agora pegamos o primeiroNome e sobrenome do documento
+    name: `${userData.primeiroNome || ''} ${userData.sobrenome || ''}`.trim(), 
+    plan: userData.plano || "gratuito",
+    userId: userId,
   };
 
   await sendToWebhook(payload);
-  functions.logger.info("Função onUserCreate (V1) concluída.");
-  functions.logger.info("==========================================================");
+  functions.logger.info("Função onNewUserDocumentCreate concluída.");
+  functions.logger.info("================================================================");
   return null;
 });
+// ==================================================================
+
 
 // Gatilho de atualização de documento de usuário (SINTAXE V1)
 exports.onUserUpdate = functions.firestore.document("users/{userId}").onUpdate(async (change, context) => {
@@ -52,7 +71,8 @@ exports.onUserUpdate = functions.firestore.document("users/{userId}").onUpdate(a
     const payload = {
       event: "plan_upgraded",
       email: afterData.email,
-      name: afterData.nome,
+      // CORREÇÃO: Usando os campos corretos para formar o nome completo
+      name: `${afterData.primeiroNome || ''} ${afterData.sobrenome || ''}`.trim(),
       plan: afterData.plano,
       userId,
     };
@@ -63,59 +83,39 @@ exports.onUserUpdate = functions.firestore.document("users/{userId}").onUpdate(a
   return null;
 });
 
-// ### NOVA FUNÇÃO ADICIONADA AQUI ###
-/**
- * Gatilho de Autenticação que é acionado na exclusão de um usuário.
- * Esta função limpa os dados do usuário no Firestore.
- */
+
+// Gatilho de exclusão de usuário (permanece igual, está correto)
 exports.onUserDeleted = functions.auth.user().onDelete(async (user) => {
   const userId = user.uid;
   const logger = functions.logger;
-
   logger.info(`Iniciando limpeza de dados para o usuário deletado: ${userId}`);
-
   const firestore = admin.firestore();
-
   try {
-    // 1. Deleta o documento principal do usuário (ex: /users/{userId})
     await firestore.collection("users").doc(userId).delete();
     logger.log(`Documento do usuário ${userId} em /users deletado com sucesso.`);
-
-    // NOTA IMPORTANTE: Para deletar subcoleções (tasks, journalEntries),
-    // a melhor prática é usar a extensão oficial "Delete User Data" do Firebase.
-    // O código abaixo é uma demonstração de como fazer isso manualmente,
-    // mas a extensão é mais robusta para produção.
-
-    // 2. Deleta subcoleção 'tasks'
+    
+    // Lógica para deletar subcoleções (manter como está)
     const tasksRef = firestore.collection("users").doc(userId).collection("tasks");
     const tasksSnapshot = await tasksRef.get();
-    const batch = firestore.batch();
-    tasksSnapshot.docs.forEach((doc) => {
-      batch.delete(doc.ref);
-    });
-    await batch.commit();
-    logger.log(`Subcoleção 'tasks' do usuário ${userId} deletada.`);
+    if (!tasksSnapshot.empty) {
+        const batch = firestore.batch();
+        tasksSnapshot.docs.forEach((doc) => batch.delete(doc.ref));
+        await batch.commit();
+        logger.log(`Subcoleção 'tasks' do usuário ${userId} deletada.`);
+    }
 
-    // 3. Deleta subcoleção 'journalEntries'
     const journalRef = firestore.collection("users").doc(userId).collection("journalEntries");
     const journalSnapshot = await journalRef.get();
-    const journalBatch = firestore.batch();
-    journalSnapshot.docs.forEach((doc) => {
-        journalBatch.delete(doc.ref);
-    });
-    await journalBatch.commit();
-    logger.log(`Subcoleção 'journalEntries' do usuário ${userId} deletada.`);
+    if (!journalSnapshot.empty) {
+        const journalBatch = firestore.batch();
+        journalSnapshot.docs.forEach((doc) => journalBatch.delete(doc.ref));
+        await journalBatch.commit();
+        logger.log(`Subcoleção 'journalEntries' do usuário ${userId} deletada.`);
+    }
 
-
-    return {
-      status: "success",
-      message: `Dados do usuário ${userId} limpos com sucesso.`,
-    };
+    return { status: "success", message: `Dados do usuário ${userId} limpos com sucesso.` };
   } catch (error) {
     logger.error(`Erro ao limpar dados para o usuário ${userId}:`, error);
-    return {
-      status: "error",
-      message: `Falha ao limpar dados para o usuário ${userId}.`,
-    };
+    return { status: "error", message: `Falha ao limpar dados para o usuário ${userId}.` };
   }
 });
