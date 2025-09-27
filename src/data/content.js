@@ -194,13 +194,14 @@ export const intencoes = {
     }
 };
 
-export const textosTooltips = {
-    vibracaoDia: "Calculado com base no seu dia e mês de nascimento + o dia atual. Representa a energia principal que influencia suas 24 horas.",
-    mesPessoal: "Calculado a partir do seu Ano Pessoal + o mês atual. Indica a tendência energética e o 'tema' principal para o seu mês.",
-    anoPessoal: "Calculado a partir do seu dia e mês de nascimento + o ano vigente. Revela o grande tema e as lições do seu ciclo anual, que vai de um aniversário ao outro.",
-    arcanoRegente: "Seu arcano fundamental, calculado a partir do seu titulo de nascimento. Representa sua essência, seus talentos e sua missão de vida.",
-    arcanoVigente: "A energia de um dos arcanos do seu Triângulo da Vida que te influencia neste ciclo atual da sua vida, baseado na sua idade.",
-    bussolaAtividades: "Sugestões de ações para potencializar as energias do seu Dia Pessoal e pontos de atenção para evitar armadilhas energéticas.",
+export const textosExplicativos = {
+  vibracaoDia: "A Vibração do Dia, ou seu Dia Pessoal, revela a energia predominante que influenciará suas próximas 24 horas. É uma bússola para suas ações, emoções e a melhor forma de navegar o seu dia.",
+  mesPessoal: "Seu Mês Pessoal define o tema principal e as lições que o universo te convida a explorar durante este ciclo. Ele colore o cenário do mês, indicando áreas de foco e crescimento.",
+  anoPessoal: "O Ano Pessoal é o grande palco da sua jornada anual. Ele dita o ritmo, os desafios e as oportunidades que se apresentarão, guiando seu desenvolvimento ao longo do ano.",
+  cicloDeVida: "Os Ciclos de Vida são os grandes capítulos da sua existência. Cada ciclo, regido por um número, aponta para os aprendizados e missões fundamentais que moldam as diferentes fases da sua vida.",
+  arcanoRegente: "Seu Arcano Regente é a essência da sua personalidade e sua missão de alma. Ele representa a energia fundamental que te acompanha, revelando seus dons, desafios e o caminho para sua realização.",
+  arcanoVigente: "O Arcano Vigente, ou Arcano do Ano, ilumina o caminho do seu ano pessoal. Ele atua como um sábio conselheiro, trazendo arquétipos e sabedorias para te guiar através dos temas do ano.",
+  bussolaAtividades: "A Bússola de Atividades é sua guia prática para o dia. Baseada na energia do seu Dia Pessoal, ela sugere ações para 'Potencializar' o que está fluindo a seu favor e chama 'Atenção' para tendências que pedem mais cuidado e observação.",
 };
 
 // Textos para os Ciclos de Vida (um novo conceito)
@@ -215,38 +216,6 @@ export const textosCiclosDeVida = {
     8: { titulo: "O Poder", desc: "Ciclo de colheita material e poder pessoal. O foco está na carreira, nas finanças e na capacidade de liderar. É um período de grandes conquistas e ambição." },
     9: { titulo: "A Finalização", desc: "O fim de um grande ciclo de 9 anos. É um período de limpeza, perdão e desapego, deixando para trás o que não serve mais para abrir espaço para o novo ciclo que virá." },
     default: { titulo: "Ciclo Indefinido", desc: "Não foi possível calcular o ciclo de vida." }
-};
-
-// ADICIONE ESTE NOVO OBJETO EXPORTADO AO SEU ARQUIVO
-export const textosExplicativos = {
-  default: {
-    titulo: "Informação não encontrada",
-    texto: "O conteúdo para esta vibração ainda não foi adicionado."
-  },
-  vibracaoDia: {
-    titulo: "O que é a Vibração do Dia?",
-    texto: "A Vibração do Dia, ou Dia Pessoal, representa a energia principal que influenciará suas atividades, emoções e interações hoje. É como a 'trilha sonora' do seu dia, sugerindo os temas e oportunidades que estarão mais presentes. Alinhar-se a essa vibração pode tornar seu dia mais fluido e produtivo."
-  },
-  mesPessoal: {
-    titulo: "O que é a Vibração do Mês?",
-    texto: "A Vibração do Mês, ou Mês Pessoal, define o tema geral e as lições que você estará trabalhando durante o mês corrente. Ela oferece um contexto mais amplo para as energias diárias, indicando áreas da sua vida que podem exigir mais foco e desenvolvimento ao longo das próximas semanas."
-  },
-  anoPessoal: {
-    titulo: "O que é a Vibração do Ano?",
-    texto: "A Vibração do Ano, ou Ano Pessoal, descreve o grande ciclo que você está vivenciando. Ela influencia seus projetos de longo prazo, seu desenvolvimento pessoal e os principais desafios e oportunidades que surgirão ao longo do ano. É o cenário principal onde as vibrações mensais e diárias atuam."
-  },
-  cicloDeVida: {
-    titulo: "O que são os Ciclos de Vida?",
-    texto: "Os Ciclos de Vida representam os grandes capítulos da sua jornada. Cada ciclo, regido por um número específico, traz um conjunto único de temas, aprendizados e focos de desenvolvimento. Entender seu ciclo atual ajuda a compreender o propósito por trás dos eventos e desafios que você está enfrentando em uma escala maior."
-  },
-  arcanoRegente: {
-    titulo: "O que é o Arcano Regente?",
-    texto: "O Arcano Regente é a carta do Tarot que se alinha com a energia numerológica do seu Dia Pessoal. Ele atua como um conselheiro, oferecendo um arquétipo, um símbolo e uma sabedoria específica para te guiar através das vibrações do dia. Ele revela a 'qualidade' da energia que você está vivenciando hoje."
-  },
-  arcanoVigente: {
-    titulo: "O que é o Arcano Vigente?",
-    texto: "O Arcano Vigente, também conhecido como Arcano Pessoal ou de Nascimento, é a carta do Tarot que representa a sua essência, sua missão de vida e os aprendizados fundamentais da sua jornada. Diferente do Arcano Regente (que muda diariamente), o Arcano Vigente é uma energia fixa que te acompanha por toda a vida."
-  }
 };
 
 // Adicione este novo objeto ao final do seu arquivo /src/data/content.js

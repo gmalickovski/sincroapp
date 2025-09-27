@@ -1,16 +1,16 @@
-// /src/migration.js
+// src/migration.js (CORRIGIDO)
 
 import { db } from './services/firebase.js';
 import { doc, setDoc } from "firebase/firestore";
-// Importa TODOS os textos que queremos migrar
+// --- CORREÇÃO APLICADA AQUI ---
+// Importa TODOS os textos, agora usando 'textosExplicativos' e removendo o obsoleto 'textosTooltips'
 import { 
     textosArcanos, 
     textosDescritivos, 
     bussolaAtividades, 
-    textosTooltips, 
     textosCiclosDeVida,
-    textosExplicativos, // <-- NOVO
-    textosVibracoes      // <-- NOVO
+    textosExplicativos,
+    textosVibracoes
 } from './data/content.js';
 
 export const runMigration = async () => {
@@ -25,13 +25,12 @@ export const runMigration = async () => {
         const migrations = {
             "textosArcanos": textosArcanos,
             "bussolaAtividades": bussolaAtividades,
-            "textosTooltips": textosTooltips,
             "textosCiclosDeVida": textosCiclosDeVida,
             "textosDiaPessoal": textosDescritivos.diaPessoal,
             "textosMesPessoal": textosDescritivos.mesPessoal,
             "textosAnoPessoal": textosDescritivos.anoPessoal,
-            "textosExplicativos": textosExplicativos, // <-- NOVO
-            "textosVibracoes": textosVibracoes       // <-- NOVO
+            "textosExplicativos": textosExplicativos,
+            "textosVibracoes": textosVibracoes
         };
 
         // Itera e executa cada migração

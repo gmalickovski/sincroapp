@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, onSnapshot, setDoc, collection, addDoc, updateDoc, deleteDoc, Timestamp } from "firebase/firestore";
+import { signOut } from "firebase/auth";
 
-import { auth, db } from './services/firebase';
+import { AppProvider, useAppContext } from './contexts/AppContext'; // Importe o Provider e o Hook
+import { auth } from './services/firebase';
 import numerologyEngine from './services/numerologyEngine';
 import { textosExplicativos, textosVibracoes } from './data/content'; 
 
@@ -29,17 +29,22 @@ import NewNoteEditor from './components/ui/NewNoteEditor';
 import InfoModal from './components/ui/InfoModal';
 import SettingsModal from './components/ui/SettingsModal'; 
 
-let handleSaveUserDetails;
+const PrivateRoute = () => {
+    // 1. Consome os dados do contexto
+    const { user, userData, isLoading, showDetailsModal } = useAppContext();
 
-const PrivateRoute = ({ user, userData, isLoading, showDetailsModal }) => {
     if (isLoading) { return <div className="min-h-screen bg-gray-900 flex items-center justify-center"><Spinner /></div>; }
     if (!user) { return <Navigate to="/login" replace />; }
-    if (showDetailsModal) { return <div className="min-h-screen bg-gray-900"><UserDetailsModal onSave={handleSaveUserDetails} /></div>; }
+    // O modal agora não precisa de props!
+    if (showDetailsModal) { return <div className="min-h-screen bg-gray-900"><UserDetailsModal /></div>; } 
     if (user && userData) { return <Outlet />; }
     return <div className="min-h-screen bg-gray-900 flex items-center justify-center"><Spinner /></div>;
 };
 
-const AppLayout = ({ user, userData, taskUpdater }) => {
+const AppLayout = () => {
+    // 2. Consome os dados e funções que precisa do contexto
+    const { user, userData, taskUpdater } = useAppContext(); 
+
     const [numerologyData, setNumerologyData] = useState(null);
     const [activeView, setActiveView] = useState('dashboard');
     const [mobileState, setMobileState] = useState('closed'); 
@@ -71,6 +76,7 @@ const AppLayout = ({ user, userData, taskUpdater }) => {
     }, []);
     
     const renderView = () => {
+        // 3. A prop taskUpdater já vem do contexto, não precisa passar novamente
         const viewProps = { user, userData, data: numerologyData, setActiveView, openNewNoteEditor: handleOpenNewNote, setEditingEntry: handleEditNote, onInfoClick: handleInfoClick, taskUpdater };
 
         switch (activeView) {
@@ -84,7 +90,7 @@ const AppLayout = ({ user, userData, taskUpdater }) => {
     };
 
     return (
-        <div className="h-screen w-screen flex flex-col bg-gray-900 text-gray-200 overflow-hidden">
+      <div className="h-screen w-screen flex flex-col bg-gray-900 text-gray-200 overflow-hidden">
             <Header 
                 userData={userData} 
                 onMenuClick={() => setMobileState(s => (s === 'closed') ? 'drawer' : 'closed')} 
@@ -105,8 +111,7 @@ const AppLayout = ({ user, userData, taskUpdater }) => {
                     setDesktopState={setDesktopState}
                     onSettingsClick={() => setIsSettingsModalOpen(true)}
                 />
-
-                {/* A classe de margem agora é aplicada diretamente no <main> e só para o mobile no modo 'pinned' */}
+                
                 <main className={`flex-1 overflow-y-auto overflow-x-hidden transition-all duration-300 ease-in-out ${mobileState === 'pinned' ? 'max-lg:ml-16' : ''}`}>
                     {renderView()}
                 </main>
@@ -126,89 +131,39 @@ const AppLayout = ({ user, userData, taskUpdater }) => {
     );
 };
 
-// Componente App Raiz (Sem alterações)
+// Componente App Raiz
 function App() {
-    // ... (todo o resto do seu componente App permanece exatamente igual)
-    const [user, setUser] = useState(null);
-    const [userData, setUserData] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [showDetailsModal, setShowDetailsModal] = useState(false);
-
-    useEffect(() => {
-        const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
-            if (currentUser) {
-                setUser(currentUser);
-                const userDocRef = doc(db, "users", currentUser.uid);
-
-                const unsubscribeUser = onSnapshot(userDocRef, (doc) => {
-                    if (doc.exists()) {
-                        setUserData(doc.data());
-                        setShowDetailsModal(false);
-                    } else {
-                        setUserData(null); 
-                        setShowDetailsModal(true);
-                    }
-                    setIsLoading(false);
-                }, (error) => {
-                    console.error("Erro ao ouvir dados do usuário:", error);
-                    setIsLoading(false);
-                });
-
-                return () => unsubscribeUser();
-
-            } else {
-                setUser(null);
-                setUserData(null);
-                setIsLoading(false);
-            }
-        });
-
-        return () => unsubscribeAuth();
-    }, []);
-
-    handleSaveUserDetails = async ({ nomeAnalise, dataNasc }) => {
-        if (user) {
-            const displayName = user.displayName || '';
-            const nameParts = displayName.split(' ');
-            const primeiroNome = nameParts[0] || '';
-            const sobrenome = nameParts.slice(1).join(' ') || '';
-            const newUserData = { email: user.email, primeiroNome, sobrenome, nomeAnalise, dataNasc, plano: "gratuito", isAdmin: false };
-            await setDoc(doc(db, "users", user.uid), newUserData);
-            setUserData(newUserData);
-            setShowDetailsModal(false);
-        }
-    };
-    
-    const taskUpdater = useCallback(async (action) => {
-        if (!user) return;
-        const { type, payload } = action;
-        const tasksRef = collection(db, 'users', user.uid, 'tasks');
-        if (type === 'ADD') {
-            await addDoc(tasksRef, { text: payload.text, completed: false, createdAt: Timestamp.fromDate(payload.date) });
-        } else if (type === 'UPDATE') {
-            const { id, ...updates } = payload;
-            await updateDoc(doc(tasksRef, id), updates);
-        } else if (type === 'DELETE') {
-            await deleteDoc(doc(tasksRef, payload.id));
-        }
-    }, [user]);
+    // 4. Toda a lógica de estado foi movida. O componente agora é super limpo.
+    const { user, isLoading } = useAppContext(); // Apenas para as rotas públicas
 
     return (
-        <Router>
-            <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/login" element={user && !isLoading ? <Navigate to="/app"/> : <LoginPage />} />
-                <Route path="/register" element={user && !isLoading ? <Navigate to="/app"/> : <RegisterPage />} />
-                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                <Route path="/terms-of-service" element={<TermsOfService />} />
-                <Route path="/app" element={<PrivateRoute user={user} userData={userData} isLoading={isLoading} showDetailsModal={showDetailsModal} />}>
-                    <Route index element={<AppLayout user={user} userData={userData} taskUpdater={taskUpdater} />} />
-                </Route>
-                 <Route path="*" element={<Navigate to={user ? "/app" : "/"} replace />} />
-            </Routes>
-        </Router>
+        <Routes>
+            <Route path="/" element={<LandingPage />} />
+            {/* As rotas públicas usam a informação do contexto para decidir se redirecionam ou não */}
+            <Route path="/login" element={user && !isLoading ? <Navigate to="/app"/> : <LoginPage />} />
+            <Route path="/register" element={user && !isLoading ? <Navigate to="/app"/> : <RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
+            
+            {/* A PrivateRoute agora busca seus próprios dados no contexto */}
+            <Route path="/app" element={<PrivateRoute />}>
+                {/* O AppLayout também busca seus próprios dados */}
+                <Route index element={<AppLayout />} />
+            </Route>
+            
+            <Route path="*" element={<Navigate to={user ? "/app" : "/"} replace />} />
+        </Routes>
     );
 }
 
-export default App;
+// 5. A exportação agora envolve o App com o Provider
+export default function AppWrapper() {
+    return (
+        <Router>
+            <AppProvider>
+                <App />
+            </AppProvider>
+        </Router>
+    );
+}

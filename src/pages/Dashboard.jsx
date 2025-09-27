@@ -1,18 +1,19 @@
-// /src/pages/Dashboard.jsx
+// src/pages/Dashboard.jsx (COMPLETO, FINAL E CORRIGIDO)
 
-import React from 'react';
+import React, { useState } from 'react';
 import DashboardCard from '../components/ui/DashboardCard';
 import InfoCard from '../components/ui/InfoCard';
 import { BookIcon, CheckSquareIcon, SunIcon, CompassIcon, MoonIcon, StarIcon, RepeatIcon, TarotIcon } from '../components/ui/Icons';
-import { textosDescritivos, textosArcanos, bussolaAtividades, textosCiclosDeVida } from '../data/content';
+import { textosDescritivos, textosArcanos, bussolaAtividades, textosCiclosDeVida, textosExplicativos } from '../data/content';
 import Spinner from '../components/ui/Spinner';
 import { db } from '../services/firebase';
 import { collection, query, where, onSnapshot, Timestamp, orderBy, limit, addDoc } from "firebase/firestore";
 import numerologyEngine from '../services/numerologyEngine';
 import UpgradeCard from '../components/ui/UpgradeCard';
+import InspirationModal from '../components/ui/InspirationModal';
 
-// --- Subcomponentes (mantidos exatamente como no seu original) ---
-const DailyTasksCard = ({ user, setActiveView }) => {
+// --- Subcomponentes Otimizados (Restaurados e Corretos) ---
+const DailyTasksCard = React.memo(({ user, setActiveView }) => {
     const [tasks, setTasks] = React.useState([]);
     const [isLoading, setIsLoading] = React.useState(true);
     React.useEffect(() => {
@@ -24,8 +25,9 @@ const DailyTasksCard = ({ user, setActiveView }) => {
         return () => unsubscribe();
     }, [user]);
     return (<DashboardCard title="Diário de Tarefas (Hoje)" icon={<CheckSquareIcon />}><div className="flex-1">{isLoading ? <div className="flex items-center justify-center h-full"><Spinner /></div> : tasks.length === 0 ? <p className="text-sm text-gray-400">Nenhuma tarefa para hoje.</p> : <div className="space-y-2 mt-2">{tasks.map(task => (<div key={task.id} className={`flex items-center text-sm ${task.completed ? 'text-gray-500 line-through' : 'text-gray-300'}`}><span className={`mr-2 h-2 w-2 rounded-full ${task.completed ? 'bg-green-500' : 'bg-purple-500'}`}></span>{task.text}</div>))}</div>}</div><button onClick={() => setActiveView('tasks')} className="mt-4 w-full text-center text-sm text-purple-400 hover:text-purple-300 font-semibold">Ver todas as tarefas</button></DashboardCard>);
-};
-const QuickJournalCard = ({ user, userData, setActiveView }) => {
+});
+
+const QuickJournalCard = React.memo(({ user, userData, setActiveView }) => {
     const [note, setNote] = React.useState('');
     const [isSaving, setIsSaving] = React.useState(false);
     const [latestEntry, setLatestEntry] = React.useState(null);
@@ -51,16 +53,16 @@ const QuickJournalCard = ({ user, userData, setActiveView }) => {
         finally { setIsSaving(false); }
     };
     return (<DashboardCard title="Anotação Rápida" icon={<BookIcon />}><p className="text-sm text-gray-400 mb-3">Algum insight sobre a vibração de hoje? Anote aqui!</p><textarea className="w-full h-24 bg-gray-900 border border-gray-600 rounded-lg p-3 text-sm" placeholder="Digite suas reflexões..." value={note} onChange={(e) => setNote(e.target.value)} /><button onClick={handleSaveNote} disabled={isSaving || note.trim() === ''} className="mt-4 w-full bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 disabled:bg-gray-500 flex justify-center items-center h-10">{isSaving ? <Spinner /> : 'Salvar Anotação'}</button>{!isLoadingLatest && latestEntry && (<div className="mt-4 pt-4 border-t border-gray-700"><h4 className="text-sm font-bold text-gray-400 mb-2">Última Anotação:</h4><button onClick={() => setActiveView('journal')} className="w-full text-left bg-gray-900/50 p-3 rounded-lg hover:bg-gray-700/50 transition-colors"><p className="text-xs text-purple-300 font-semibold">{new Date(latestEntry.createdAt.seconds * 1000).toLocaleDateString('pt-BR', {day:'2-digit', month:'long'})}</p><p className="text-sm text-gray-300 truncate mt-1">{latestEntry.content}</p></button></div>)}</DashboardCard>);
-};
+});
 
-// --- Componente Principal do Dashboard (LIMPO) ---
-function Dashboard({ user, userData, data, setActiveView, onInfoClick }) {
+function Dashboard({ user, userData, data, setActiveView }) {
+    const [inspirationModalData, setInspirationModalData] = useState(null);
+
     if (!data || !data.estruturas || !data.estruturas.cicloDeVidaAtual) {
         return <div className="p-4 md:p-6 text-white flex justify-center items-center h-full"><Spinner /></div>;
     }
     
     const isPremium = userData?.plano !== 'gratuito';
-
     const { diaPessoal, mesPessoal, anoPessoal } = data.numeros;
     const { arcanoRegente, arcanoAtual, cicloDeVidaAtual } = data.estruturas;
     
@@ -76,58 +78,87 @@ function Dashboard({ user, userData, data, setActiveView, onInfoClick }) {
     const infoCicloAtualRaw = textosCiclosDeVida[cicloDeVidaAtual.regente] || textosCiclosDeVida.default;
     const infoCicloAtual = { ...infoCicloAtualRaw, periodo: `Período: ${cicloDeVidaAtual.periodo}` };
 
-    const BussolaTitle = () => (
-        <div className="flex items-center cursor-help" onClick={() => onInfoClick('bussolaAtividades')}>
-            <span>Bússola de Atividades</span>
-            <span className="ml-2 h-4 w-4 flex items-center justify-center text-xs bg-gray-600 rounded-full group-hover:scale-110 group-hover:bg-purple-500 transition-transform">?</span>
-        </div>
-    );
-    
-    const BussolaCard = () => (
-        <DashboardCard title={<BussolaTitle />} icon={<CompassIcon />} className="row-span-1 md:row-span-2">
-            <div className="flex flex-col gap-6 h-full">
-                <div>
-                    <h4 className="font-bold text-green-400 mb-2">Potencializar</h4>
-                    <ul className="list-disc list-inside space-y-2 text-sm text-gray-400">{atividadesDoDia.potencializar.map((item, index) => (<li key={`pot-${index}`}>{item}</li>))}</ul>
-                </div>
-                <div>
-                    <h4 className="font-bold text-red-400 mb-2">Atenção</h4>
-                    <ul className="list-disc list-inside space-y-2 text-sm text-gray-400">{atividadesDoDia.atencao.map((item, index) => (<li key={`atn-${index}`}>{item}</li>))}</ul>
-                </div>
-            </div>
-        </DashboardCard>
-    );
-
     return (
-        <div className="p-4 md:p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in text-gray-300">
-                {/* --- A prop 'tooltipText' FOI REMOVIDA de todos os InfoCards --- */}
-                <InfoCard title="Vibração do Dia" number={diaPessoal} info={infoDia} icon={<SunIcon/>} colorClass={{text: 'text-cyan-300', border: 'border-cyan-400', bg: 'bg-cyan-500'}} onInfoClick={onInfoClick} infoKey="vibracaoDia" />
-                <InfoCard title="Vibração do Mês" number={mesPessoal} info={infoMes} icon={<MoonIcon/>} colorClass={{text: 'text-indigo-300', border: 'border-indigo-400', bg: 'bg-indigo-500'}} onInfoClick={onInfoClick} infoKey="mesPessoal" />
-                <InfoCard title="Vibração do Ano" number={anoPessoal} info={infoAno} icon={<StarIcon/>} colorClass={{text: 'text-amber-300', border: 'border-amber-400', bg: 'bg-amber-500'}} onInfoClick={onInfoClick} infoKey="anoPessoal" />
-                
-                <div className="lg:col-span-3">
+        <>
+            <InspirationModal 
+                data={inspirationModalData}
+                onClose={() => setInspirationModalData(null)}
+            />
+            <div className="p-4 md:p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in text-gray-300">
+                    
+                    <InfoCard title="Vibração do Dia" number={diaPessoal} info={infoDia} icon={<SunIcon/>} colorClass={{text: 'text-cyan-300'}}
+                        onCardClick={() => setInspirationModalData({ title: "Vibração do Dia", number: diaPessoal, info: infoDia, icon: <SunIcon/>, explicacao: textosExplicativos.vibracaoDia })}
+                    />
+                    <InfoCard title="Vibração do Mês" number={mesPessoal} info={infoMes} icon={<MoonIcon/>} colorClass={{text: 'text-indigo-300'}}
+                        onCardClick={() => setInspirationModalData({ title: "Vibração do Mês", number: mesPessoal, info: infoMes, icon: <MoonIcon/>, explicacao: textosExplicativos.mesPessoal })}
+                    />
+                    <InfoCard title="Vibração do Ano" number={anoPessoal} info={infoAno} icon={<StarIcon/>} colorClass={{text: 'text-amber-300'}}
+                        onCardClick={() => setInspirationModalData({ title: "Vibração do Ano", number: anoPessoal, info: infoAno, icon: <StarIcon/>, explicacao: textosExplicativos.anoPessoal })}
+                    />
+                    
+                    <div className="lg:col-span-3">
+                        {isPremium ? (
+                            <InfoCard title={cicloDeVidaAtual.nome} number={cicloDeVidaAtual.regente} info={infoCicloAtual} icon={<RepeatIcon />} colorClass={{text: 'text-green-300'}}
+                                onCardClick={() => setInspirationModalData({ title: cicloDeVidaAtual.nome, number: cicloDeVidaAtual.regente, info: infoCicloAtual, icon: <RepeatIcon/>, explicacao: textosExplicativos.cicloDeVida })}
+                            />
+                        ) : (
+                            <UpgradeCard title="Desbloqueie seus Ciclos de Vida" featureText="Entenda os grandes temas da sua jornada com o plano Premium." />
+                        )}
+                    </div>
+
+                    <InfoCard title="Arcano Regente" number={arcanoRegente} info={infoArcanoRegente} icon={<TarotIcon />}
+                         onCardClick={() => setInspirationModalData({ title: "Arcano Regente", number: arcanoRegente, info: infoArcanoRegente, icon: <TarotIcon/>, explicacao: textosExplicativos.arcanoRegente })}
+                    />
+                    <InfoCard title="Arcano Vigente" number={arcanoAtual?.numero} info={infoArcanoAtual} icon={<TarotIcon />}
+                         onCardClick={() => setInspirationModalData({ title: "Arcano Vigente", number: arcanoAtual?.numero, info: infoArcanoAtual, icon: <TarotIcon/>, explicacao: textosExplicativos.arcanoVigente })}
+                    />
+                    
+                    <DashboardCard 
+                        title="Bússola de Atividades" 
+                        icon={<CompassIcon />} 
+                        className="row-span-1 md:row-span-2"
+                        isClickable={true}
+                        onClick={() => setInspirationModalData({
+                            title: "Bússola de Atividades",
+                            icon: <CompassIcon />,
+                            explicacao: textosExplicativos.bussolaAtividades,
+                            customBody: (
+                                <div className="space-y-4">
+                                    <div>
+                                        <h4 className="font-bold text-green-400 mb-2">Potencializar</h4>
+                                        <ul className="list-disc list-inside space-y-2 text-sm text-gray-300">{atividadesDoDia.potencializar.map((item, index) => (<li key={`pot-${index}`}>{item}</li>))}</ul>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-red-400 mb-2">Atenção</h4>
+                                        <ul className="list-disc list-inside space-y-2 text-sm text-gray-300">{atividadesDoDia.atencao.map((item, index) => (<li key={`atn-${index}`}>{item}</li>))}</ul>
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    >
+                        <div className="flex flex-col gap-6 h-full">
+                            <div>
+                                <h4 className="font-bold text-green-400 mb-2">Potencializar</h4>
+                                <ul className="list-disc list-inside space-y-2 text-sm text-gray-400">{atividadesDoDia.potencializar.map((item, index) => (<li key={`pot-${index}`}>{item}</li>))}</ul>
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-red-400 mb-2">Atenção</h4>
+                                <ul className="list-disc list-inside space-y-2 text-sm text-gray-400">{atividadesDoDia.atencao.map((item, index) => (<li key={`atn-${index}`}>{item}</li>))}</ul>
+                            </div>
+                        </div>
+                    </DashboardCard>
+                    
                     {isPremium ? (
-                        <InfoCard title={cicloDeVidaAtual.nome} number={cicloDeVidaAtual.regente} info={infoCicloAtual} icon={<RepeatIcon />} colorClass={{text: 'text-green-300', border: 'border-green-400', bg: 'bg-green-500'}} onInfoClick={onInfoClick} infoKey="cicloDeVida" />
+                        <DailyTasksCard user={user} setActiveView={setActiveView} />
                     ) : (
-                        <UpgradeCard title="Desbloqueie seus Ciclos de Vida" featureText="Entenda os grandes temas da sua jornada com o plano Premium." />
+                        <UpgradeCard title="Acesse o Diário de Tarefas" featureText="Organize seu dia e alinhe suas ações com a energia do momento." />
                     )}
+                    
+                    <QuickJournalCard user={user} userData={userData} setActiveView={setActiveView} />
                 </div>
-
-                <InfoCard title="Arcano Regente" number={arcanoRegente} info={infoArcanoRegente} icon={<TarotIcon />} onInfoClick={onInfoClick} infoKey="arcanoRegente" />
-                <InfoCard title="Arcano Vigente" number={arcanoAtual?.numero} info={infoArcanoAtual} icon={<TarotIcon />} onInfoClick={onInfoClick} infoKey="arcanoVigente" />
-                
-                <BussolaCard/>
-
-                {isPremium ? (
-                    <DailyTasksCard user={user} setActiveView={setActiveView} />
-                ) : (
-                    <UpgradeCard title="Acesse o Diário de Tarefas" featureText="Organize seu dia e alinhe suas ações com a energia do momento." />
-                )}
-                
-                <QuickJournalCard user={user} userData={userData} setActiveView={setActiveView} />
             </div>
-        </div>
+        </>
     );
 }
 

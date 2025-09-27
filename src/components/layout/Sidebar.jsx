@@ -1,5 +1,3 @@
-// src/components/layout/Sidebar.jsx
-
 import React, { useEffect } from 'react';
 import { HomeIcon, CalendarIcon, BookIcon, CheckSquareIcon, SettingsIcon, LogOutIcon, UserIcon, PanelLeftCloseIcon } from '../ui/Icons';
 

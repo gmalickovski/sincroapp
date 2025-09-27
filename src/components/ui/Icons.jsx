@@ -226,3 +226,21 @@ export const MenuIcon = (props) => (
         <line x1="4" x2="20" y1="18" y2="18"/>
     </svg>
 );
+
+// ... (todos os seus outros ícones acima) ...
+
+// ADICIONE ESTE NOVO ÍCONE NO FINAL DO ARQUIVO
+export const Sincro = (props) => (
+    <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        viewBox="0 0 200 200" 
+        fill="none"
+        stroke="currentColor"
+        {...props}
+    >
+        <path d="M100 20C144.183 20 180 55.8172 180 100C180 144.183 144.183 180 100 180C55.8172 180 20 144.183 20 100" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M100 20C88.9543 20 80 28.9543 80 40C80 51.0457 88.9543 60 100 60C111.046 60 120 51.0457 120 40" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M20 100C20 88.9543 28.9543 80 40 80C51.0457 80 60 88.9543 60 100C60 111.046 51.0457 120 40 120" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M100 180C111.046 180 120 171.046 120 160C120 148.954 111.046 140 100 140C88.9543 140 80 148.954 80 160" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+);
