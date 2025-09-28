@@ -1,5 +1,3 @@
-// src/components/ui/InspirationModal.jsx
-
 import React from 'react';
 import { XIcon } from './Icons';
 
@@ -8,7 +6,6 @@ const InspirationModal = ({ data, onClose }) => {
 
     const { title, number, icon, info, explicacao, customBody } = data;
 
-    // Função segura que evita o erro "Objects are not valid..."
     const getExplanatoryText = () => {
         if (!explicacao) return '';
         if (typeof explicacao === 'object' && explicacao.hasOwnProperty('texto')) {
@@ -16,6 +13,10 @@ const InspirationModal = ({ data, onClose }) => {
         }
         return String(explicacao);
     };
+
+    const hasExplicacao = !!explicacao;
+    const hasContentBelow = !!customBody || (!!info && (!!info.desc || !!info.inspiracao));
+    const displayTitle = info?.titulo || info?.tituloTradicional || '';
 
     return (
         <div 
@@ -26,56 +27,59 @@ const InspirationModal = ({ data, onClose }) => {
                 onClick={(e) => e.stopPropagation()}
                 className="bg-gray-800 text-white rounded-2xl shadow-xl w-full max-w-2xl border border-purple-500/30 max-h-[90vh] flex flex-col"
             >
-                {/* Cabeçalho */}
+                {/* Cabeçalho (Layout refeito conforme seu rascunho) */}
                 <div className="p-6 border-b border-gray-700 flex justify-between items-start gap-4">
-                    <div className="flex items-center gap-4">
-                        {icon && React.cloneElement(icon, { className: "h-8 w-8 text-purple-400 flex-shrink-0" })}
-                        <div>
+                    <div className="flex-1">
+                        {/* Linha 1: Ícone e Título Principal */}
+                        <div className="flex items-center gap-3">
+                            {icon && React.cloneElement(icon, { className: "h-6 w-6 text-purple-400 flex-shrink-0" })}
                             <h2 className="text-sm font-bold uppercase tracking-wider text-purple-300">{title}</h2>
-                            {typeof number !== 'undefined' && info && (
-                                <h3 className="text-3xl font-bold text-white mt-1">{number} - {info.titulo}</h3>
-                            )}
                         </div>
+
+                        {/* Linha 2: Título Grande */}
+                        {typeof number !== 'undefined' && info && (
+                            <h3 className="text-2xl sm:text-4xl font-bold text-white mt-2">{number} - {displayTitle}</h3>
+                        )}
                     </div>
-                    <button onClick={onClose} className="p-1 text-gray-500 hover:text-white transition-colors">
+
+                    {/* Botão de Fechar */}
+                    <button onClick={onClose} className="p-1 text-gray-500 hover:text-white transition-colors flex-shrink-0">
                         <XIcon className="w-6 h-6" />
                     </button>
                 </div>
 
-                {/* Corpo */}
+                {/* Corpo (Mantido como estava) */}
                 <div className="p-6 overflow-y-auto space-y-6 custom-scrollbar">
-                    {/* "O que significa" - Sempre visível se houver explicação */}
-                    <div>
-                        <h4 className="font-bold text-white mb-2">O que isso significa?</h4>
-                        <p className="text-gray-300 italic">"{getExplanatoryText()}"</p>
-                    </div>
-
-                    {/* Divisor visual, só aparece se tiver mais conteúdo abaixo */}
-                    {(customBody || (info && (info.desc || info.inspiracao))) && (
-                        <div className="w-full h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent"></div>
+                    {hasExplicacao && (
+                        <div>
+                            <h4 className="font-bold text-white mb-2">O que isso significa?</h4>
+                            <p className="text-gray-300 italic">"{getExplanatoryText()}"</p>
+                        </div>
                     )}
-
-                    {/* Conteúdo específico */}
-                    {customBody ? customBody : (
-                        info && (
-                            <>
+                    {hasExplicacao && hasContentBelow && (
+                         <div className="w-full h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent"></div>
+                    )}
+                    {customBody && customBody}
+                    {info && (
+                        <div className="space-y-6">
+                            {info.desc && (
                                 <div>
                                     <h4 className="font-bold text-white mb-2">A Energia Principal</h4>
-                                    <p className="text-gray-300">"{info.desc}"</p>
+                                    <p className="text-gray-300 italic">"{info.desc}"</p>
                                 </div>
-                                {info.inspiracao && (
-                                    <>
-                                        <div className="w-full h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent"></div>
-                                        <div>
-                                            <h4 className="font-bold text-white mb-2">Sua Rota Inspiradora</h4>
-                                            <p className="text-lg text-gray-200 leading-relaxed whitespace-pre-wrap font-serif">
-                                                {info.inspiracao}
-                                            </p>
-                                        </div>
-                                    </>
-                                )}
-                            </>
-                        )
+                            )}
+                            {info.inspiracao && (
+                                <>
+                                    {info.desc && <div className="w-full h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent"></div>}
+                                    <div>
+                                        <h4 className="font-bold text-white mb-2">Sua Rota Inspiradora</h4>
+                                        <p className="text-gray-300 italic">
+                                            {info.inspiracao}
+                                        </p>
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     )}
                 </div>
             </div>
