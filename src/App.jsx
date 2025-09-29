@@ -47,7 +47,6 @@ const AppLayout = ({ user, userData, taskUpdater }) => {
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
     
-    // O estado do "modo de edição" é controlado aqui, no componente pai.
     const [isEditMode, setIsEditMode] = useState(false);
 
     useEffect(() => {
@@ -57,7 +56,6 @@ const AppLayout = ({ user, userData, taskUpdater }) => {
         }
     }, [userData]);
 
-    // Quando a view muda, desativamos o modo de edição para evitar que ele fique ativo em outras telas.
     useEffect(() => {
         if (activeView !== 'dashboard') {
             setIsEditMode(false);
@@ -80,16 +78,21 @@ const AppLayout = ({ user, userData, taskUpdater }) => {
     }, []);
     
     const renderView = () => {
-        // As props isEditMode e setIsEditMode são passadas para a view ativa.
         const viewProps = { user, userData, data: numerologyData, setActiveView, onInfoClick: handleInfoClick, taskUpdater, isEditMode, setIsEditMode };
 
         switch (activeView) {
-            case 'dashboard': return <Dashboard {...viewProps} />;
-            case 'calendar': return <Calendar user={user} userData={userData} onNewNote={handleOpenNewNote} onInfoClick={handleInfoClick} taskUpdater={taskUpdater} />;
-            case 'journal': return <Journal user={user} onEditNote={handleEditNote} onNewNote={handleOpenNewNote} />;
-            case 'tasks': return <Tasks user={user} />;
-            case 'admin': return userData?.isAdmin ? <AdminPanel /> : <Navigate to="/app" />;
-            default: return <Dashboard {...viewProps} />;
+            case 'dashboard': 
+                return <Dashboard {...viewProps} />;
+            case 'calendar': 
+                return <Calendar user={user} userData={userData} openNewNoteEditor={handleOpenNewNote} setEditingEntry={handleEditNote} onInfoClick={handleInfoClick} taskUpdater={taskUpdater} />;
+            case 'journal': 
+                return <Journal user={user} userData={userData} setEditingEntry={handleEditNote} openNewNoteEditor={handleOpenNewNote} onInfoClick={handleInfoClick} />;
+            case 'tasks': 
+                return <Tasks user={user} userData={userData} setActiveView={setActiveView} onInfoClick={handleInfoClick} taskUpdater={taskUpdater} />;
+            case 'admin': 
+                return userData?.isAdmin ? <AdminPanel /> : <Navigate to="/app" />;
+            default: 
+                return <Dashboard {...viewProps} />;
         }
     };
 
@@ -101,7 +104,6 @@ const AppLayout = ({ user, userData, taskUpdater }) => {
                 onSettingsClick={() => setIsSettingsModalOpen(true)}
                 desktopState={desktopState}
                 setDesktopState={setDesktopState}
-                // Passa o estado e a função para o Header
                 isEditMode={isEditMode}
                 setIsEditMode={setIsEditMode}
                 activeView={activeView}
@@ -120,7 +122,11 @@ const AppLayout = ({ user, userData, taskUpdater }) => {
                     onSettingsClick={() => setIsSettingsModalOpen(true)}
                 />
 
-                <main className={`flex-1 overflow-y-auto overflow-x-hidden transition-all duration-300 ease-in-out ${mobileState === 'pinned' ? 'max-lg:ml-16' : ''}`}>
+                {/* --- MUDANÇA PRINCIPAL --- 
+                  Adicionado 'flex flex-col items-center' para centralizar o conteúdo da página.
+                  As classes de margem para o sidebar foram mantidas e estão corretas.
+                */}
+                <main className={`flex-1 overflow-y-auto overflow-x-hidden transition-all duration-300 ease-in-out flex flex-col items-center ${mobileState === 'pinned' ? 'max-lg:ml-16' : ''}`}>
                     {numerologyData ? renderView() : <div className="h-full w-full flex justify-center items-center"><Spinner /></div>}
                 </main>
             </div>
@@ -141,6 +147,7 @@ const AppLayout = ({ user, userData, taskUpdater }) => {
 };
 
 function App() {
+    // ... O resto do seu código App() permanece exatamente igual ...
     const [user, setUser] = useState(null);
     const [userData, setUserData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);

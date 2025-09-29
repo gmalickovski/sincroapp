@@ -1,9 +1,7 @@
-// src/migration.js (CORRIGIDO)
+// src/migration.js
 
 import { db } from './services/firebase.js';
 import { doc, setDoc } from "firebase/firestore";
-// --- CORREÇÃO APLICADA AQUI ---
-// Importa TODOS os textos, agora usando 'textosExplicativos' e removendo o obsoleto 'textosTooltips'
 import { 
     textosArcanos, 
     textosDescritivos, 

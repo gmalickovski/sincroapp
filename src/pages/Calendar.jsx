@@ -49,7 +49,6 @@ const DayDetailPanel = ({ selectedDay, onOpenTaskModal, openNewNoteEditor, setEd
 
     const { date, items, personalDay } = selectedDay;
     
-    // ALTERAÇÃO 1: Formato da data do painel alterado.
     const formattedDate = `${date.toLocaleString('pt-BR', { weekday: 'long' })} - Dia ${date.getDate()}`;
         
     const taskListItem = useMemo(() => { if (items.tasks.length === 0) return null; const completedCount = items.tasks.filter(t => t.completed).length; return { id: 'task-list-summary', type: 'task_list', text: 'Foco do Dia', progress: `${completedCount}/${items.tasks.length}` }; }, [items.tasks]);
@@ -68,11 +67,11 @@ const DayDetailPanel = ({ selectedDay, onOpenTaskModal, openNewNoteEditor, setEd
     };
 
     const containerClasses = isMobile 
-        ? "border-t border-gray-700 h-full"
+        ? "border-t border-gray-700"
         : "bg-gray-800/30 border border-gray-700/50 rounded-2xl h-full";
 
     return (
-        <div className={`flex flex-col ${containerClasses}`}>
+        <div className={`flex flex-col h-full ${containerClasses}`}>
             <div className="px-4 pt-4 flex-shrink-0">
                 <div className="flex items-center justify-between gap-3">
                     <h2 className="text-xl font-bold capitalize">{formattedDate}</h2>
@@ -101,7 +100,6 @@ const DayDetailPanel = ({ selectedDay, onOpenTaskModal, openNewNoteEditor, setEd
                     <button onClick={onOpenTaskModal} className="w-full bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center gap-2">
                         <PlusIcon className="w-4 h-4" /> Tarefas do Dia
                     </button>
-                    {/* ALTERAÇÃO 3: Cor do botão alterada para 'cyan' */}
                     <button onClick={() => openNewNoteEditor(date)} className="w-full bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-cyan-700 transition-colors flex items-center justify-center gap-2">
                         <PlusIcon className="w-4 h-4" /> Nova Anotação
                     </button>
@@ -186,10 +184,14 @@ const Calendar = ({ user, userData, openNewNoteEditor, setEditingEntry, onInfoCl
         <>
             <TaskModal isOpen={isTaskModalOpen} onClose={() => setIsTaskModalOpen(false)} dayData={{date: selectedDay?.date, tasks: selectedDay?.items.tasks}} userData={userData} taskUpdater={taskUpdater} onInfoClick={onInfoClick} />
             
-            <div className="p-4 md:p-6 h-full">
-                <div className="h-full w-full max-w-7xl mx-auto flex flex-col lg:grid lg:grid-cols-[1fr_26rem] lg:gap-8">
+            {/* --- MUDANÇA FINAL APLICADA ---
+              - O container principal agora tem w-full e padding.
+              - O container do grid foi simplificado e usa uma proporção flexível para as colunas.
+            */}
+            <div className="p-4 md:p-6 h-full w-full">
+                <div className="max-w-6xl mx-auto lg:grid lg:grid-cols-[1fr_auto] lg:gap-8">
                     
-                    <div className="lg:flex lg:flex-col min-h-0 h-full grid grid-rows-[auto_1fr] gap-4">
+                    <div className="flex flex-col lg:col-span-1 min-h-0 h-full">
                         
                         <div>
                             <div className="flex justify-between items-center mb-4 gap-4">
@@ -202,29 +204,23 @@ const Calendar = ({ user, userData, openNewNoteEditor, setEditingEntry, onInfoCl
                                     <button onClick={() => changeMonth(1)} className="p-2 rounded-full hover:bg-gray-700"><ChevronRight/></button>
                                 </div>
                             </div>
-
-                            <div className="lg:flex-1 lg:flex lg:flex-col">
-                                <div className="grid grid-cols-7 gap-1 text-center font-semibold text-gray-400 mb-2 flex-shrink-0">{weekDays.map((day, i) => <div key={i} className="text-xs sm:text-base">{day}</div>)}</div>
-                                
-                                <div className="grid grid-cols-7 gap-1 sm:gap-2">
-                                   {daysInMonth.map(day => (<DayCellGrid key={day.key} day={day} isSelected={selectedDay?.key === day.key} onClick={() => handleDayClick(day)} />))}
-                                </div>
+                            <div className="grid grid-cols-7 gap-1 text-center font-semibold text-gray-400 mb-2 flex-shrink-0">{weekDays.map((day, i) => <div key={i} className="text-xs sm:text-base">{day}</div>)}</div>
+                            <div className="grid grid-cols-7 gap-1 sm:gap-2">
+                               {daysInMonth.map(day => (<DayCellGrid key={day.key} day={day} isSelected={selectedDay?.key === day.key} onClick={() => handleDayClick(day)} />))}
                             </div>
                         </div>
                         
-                        <div className="lg:hidden min-h-0">
+                        <div className="lg:hidden mt-4 flex-1 min-h-0">
                            <DayDetailPanel {...commonPanelProps} isMobile={true} showActionButtons={false} />
                         </div>
                     </div>
 
-                    <div className="hidden lg:flex h-full">
+                    <div className="hidden lg:flex lg:col-span-1 h-full">
                         <DayDetailPanel {...commonPanelProps} isMobile={false} showActionButtons={true} />
                     </div>
-
                 </div>
             </div>
             
-            {/* ALTERAÇÃO 2: A prop 'onNewNote' agora é a função que abre o editor de notas */}
             <FloatingActionButton 
                 onNewTask={handleOpenTaskModal}
                 onNewNote={() => openNewNoteEditor(selectedDay?.date || new Date())}

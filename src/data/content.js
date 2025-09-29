@@ -847,7 +847,6 @@ export const textosArcanos = {
         desc: "Não há informações disponíveis para este arcano no momento."
     }
 };
-
 // Textos dinâmicos para a Bússola de Atividades
 export const bussolaAtividades = {
     1: { potencializar: ["Começar um novo projeto ou curso.", "Tomar a liderança em uma situação.", "Fazer uma atividade física sozinho."], atencao: ["Impaciência e impulsividade.", "Agir sem pensar nas consequências.", "Ignorar a opinião dos outros."] },

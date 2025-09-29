@@ -8,13 +8,12 @@ import { EditIcon, XIcon, HomeIcon, UserIcon, BookIcon, CheckCircleIcon, AlertTr
 import { runMigration } from '../migration';
 
 // --- Subcomponente: Cartão de Estatística Reutilizável ---
-// Adicionadas classes para garantir que o conteúdo não "empurre" o layout.
 const StatCard = ({ title, value, icon }) => (
     <div className="bg-gray-800/50 p-6 rounded-lg border border-gray-700 flex items-center gap-4 overflow-hidden">
         {icon && React.cloneElement(icon, { className: "h-8 w-8 text-purple-400 flex-shrink-0" })}
-        <div className="min-w-0"> {/* Permite que o conteúdo interno encolha e quebre a linha */}
+        <div className="min-w-0">
             <h3 className="text-sm font-medium text-gray-400 truncate">{title}</h3>
-            <p className="text-3xl font-bold mt-1 break-words">{value}</p> {/* Garante que números longos quebrem a linha */}
+            <p className="text-3xl font-bold mt-1 break-words">{value}</p>
         </div>
     </div>
 );
@@ -61,7 +60,7 @@ const AdminDashboardView = () => {
     );
 };
 
-// --- Subcomponentes de Usuários e Conteúdo (sem alterações) ---
+// --- Subcomponentes de Usuários ---
 const EditUserModal = ({ user, onClose, onSave }) => {
     const [userData, setUserData] = useState(user);
     const [isSaving, setIsSaving] = useState(false);
@@ -100,6 +99,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
         </div>
     );
 };
+
 const UserManagementView = () => {
     const [users, setUsers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -164,14 +164,42 @@ const UserManagementView = () => {
         </>
     );
 };
+
+// --- Subcomponentes de Conteúdo ---
 const EditContentModal = ({ contentData, onClose, onSave, contentKey }) => {
     const [data, setData] = useState(contentData.data);
     const [isSaving, setIsSaving] = useState(false);
     const handleChange = (e) => { const { name, value } = e.target; const finalValue = name === 'tags' || name === 'potencializar' || name === 'atencao' ? value.split(',').map(tag => tag.trim()) : value; setData(prev => ({ ...prev, [name]: finalValue })); };
     const handleSave = async () => { setIsSaving(true); await onSave(contentData.id, data); setIsSaving(false); onClose(); };
-    const renderField = (key, value) => { if (key === 'numero' || key === 'id') return null; const label = key.charAt(0).toUpperCase() + key.slice(1); const isTextarea = key === 'desc' || key === 'descricao' || key === 'texto'; const isArray = Array.isArray(value); if (isTextarea) return (<div key={key}><label className="text-sm text-gray-400">{label}</label><textarea name={key} value={value || ''} onChange={handleChange} rows="4" className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 mt-1" /></div>); return (<div key={key}><label className="text-sm text-gray-400">{isArray ? `${label} (separado por vírgulas)` : label}</label><input name={key} value={isArray ? (value || []).join(', ') : (value || '')} onChange={handleChange} className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 mt-1" /></div>); };
-    return (<div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 animate-fade-in p-4" onClick={onClose}><div className="bg-gray-800 text-white p-6 rounded-2xl w-full max-w-lg" onClick={(e) => e.stopPropagation()}><div className="flex justify-between items-center mb-4"><h2 className="text-xl font-bold">Editando: {contentKey} (ID: {contentData.id})</h2><button onClick={onClose} className="p-2 rounded-full hover:bg-gray-700"><XIcon className="w-5 h-5" /></button></div><div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">{Object.entries(data).map(([key, value]) => renderField(key, value))}</div><div className="flex justify-end mt-6"><button onClick={handleSave} disabled={isSaving} className="bg-purple-600 font-bold py-2 px-6 rounded-lg hover:bg-purple-700 disabled:bg-gray-600">{isSaving ? <Spinner /> : 'Salvar Alterações'}</button></div></div></div>);
+    
+    const renderField = (key, value) => {
+        if (key === 'numero' || key === 'id') return null;
+        const label = key.charAt(0).toUpperCase() + key.slice(1);
+        // ATUALIZAÇÃO: Adicionado 'inspiracao' para ser tratado como textarea
+        const isTextarea = key === 'desc' || key === 'descricao' || key === 'texto' || key === 'inspiracao';
+        const isArray = Array.isArray(value);
+        if (isTextarea) return (<div key={key}><label className="text-sm text-gray-400">{label}</label><textarea name={key} value={value || ''} onChange={handleChange} rows="4" className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 mt-1" /></div>);
+        return (<div key={key}><label className="text-sm text-gray-400">{isArray ? `${label} (separado por vírgulas)` : label}</label><input name={key} value={isArray ? (value || []).join(', ') : (value || '')} onChange={handleChange} className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 mt-1" /></div>);
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 animate-fade-in p-4" onClick={onClose}>
+            <div className="bg-gray-800 text-white p-6 rounded-2xl w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold">Editando: {contentKey} (ID: {contentData.id})</h2>
+                    <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-700"><XIcon className="w-5 h-5" /></button>
+                </div>
+                <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                    {Object.entries(data).map(([key, value]) => renderField(key, value))}
+                </div>
+                <div className="flex justify-end mt-6">
+                    <button onClick={handleSave} disabled={isSaving} className="bg-purple-600 font-bold py-2 px-6 rounded-lg hover:bg-purple-700 disabled:bg-gray-600">{isSaving ? <Spinner /> : 'Salvar Alterações'}</button>
+                </div>
+            </div>
+        </div>
+    );
 };
+
 const ContentManagementView = () => {
     const [content, setContent] = useState({});
     const [activeTab, setActiveTab] = useState('textosArcanos');
@@ -179,19 +207,71 @@ const ContentManagementView = () => {
     const [filtro, setFiltro] = useState('');
     const [editingItem, setEditingItem] = useState(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const contentKeys = [ { id: 'textosArcanos', name: 'Arcanos' }, { id: 'textosDiaPessoal', name: 'Dia Pessoal' }, { id: 'textosMesPessoal', name: 'Mês Pessoal' }, { id: 'textosAnoPessoal', name: 'Ano Pessoal' }, { id: 'textosCiclosDeVida', name: 'Ciclos de Vida' }, { id: 'bussolaAtividades', name: 'Bússola' }, { id: 'textosVibracoes', name: 'Vibrações' }, { id: 'textosExplicativos', name: 'Explicações' }];
-    useEffect(() => { const fetchAllContent = async () => { setIsLoading(true); try { const fetchedContent = {}; for (const key of contentKeys) { const docRef = doc(db, "textos_sistema", key.id); const docSnap = await getDoc(docRef); if (docSnap.exists()) { const data = docSnap.data(); const arrayData = Object.keys(data).map(itemKey => ({ id: itemKey, data: data[itemKey] })); fetchedContent[key.id] = arrayData; }} setContent(fetchedContent); } catch (err) { console.error("Erro:", err); } finally { setIsLoading(false); }}; fetchAllContent(); }, []);
-    const handleSave = async (id, dataToSave) => { try { await updateDoc(doc(db, "textos_sistema", activeTab), { [id]: dataToSave }); setContent(prev => ({ ...prev, [activeTab]: prev[activeTab].map(item => item.id === id ? { id, data: dataToSave } : item) })); } catch (error) { console.error("Erro:", error); alert("Erro ao salvar."); }};
+    
+    // ATUALIZAÇÃO: Lista de conteúdos a serem gerenciados.
+    const contentKeys = [
+        { id: 'textosArcanos', name: 'Arcanos' },
+        { id: 'textosDiaPessoal', name: 'Dia Pessoal' },
+        { id: 'textosMesPessoal', name: 'Mês Pessoal' },
+        { id: 'textosAnoPessoal', name: 'Ano Pessoal' },
+        { id: 'textosCiclosDeVida', name: 'Ciclos de Vida' },
+        { id: 'bussolaAtividades', name: 'Bússola' },
+        { id: 'textosVibracoes', name: 'Vibrações' },
+        { id: 'textosExplicativos', name: 'Explicações' }
+    ];
+
+    useEffect(() => {
+        const fetchAllContent = async () => {
+            setIsLoading(true);
+            try {
+                const fetchedContent = {};
+                for (const key of contentKeys) {
+                    const docRef = doc(db, "textos_sistema", key.id);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        const arrayData = Object.keys(data).map(itemKey => ({ id: itemKey, data: data[itemKey] }));
+                        fetchedContent[key.id] = arrayData;
+                    }
+                }
+                setContent(fetchedContent);
+            } catch (err) { console.error("Erro:", err); }
+            finally { setIsLoading(false); }
+        };
+        fetchAllContent();
+    }, []);
+
+    const handleSave = async (id, dataToSave) => {
+        try {
+            await updateDoc(doc(db, "textos_sistema", activeTab), { [id]: dataToSave });
+            setContent(prev => ({ ...prev, [activeTab]: prev[activeTab].map(item => item.id === id ? { id, data: dataToSave } : item) }));
+        } catch (error) { console.error("Erro:", error); alert("Erro ao salvar."); }
+    };
+    
     const activeContent = content[activeTab] || [];
-    const filteredContent = activeContent.filter(item => { const searchTerm = filtro.toLowerCase(); if (item.id.toString().toLowerCase().includes(searchTerm)) return true; for (const key in item.data) { if (String(item.data[key]).toLowerCase().includes(searchTerm)) return true; } return false; }).sort((a, b) => { const numA = parseInt(a.id); const numB = parseInt(b.id); if (!isNaN(numA) && !isNaN(numB)) return numA - numB; return a.id.localeCompare(b.id); });
+    const filteredContent = activeContent.filter(item => {
+        const searchTerm = filtro.toLowerCase();
+        if (item.id.toString().toLowerCase().includes(searchTerm)) return true;
+        for (const key in item.data) {
+            if (String(item.data[key]).toLowerCase().includes(searchTerm)) return true;
+        }
+        return false;
+    }).sort((a, b) => {
+        const numA = parseInt(a.id);
+        const numB = parseInt(b.id);
+        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+        return a.id.localeCompare(b.id);
+    });
     
     return (
         <>
             {editingItem && <EditContentModal contentData={editingItem} onClose={() => setEditingItem(null)} onSave={handleSave} contentKey={contentKeys.find(c => c.id === activeTab)?.name} />}
             <h2 className="text-xl md:text-2xl font-bold mb-6 text-white">Gerenciamento de Conteúdo</h2>
+            
             <div className="hidden lg:flex items-center border-b border-gray-700 mb-6 overflow-x-auto">
                 {contentKeys.map(key => (<button key={key.id} onClick={() => setActiveTab(key.id)} className={`px-4 py-3 text-sm font-semibold whitespace-nowrap transition-colors ${activeTab === key.id ? 'text-white border-b-2 border-purple-500' : 'text-gray-400 hover:text-white'}`}>{key.name}</button>))}
             </div>
+            
             <div className="lg:hidden mb-4">
                 <div className="relative">
                     <button onClick={() => setIsDropdownOpen(!isDropdownOpen)} className="w-full flex items-center justify-between bg-gray-800/50 border border-gray-700 rounded-lg px-4 py-3 text-left">
@@ -207,6 +287,7 @@ const ContentManagementView = () => {
                     )}
                 </div>
             </div>
+            
             <div className="bg-gray-800/50 border border-gray-700 rounded-lg">
                 {isLoading ? <div className="p-8 flex justify-center"><Spinner/></div> : <>
                 <div className="p-4 border-b border-gray-700 flex flex-col sm:flex-row justify-between items-center flex-wrap gap-4">
@@ -240,16 +321,10 @@ const AdminPanel = () => {
     };
 
     return (
-        // --- CORREÇÃO DEFINITIVA ---
-        // Removidas todas as classes de layout flex do container principal.
-        // Ele agora se comporta como um div simples, assim como no Dashboard.jsx,
-        // permitindo que o conteúdo interno dite o layout verticalmente em telas pequenas.
-        // A sidebar e o conteúdo principal são tratados como blocos separados.
         <div className="w-full max-w-7xl mx-auto text-white">
-            {/* O layout de duas colunas (sidebar + main) é criado apenas em telas grandes (lg) com CSS Grid */}
             <div className="lg:grid lg:grid-cols-[256px_1fr] lg:gap-6">
                 
-                {/* Desktop Sidebar (Fixo e Pegajoso) */}
+                {/* Desktop Sidebar */}
                 <aside className="hidden lg:block">
                     <div className="lg:sticky lg:top-0 p-6">
                         <h1 className="text-2xl font-bold mb-6 px-3">Painel Admin</h1>
@@ -270,7 +345,6 @@ const AdminPanel = () => {
                     <div className="lg:hidden p-4 md:p-6 flex-shrink-0">
                         <h1 className="text-2xl font-bold mb-4">Painel Admin</h1>
                         <div className="border-b border-gray-700">
-                            {/* Garante que a navegação possa rolar sem empurrar a página */}
                             <nav className="flex items-center -mb-px space-x-2 sm:space-x-4 overflow-x-auto">
                                 {navItems.map(item => (
                                     <button key={item.id} onClick={() => setActiveView(item.id)} className={`flex items-center gap-2 py-3 px-3 text-sm font-semibold whitespace-nowrap transition-colors ${activeView === item.id ? 'text-white border-b-2 border-purple-500' : 'text-gray-400 hover:text-white'}`}>
