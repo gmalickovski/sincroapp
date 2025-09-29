@@ -15,4 +15,3 @@ const DashboardCard = ({ title, icon, children, className = '' }) => (
 );
 
 export default DashboardCard;
-

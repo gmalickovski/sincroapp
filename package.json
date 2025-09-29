@@ -11,6 +11,8 @@
     "emulators": "GOOGLE_APPLICATION_CREDENTIALS=\"\" FUNCTIONS_DISCOVERY_TIMEOUT=60 firebase emulators:start --only functions,auth,firestore"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
     "firebase": "^10.14.1",
     "lucide-react": "^0.544.0",
     "react": "^18.2.0",

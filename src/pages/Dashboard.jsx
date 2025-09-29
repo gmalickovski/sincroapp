@@ -1,19 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import DashboardCard from '../components/ui/DashboardCard';
 import InfoCard from '../components/ui/InfoCard';
-import { BookIcon, CheckSquareIcon, SunIcon, CompassIcon, MoonIcon, StarIcon, RepeatIcon, TarotIcon } from '../components/ui/Icons';
+import { BookIcon, CheckSquareIcon, SunIcon, CompassIcon, MoonIcon, StarIcon, RepeatIcon, TarotIcon, MoveIcon, CheckIcon } from '../components/ui/Icons';
 import { textosDescritivos, textosArcanos, bussolaAtividades, textosCiclosDeVida, textosExplicativos } from '../data/content';
 import Spinner from '../components/ui/Spinner';
 import { db } from '../services/firebase';
-import { collection, query, where, onSnapshot, Timestamp, orderBy, limit } from "firebase/firestore";
-import numerologyEngine from '../services/numerologyEngine';
+import { doc, getDoc, setDoc, collection, query, where, onSnapshot, Timestamp, orderBy, limit } from "firebase/firestore";
 import UpgradeCard from '../components/ui/UpgradeCard';
 import InspirationModal from '../components/ui/InspirationModal';
 import FloatingActionButton from '../components/ui/FloatingActionButton';
-import TaskModal from '../components/ui/TaskModal';         // Importa o modal de Tarefas existente
-import NewNoteEditor from '../components/ui/NewNoteEditor'; // Importa o editor de Anotações existente
+import TaskModal from '../components/ui/TaskModal';
+import NewNoteEditor from '../components/ui/NewNoteEditor';
+import SortableCard from '../components/ui/SortableCard';
 
-// Card de Tarefas (Apenas Visualização)
 const DailyTasksCard = React.memo(({ user, setActiveView }) => {
     const [tasks, setTasks] = React.useState([]);
     const [isLoading, setIsLoading] = React.useState(true);
@@ -57,7 +58,6 @@ const DailyTasksCard = React.memo(({ user, setActiveView }) => {
     );
 });
 
-// Card de Anotações (Apenas Visualização)
 const QuickJournalCard = React.memo(({ user, setActiveView }) => {
     const [latestEntry, setLatestEntry] = React.useState(null);
     const [isLoading, setIsLoading] = React.useState(true);
@@ -100,12 +100,100 @@ const QuickJournalCard = React.memo(({ user, setActiveView }) => {
 });
 
 
-function Dashboard({ user, userData, data, setActiveView, taskUpdater, onInfoClick }) {
+function Dashboard({ user, userData, data, setActiveView, taskUpdater, onInfoClick, isEditMode, setIsEditMode }) {
+    const [cardOrder, setCardOrder] = useState(null);
+    const [isLoadingOrder, setIsLoadingOrder] = useState(true);
+    const longPressTimer = useRef();
+    const touchMoveRef = useRef(false);
+
+    const handlePressStart = useCallback(() => {
+        // Ativa o modo de edição apenas em telas menores (mobile)
+        if (window.innerWidth >= 1024) return;
+
+        if (isEditMode) return;
+        touchMoveRef.current = false;
+        longPressTimer.current = setTimeout(() => {
+            if (!touchMoveRef.current) {
+                setIsEditMode(true);
+            }
+        }, 800);
+    }, [isEditMode, setIsEditMode]);
+
+    const handlePressEnd = useCallback(() => {
+        clearTimeout(longPressTimer.current);
+    }, []);
+
+    const handleTouchMove = useCallback(() => {
+        touchMoveRef.current = true;
+        clearTimeout(longPressTimer.current);
+    }, []);
+
+    const defaultOrder = [
+        'vibracaoDia', 'vibracaoMes', 'vibracaoAno', 'cicloVida', 'arcanoRegente', 'arcanoVigente',
+        'bussola', 'tarefas', 'anotacoes'
+    ];
+
+    useEffect(() => {
+        const fetchCardOrder = async () => {
+            if (!user) return;
+            const userPrefsRef = doc(db, 'users', user.uid, 'preferences', 'dashboard');
+            try {
+                const docSnap = await getDoc(userPrefsRef);
+                if (docSnap.exists() && docSnap.data().cardOrder) {
+                    const savedOrder = docSnap.data().cardOrder;
+                    const fullOrder = [...new Set([...savedOrder, ...defaultOrder])];
+                    setCardOrder(fullOrder);
+                } else {
+                    setCardOrder(defaultOrder);
+                }
+            } catch (error) {
+                console.error("Erro ao buscar a ordem dos cards:", error);
+                setCardOrder(defaultOrder);
+            } finally {
+                setIsLoadingOrder(false);
+            }
+        };
+        fetchCardOrder();
+    }, [user]);
+
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(TouchSensor, {
+            activationConstraint: {
+                delay: 250,
+                tolerance: 5,
+            },
+        })
+    );
+    
+    const handleDragEnd = (event) => {
+        const { active, over } = event;
+        if (over && active.id !== over.id) {
+            setCardOrder((items) => {
+                const oldIndex = items.indexOf(active.id);
+                const newIndex = items.indexOf(over.id);
+                const newOrder = arrayMove(items, oldIndex, newIndex);
+                saveCardOrder(newOrder);
+                return newOrder;
+            });
+        }
+    };
+    
+    const saveCardOrder = async (newOrder) => {
+        if (!user) return;
+        try {
+            const userPrefsRef = doc(db, 'users', user.uid, 'preferences', 'dashboard');
+            await setDoc(userPrefsRef, { cardOrder: newOrder });
+        } catch (error) {
+            console.error("Erro ao salvar a ordem dos cards:", error);
+        }
+    };
+
     const [inspirationModalData, setInspirationModalData] = useState(null);
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
     const [isNoteEditorOpen, setIsNoteEditorOpen] = useState(false);
 
-    if (!data || !data.estruturas || !data.estruturas.cicloDeVidaAtual) {
+    if (!data || !data.estruturas || !data.estruturas.cicloDeVidaAtual || isLoadingOrder || !cardOrder) {
         return <div className="p-4 md:p-6 text-white flex justify-center items-center h-full"><Spinner /></div>;
     }
     
@@ -126,112 +214,57 @@ function Dashboard({ user, userData, data, setActiveView, taskUpdater, onInfoCli
     const infoCicloAtual = { ...infoCicloAtualRaw, periodo: `Período: ${cicloDeVidaAtual.periodo}` };
     
     const today = new Date();
-    const todayTaskData = { date: today, tasks: [] }; // Passa a data de hoje para o TaskModal
+    const todayTaskData = { date: today, tasks: [] };
+
+    const cardComponents = {
+        vibracaoDia: <InfoCard title="Vibração do Dia" number={diaPessoal} info={infoDia} icon={<SunIcon/>} colorClass={{text: 'text-cyan-300'}} onCardClick={() => !isEditMode && setInspirationModalData({ title: "Vibração do Dia", number: diaPessoal, info: infoDia, icon: <SunIcon/>, explicacao: textosExplicativos.vibracaoDia })} />,
+        vibracaoMes: <InfoCard title="Vibração do Mês" number={mesPessoal} info={infoMes} icon={<MoonIcon/>} colorClass={{text: 'text-indigo-300'}} onCardClick={() => !isEditMode && setInspirationModalData({ title: "Vibração do Mês", number: mesPessoal, info: infoMes, icon: <MoonIcon/>, explicacao: textosExplicativos.mesPessoal })} />,
+        vibracaoAno: <InfoCard title="Vibração do Ano" number={anoPessoal} info={infoAno} icon={<StarIcon/>} colorClass={{text: 'text-amber-300'}} onCardClick={() => !isEditMode && setInspirationModalData({ title: "Vibração do Ano", number: anoPessoal, info: infoAno, icon: <StarIcon/>, explicacao: textosExplicativos.anoPessoal })} />,
+        cicloVida: <div className="lg:col-span-3 h-full">{isPremium ? <InfoCard title={cicloDeVidaAtual.nome} number={cicloDeVidaAtual.regente} info={infoCicloAtual} icon={<RepeatIcon />} colorClass={{text: 'text-green-300'}} onCardClick={() => !isEditMode && setInspirationModalData({ title: cicloDeVidaAtual.nome, number: cicloDeVidaAtual.regente, info: infoCicloAtual, icon: <RepeatIcon/>, explicacao: textosExplicativos.cicloDeVida })} /> : <UpgradeCard title="Desbloqueie seus Ciclos de Vida" featureText="Entenda os grandes temas da sua jornada com o plano Premium." />}</div>,
+        arcanoRegente: <InfoCard title="Arcano Regente" number={arcanoRegente} info={infoArcanoRegente} icon={<TarotIcon />} onCardClick={() => !isEditMode && setInspirationModalData({ title: "Arcano Regente", number: arcanoRegente, info: infoArcanoRegente, icon: <TarotIcon/>, explicacao: textosExplicativos.arcanoRegente })} />,
+        arcanoVigente: <InfoCard title="Arcano Vigente" number={arcanoAtual?.numero} info={infoArcanoAtual} icon={<TarotIcon />} onCardClick={() => !isEditMode && setInspirationModalData({ title: "Arcano Vigente", number: arcanoAtual?.numero, info: infoArcanoAtual, icon: <TarotIcon/>, explicacao: textosExplicativos.arcanoVigente })} />,
+        bussola: <InfoCard title="Bússola de Atividades" icon={<CompassIcon />} onCardClick={() => !isEditMode && setInspirationModalData({ title: "Bússola de Atividades", icon: <CompassIcon />, explicacao: textosExplicativos.bussolaAtividades, customBody: (<div className="space-y-4"><div><h4 className="font-bold text-green-400 mb-2">Potencializar</h4><ul className="list-disc list-inside space-y-2 text-sm text-gray-300">{atividadesDoDia.potencializar.map((item, index) => (<li key={`pot-${index}`}>{item}</li>))}</ul></div><div><h4 className="font-bold text-red-400 mb-2">Atenção</h4><ul className="list-disc list-inside space-y-2 text-sm text-gray-300">{atividadesDoDia.atencao.map((item, index) => (<li key={`atn-${index}`}>{item}</li>))}</ul></div></div>)})}><div className="flex flex-col gap-4 h-full"><div><h4 className="font-bold text-green-400 mb-1">Potencializar</h4><ul className="list-disc list-inside space-y-1 text-sm text-gray-400">{atividadesDoDia.potencializar.map((item, index) => (<li key={`pot-${index}`}>{item}</li>))}</ul></div><div><h4 className="font-bold text-red-400 mb-1">Atenção</h4><ul className="list-disc list-inside space-y-1 text-sm text-gray-400">{atividadesDoDia.atencao.map((item, index) => (<li key={`atn-${index}`}>{item}</li>))}</ul></div></div></InfoCard>,
+        tarefas: isPremium ? <DailyTasksCard user={user} setActiveView={setActiveView} /> : <UpgradeCard title="Acesse o Diário de Tarefas" featureText="Organize seu dia e alinhe suas ações com a energia do momento." />,
+        anotacoes: <QuickJournalCard user={user} setActiveView={setActiveView} />
+    };
 
     return (
-        <>
-            <InspirationModal 
-                data={inspirationModalData}
-                onClose={() => setInspirationModalData(null)}
-            />
-            {isTaskModalOpen && (
-                <TaskModal 
-                    isOpen={isTaskModalOpen}
-                    onClose={() => setIsTaskModalOpen(false)}
-                    dayData={todayTaskData}
-                    userData={userData}
-                    taskUpdater={taskUpdater}
-                    onInfoClick={onInfoClick}
-                />
-            )}
-            {isNoteEditorOpen && (
-                <NewNoteEditor
-                    entryData={{ date: today }}
-                    user={user}
-                    userData={userData}
-                    onClose={() => setIsNoteEditorOpen(false)}
-                    onInfoClick={onInfoClick}
-                />
-            )}
+        <div className="relative min-h-screen">
+            <InspirationModal data={inspirationModalData} onClose={() => setInspirationModalData(null)} />
+            {isTaskModalOpen && <TaskModal isOpen={isTaskModalOpen} onClose={() => setIsTaskModalOpen(false)} dayData={todayTaskData} userData={userData} taskUpdater={taskUpdater} onInfoClick={onInfoClick} />}
+            {isNoteEditorOpen && <NewNoteEditor entryData={{ date: today }} user={user} userData={userData} onClose={() => setIsNoteEditorOpen(false)} onInfoClick={onInfoClick} />}
 
-            <div className="p-4 md:p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in text-gray-300">
-                    
-                    <InfoCard title="Vibração do Dia" number={diaPessoal} info={infoDia} icon={<SunIcon/>} colorClass={{text: 'text-cyan-300'}}
-                        onCardClick={() => setInspirationModalData({ title: "Vibração do Dia", number: diaPessoal, info: infoDia, icon: <SunIcon/>, explicacao: textosExplicativos.vibracaoDia })}
-                    />
-                    <InfoCard title="Vibração do Mês" number={mesPessoal} info={infoMes} icon={<MoonIcon/>} colorClass={{text: 'text-indigo-300'}}
-                        onCardClick={() => setInspirationModalData({ title: "Vibração do Mês", number: mesPessoal, info: infoMes, icon: <MoonIcon/>, explicacao: textosExplicativos.mesPessoal })}
-                    />
-                    <InfoCard title="Vibração do Ano" number={anoPessoal} info={infoAno} icon={<StarIcon/>} colorClass={{text: 'text-amber-300'}}
-                        onCardClick={() => setInspirationModalData({ title: "Vibração do Ano", number: anoPessoal, info: infoAno, icon: <StarIcon/>, explicacao: textosExplicativos.anoPessoal })}
-                    />
-                    
-                    <div className="lg:col-span-3">
-                        {isPremium ? (
-                            <InfoCard title={cicloDeVidaAtual.nome} number={cicloDeVidaAtual.regente} info={infoCicloAtual} icon={<RepeatIcon />} colorClass={{text: 'text-green-300'}}
-                                onCardClick={() => setInspirationModalData({ title: cicloDeVidaAtual.nome, number: cicloDeVidaAtual.regente, info: infoCicloAtual, icon: <RepeatIcon/>, explicacao: textosExplicativos.cicloDeVida })}
-                            />
-                        ) : (
-                            <UpgradeCard title="Desbloqueie seus Ciclos de Vida" featureText="Entenda os grandes temas da sua jornada com o plano Premium." />
-                        )}
-                    </div>
-
-                    <InfoCard title="Arcano Regente" number={arcanoRegente} info={infoArcanoRegente} icon={<TarotIcon />}
-                         onCardClick={() => setInspirationModalData({ title: "Arcano Regente", number: arcanoRegente, info: infoArcanoRegente, icon: <TarotIcon/>, explicacao: textosExplicativos.arcanoRegente })}
-                    />
-                    <InfoCard title="Arcano Vigente" number={arcanoAtual?.numero} info={infoArcanoAtual} icon={<TarotIcon />}
-                         onCardClick={() => setInspirationModalData({ title: "Arcano Vigente", number: arcanoAtual?.numero, info: infoArcanoAtual, icon: <TarotIcon/>, explicacao: textosExplicativos.arcanoVigente })}
-                    />
-                    
-                     <InfoCard 
-                        title="Bússola de Atividades"
-                        icon={<CompassIcon />}
-                        onCardClick={() => setInspirationModalData({
-                            title: "Bússola de Atividades",
-                            icon: <CompassIcon />,
-                            explicacao: textosExplicativos.bussolaAtividades,
-                            customBody: (
-                                <div className="space-y-4">
-                                    <div>
-                                        <h4 className="font-bold text-green-400 mb-2">Potencializar</h4>
-                                        <ul className="list-disc list-inside space-y-2 text-sm text-gray-300">{atividadesDoDia.potencializar.map((item, index) => (<li key={`pot-${index}`}>{item}</li>))}</ul>
-                                    </div>
-                                    <div>
-                                        <h4 className="font-bold text-red-400 mb-2">Atenção</h4>
-                                        <ul className="list-disc list-inside space-y-2 text-sm text-gray-300">{atividadesDoDia.atencao.map((item, index) => (<li key={`atn-${index}`}>{item}</li>))}</ul>
-                                    </div>
-                                </div>
-                            )
-                        })}
-                    >
-                        <div className="flex flex-col gap-4 h-full">
-                            <div>
-                                <h4 className="font-bold text-green-400 mb-1">Potencializar</h4>
-                                <ul className="list-disc list-inside space-y-1 text-sm text-gray-400">{atividadesDoDia.potencializar.map((item, index) => (<li key={`pot-${index}`}>{item}</li>))}</ul>
-                            </div>
-                            <div>
-                                <h4 className="font-bold text-red-400 mb-1">Atenção</h4>
-                                <ul className="list-disc list-inside space-y-1 text-sm text-gray-400">{atividadesDoDia.atencao.map((item, index) => (<li key={`atn-${index}`}>{item}</li>))}</ul>
-                            </div>
+            <div 
+                className="p-4 md:p-6"
+                onTouchStart={handlePressStart}
+                onTouchEnd={handlePressEnd}
+                onTouchMove={handleTouchMove}
+                onMouseDown={handlePressStart}
+                onMouseUp={handlePressEnd}
+                onMouseLeave={handlePressEnd}
+            >
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext items={cardOrder} strategy={rectSortingStrategy}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in text-gray-300 items-stretch">
+                            {cardOrder.map(id => (
+                                cardComponents[id] && (
+                                    <SortableCard key={id} id={id} isEditMode={isEditMode}>
+                                        {cardComponents[id]}
+                                    </SortableCard>
+                                )
+                            ))}
                         </div>
-                    </InfoCard>
-                    
-                    {isPremium ? (
-                        <DailyTasksCard user={user} setActiveView={setActiveView} />
-                    ) : (
-                        <UpgradeCard title="Acesse o Diário de Tarefas" featureText="Organize seu dia e alinhe suas ações com a energia do momento." />
-                    )}
-                    
-                    <QuickJournalCard user={user} setActiveView={setActiveView} />
-                </div>
+                    </SortableContext>
+                </DndContext>
             </div>
             
-            <FloatingActionButton 
-                onNewTask={() => setIsTaskModalOpen(true)}
-                onNewNote={() => setIsNoteEditorOpen(true)}
-            />
-        </>
+            <div className="fixed bottom-6 right-6 z-20 flex items-end gap-4">
+                <FloatingActionButton 
+                    onNewTask={() => setIsTaskModalOpen(true)}
+                    onNewNote={() => setIsNoteEditorOpen(true)}
+                />
+            </div>
+        </div>
     );
 }
 
