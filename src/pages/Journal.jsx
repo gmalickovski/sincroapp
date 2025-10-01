@@ -3,7 +3,7 @@ import { db } from '../services/firebase';
 import { collection, onSnapshot, query, where, orderBy, doc, deleteDoc, Timestamp } from "firebase/firestore";
 import Spinner from '../components/ui/Spinner';
 import UpgradeModal from '../components/ui/UpgradeModal';
-import { CalendarIcon, EditIcon, ChevronDownIcon, TrashIcon, FilterIcon, XIcon, DotsVerticalIcon, CheckIcon } from '../components/ui/Icons';
+import { CalendarIcon, EditIcon, ChevronDownIcon, TrashIcon, FilterIcon, XIcon, DotsVerticalIcon } from '../components/ui/Icons';
 import VibrationPill from '../components/ui/VibrationPill';
 
 // Mapeamento de ID do humor para o emoji
@@ -22,10 +22,14 @@ const JournalEntryCard = React.memo(({ entry, setEditingEntry, handleDelete, onI
     const energyClasses = { 1: { border: 'border-red-500/50', bg: 'bg-red-500/10' }, 2: { border: 'border-orange-500/50', bg: 'bg-orange-500/10' }, 3: { border: 'border-yellow-500/50', bg: 'bg-yellow-500/10' }, 4: { border: 'border-lime-500/50', bg: 'bg-lime-500/10' }, 5: { border: 'border-cyan-500/50', bg: 'bg-cyan-500/10' }, 6: { border: 'border-blue-500/50', bg: 'bg-blue-500/10' }, 7: { border: 'border-purple-500/50', bg: 'bg-purple-500/10' }, 8: { border: 'border-pink-500/50', bg: 'bg-pink-500/10' }, 9: { border: 'border-teal-500/50', bg: 'bg-teal-500/10' }, 11: { border: 'border-violet-400/50', bg: 'bg-violet-400/10' }, 22: { border: 'border-indigo-400/50', bg: 'bg-indigo-400/10' }, default: { border: 'border-gray-700', bg: 'bg-gray-800/50' } };
     const currentEnergy = energyClasses[entry.personalDay] || energyClasses.default;
     
-    const entryDate = new Date(entry.updatedAt.seconds * 1000);
+    // --- CORREÇÃO 1: USAR 'createdAt' PARA A DATA PRINCIPAL ---
+    // Isso garante que a data exibida seja sempre a data para a qual a anotação foi criada.
+    const entryDate = new Date(entry.createdAt.seconds * 1000);
     const formattedWeekdayDay = `${entryDate.toLocaleDateString('pt-BR', { weekday: 'long' })} - Dia ${entryDate.getDate()}`;
     const formattedMonthYear = entryDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }).replace(' de ', ' / ');
-    const formattedTime = entryDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    
+    // A hora pode continuar sendo da última atualização, para saber quando foi a última edição.
+    const formattedTime = new Date(entry.updatedAt.seconds * 1000).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
     useEffect(() => {
         const handleClickOutside = (event) => { if (menuRef.current && !menuRef.current.contains(event.target)) { setIsMenuOpen(false); } };
@@ -63,7 +67,6 @@ const JournalEntryCard = React.memo(({ entry, setEditingEntry, handleDelete, onI
                             </div>
                             <div className="text-white">
                                 <h3 className="font-bold capitalize">{formattedWeekdayDay}</h3>
-                                {/* COR ROXA APLICADA AQUI */}
                                 <p className="text-sm capitalize text-purple-400">{formattedMonthYear}</p>
                                 <p className="text-xs text-gray-500">{formattedTime}</p>
                             </div>
@@ -81,15 +84,29 @@ const JournalEntryCard = React.memo(({ entry, setEditingEntry, handleDelete, onI
     );
 });
 
-
-// O restante do seu arquivo Journal.jsx continua o mesmo...
 const FilterPopover = ({ isVisible, onClose, filters, setFilters, dateInputRef }) => {
-    // ...código do popover...
+    if(!isVisible) return null;
+    const { date, vibration } = filters;
+    const { setDate, setVibration } = setFilters;
+    const vibrationFilterRef = useRef(null);
+    const [isVibrationFilterOpen, setIsVibrationFilterOpen] = useState(false);
+    useEffect(() => { const handleClickOutside = (event) => { if (vibrationFilterRef.current && !vibrationFilterRef.current.contains(event.target)) { setIsVibrationFilterOpen(false); } }; document.addEventListener("mousedown", handleClickOutside); return () => document.removeEventListener("mousedown", handleClickOutside); }, []);
+    const openDatePicker = () => { try { dateInputRef.current?.showPicker(); } catch (error) { console.error("Erro:", error); }};
+    const filterOptions = ['all', 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 22];
+    
+    return (
+        <div className="absolute top-14 right-0 bg-gray-800 border border-gray-700 rounded-xl shadow-lg w-72 p-4 z-20 animate-fade-in" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4"> <h3 className="font-bold">Filtros</h3> <button onClick={onClose} className="p-1 hover:text-white text-gray-400"><XIcon className="w-5 h-5"/></button> </div>
+            <div className="space-y-4">
+                <div className="relative"> <label className="text-sm text-gray-400 mb-2 block">Filtrar por data:</label> <div onClick={openDatePicker} className="absolute left-3 bottom-2.5 w-5 h-5 cursor-pointer z-10"><CalendarIcon className="w-full h-full text-gray-400" /></div> <input ref={dateInputRef} type="date" value={date} onChange={(e) => setDate(e.target.value)} className="custom-date-input bg-gray-700 border border-gray-600 rounded-lg p-2 text-sm w-full pl-10"/> </div>
+                <div className="relative" ref={vibrationFilterRef}> <label className="text-sm text-gray-400 mb-2 block">Filtrar por vibração:</label> <button onClick={() => setIsVibrationFilterOpen(!isVibrationFilterOpen)} className="bg-gray-700 border border-gray-600 rounded-lg p-2 text-sm w-full flex justify-between items-center"> <span>{vibration === 'all' ? 'Todas as Vibrações' : `Vibração ${vibration}`}</span> <ChevronDownIcon className={`w-5 h-5 transition-transform ${isVibrationFilterOpen ? 'rotate-180' : ''}`} /> </button> {isVibrationFilterOpen && ( <div className="absolute top-full mt-2 w-full bg-gray-900 border border-gray-600 rounded-lg z-10 max-h-48 overflow-y-auto"> {filterOptions.map(option => ( <button key={option} onClick={() => { setVibration(option); setIsVibrationFilterOpen(false); }} className={`w-full text-left px-4 py-2 text-sm hover:bg-purple-600 ${vibration.toString() === option.toString() ? 'bg-purple-700' : ''}`}>{option === 'all' ? 'Todas' : option}</button>))} </div> )} </div>
+                <button onClick={() => { setDate(''); setVibration('all'); }} className="w-full text-center text-sm text-purple-400 hover:text-purple-300 font-semibold p-2">Limpar Filtros</button>
+            </div>
+        </div>
+    );
 };
 
-
 const Journal = ({ user, userData, setEditingEntry, openNewNoteEditor, onInfoClick }) => {
-    // ...código principal do Journal...
     const [entries, setEntries] = useState([]);
     const [vibrationFilter, setVibrationFilter] = useState('all');
     const [dateFilter, setDateFilter] = useState('');
@@ -106,7 +123,9 @@ const Journal = ({ user, userData, setEditingEntry, openNewNoteEditor, onInfoCli
     
     useEffect(() => {
         if (!user?.uid) { setIsLoading(false); return; }
-        let q = query(collection(db, 'users', user.uid, 'journalEntries'), orderBy('updatedAt', 'desc'));
+        // --- CORREÇÃO 2: ORDENAR POR 'createdAt' ---
+        // Ordena as anotações pela data a que se referem, não pela data da última edição.
+        let q = query(collection(db, 'users', user.uid, 'journalEntries'), orderBy('createdAt', 'desc'));
         if (vibrationFilter !== 'all') { q = query(q, where('personalDay', '==', parseInt(vibrationFilter))); }
         if (dateFilter) { const startOfDay = new Date(dateFilter.replace(/-/g, '/')); startOfDay.setHours(0, 0, 0, 0); const endOfDay = new Date(dateFilter.replace(/-/g, '/')); endOfDay.setHours(23, 59, 59, 999); q = query(q, where('createdAt', '>=', Timestamp.fromDate(startOfDay)), where('createdAt', '<=', Timestamp.fromDate(endOfDay))); }
         
@@ -117,7 +136,9 @@ const Journal = ({ user, userData, setEditingEntry, openNewNoteEditor, onInfoCli
     
     const groupedEntries = useMemo(() => {
         return entries.reduce((acc, entry) => {
-            const date = new Date(entry.updatedAt.seconds * 1000);
+            // --- CORREÇÃO 3: AGRUPAR POR 'createdAt' ---
+            // Garante que o agrupamento por mês use a data correta da anotação.
+            const date = new Date(entry.createdAt.seconds * 1000);
             const monthYear = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
             if (!acc[monthYear]) acc[monthYear] = [];
             acc[monthYear].push(entry);
@@ -167,7 +188,3 @@ const Journal = ({ user, userData, setEditingEntry, openNewNoteEditor, onInfoCli
 };
 
 export default Journal;
-
-// O FilterPopover precisa ser definido aqui se não for importado de outro lugar
-// Adicionando uma definição básica para evitar erros
-// const FilterPopover = ({ isVisible }) => isVisible ? <div>Filtros aqui</div> : null;

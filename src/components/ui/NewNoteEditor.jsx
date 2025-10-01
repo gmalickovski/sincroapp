@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../../services/firebase';
 import { doc, addDoc, updateDoc, collection, Timestamp } from 'firebase/firestore';
 import numerologyEngine from '../../services/numerologyEngine';
-// Importe o CheckIcon que corrigimos
 import { XIcon, CheckIcon, BookOpenIcon } from './Icons'; 
 import Spinner from './Spinner';
 import VibrationPill from './VibrationPill';
@@ -16,13 +15,7 @@ const NewNoteEditor = ({ entryData, user, userData, onClose, onInfoClick }) => {
     const textareaRef = useRef(null);
     const isEditing = !!entryData?.id;
 
-    // --- CORREÇÃO PRINCIPAL AQUI ---
-    // 1. Define a data da nota. Se for uma nota existente, usa a data de criação ('createdAt'). 
-    // Se for uma nota nova, usa a data passada pelo calendário ou a data atual.
     const noteDate = entryData?.createdAt ? entryData.createdAt.toDate() : (entryData?.date || new Date());
-
-    // 2. Define a vibração do dia. Se for uma nota existente, usa o 'personalDay' já salvo.
-    // Se for uma nota nova, calcula a vibração para a 'noteDate'.
     const personalDayForPill = entryData?.personalDay || numerologyEngine.calculatePersonalDayForDate(noteDate, userData.dataNasc);
 
     useEffect(() => {
@@ -56,12 +49,9 @@ const NewNoteEditor = ({ entryData, user, userData, onClose, onInfoClick }) => {
             };
 
             if (isEditing) {
-                // Ao editar, só atualizamos o conteúdo, humor e a data de modificação.
-                // A data de criação e o dia pessoal permanecem os mesmos.
                 const noteRef = doc(db, 'users', user.uid, 'journalEntries', entryData.id);
                 await updateDoc(noteRef, dataToSave);
             } else {
-                // Ao criar, salvamos todos os dados, incluindo a vibração e a data de criação.
                 dataToSave.personalDay = personalDayForPill;
                 dataToSave.createdAt = Timestamp.fromDate(noteDate);
                 const collectionRef = collection(db, 'users', user.uid, 'journalEntries');
@@ -115,7 +105,6 @@ const NewNoteEditor = ({ entryData, user, userData, onClose, onInfoClick }) => {
                     </div>
                 </header>
                 
-                {/* A seção de prompts só aparece para notas novas */}
                 {!isEditing && !content && promptsForToday.length > 0 && (
                      <div className="p-4 border-b border-gray-700">
                         <h3 className="text-sm font-semibold text-gray-300 mb-3 text-center">Inspire-se para começar...</h3>
