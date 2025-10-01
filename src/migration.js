@@ -8,7 +8,8 @@ import {
     bussolaAtividades, 
     textosCiclosDeVida,
     textosExplicativos,
-    textosVibracoes
+    textosVibracoes,
+    journalPrompts // <-- ADICIONADA A NOVA IMPORTAÇÃO
 } from './data/content.js';
 
 export const runMigration = async () => {
@@ -28,7 +29,8 @@ export const runMigration = async () => {
             "textosMesPessoal": textosDescritivos.mesPessoal,
             "textosAnoPessoal": textosDescritivos.anoPessoal,
             "textosExplicativos": textosExplicativos,
-            "textosVibracoes": textosVibracoes
+            "textosVibracoes": textosVibracoes,
+            "journalPrompts": journalPrompts // <-- ADICIONADA A NOVA MIGRAÇÃO
         };
 
         // Itera e executa cada migração

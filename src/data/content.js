@@ -861,34 +861,6 @@ export const bussolaAtividades = {
     default: { potencializar: ["Observar seus sentimentos e pensamentos."], atencao: ["Agir no piloto automático."] }
 };
 
-// Dados para o Planejador de Intenções no Calendário
-export const intencoes = {
-    iniciar_negocio: {
-        label: "Abrir uma empresa",
-        dias: [1, 8],
-        meses: [8]
-    },
-    conversa_dificil: {
-        label: "Ter uma conversa difícil",
-        dias: [2, 6, 9],
-        meses: [2, 9]
-    },
-    viagem_aventura: {
-        label: "Fazer uma viagem/aventura",
-        dias: [3, 5],
-        meses: [5]
-    },
-    organizar_financas: {
-        label: "Organizar as finanças",
-        dias: [4, 8],
-        meses: [4, 8]
-    },
-    focar_estudos: {
-        label: "Focar nos estudos",
-        dias: [7],
-        meses: [7]
-    }
-};
 
 export const textosExplicativos = {
   vibracaoDia: "A Vibração do Dia, ou seu Dia Pessoal, revela a energia predominante que influenciará suas próximas 24 horas. É uma bússola para suas ações, emoções e a melhor forma de navegar o seu dia.",
@@ -1012,4 +984,63 @@ export const textosVibracoes = {
     titulo: "Vibração Mestre 22: A Construção",
     texto: "Potencial imenso para transformar sonhos em realidade. É a energia do 'construtor mestre'. Um dia para pensar grande, mas agir com planejamento e pragmatismo para manifestar projetos de grande impacto."
   }
+
+};
+
+export const journalPrompts = {
+    1: [
+        "Que nova iniciativa posso começar hoje?",
+        "Qual é o meu principal objetivo para este novo ciclo?",
+        "Como posso expressar minha independência e liderança hoje?"
+    ],
+    2: [
+        "Com quem eu preciso me conectar ou colaborar hoje?",
+        "Como posso praticar a paciência e a diplomacia em meus relacionamentos?",
+        "Que emoções ou intuições estão vindo à tona hoje?"
+    ],
+    3: [
+        "De que forma posso expressar minha criatividade hoje?",
+        "O que me traria alegria e otimismo neste momento?",
+        "Como posso comunicar minhas ideias de forma mais clara e inspiradora?"
+    ],
+    4: [
+        "Qual tarefa prática ou meta de trabalho posso avançar hoje?",
+        "Como posso criar mais estabilidade e organização na minha vida?",
+        "Pelo que sou grato em relação à minha segurança e estrutura?"
+    ],
+    5: [
+        "Que nova experiência ou aventura posso buscar hoje?",
+        "De qual rotina eu preciso me libertar, mesmo que por um momento?",
+        "Como posso abraçar a mudança e a versatilidade hoje?"
+    ],
+    6: [
+        "Como posso cuidar de mim e dos outros hoje?",
+        "Que responsabilidade familiar ou comunitária precisa da minha atenção?",
+        "O que posso fazer para criar mais harmonia no meu lar?"
+    ],
+    7: [
+        "Que tempo posso reservar para a introspecção e reflexão hoje?",
+        "Qual conhecimento ou sabedoria estou buscando aprofundar?",
+        "Como posso ouvir minha voz interior com mais clareza?"
+    ],
+    8: [
+        "Qual passo prático posso dar em direção à minha abundância financeira ou poder pessoal?",
+        "Onde preciso ser mais assertivo e tomar as rédeas da situação?",
+        "Como posso usar minha força para o bem maior hoje?"
+    ],
+    9: [
+        "O que estou pronto(a) para concluir ou deixar para trás?",
+        "A quem preciso perdoar (inclusive a mim mesmo)?",
+        "Como posso praticar a compaixão e o desapego hoje?"
+    ],
+    11: [
+        "Qual insight ou revelação está tentando chegar até mim hoje?",
+        "Como posso usar minha intuição para guiar minhas ações?",
+        "De que forma posso inspirar os outros com minha visão?"
+    ],
+    22: [
+        "Qual grande projeto ou sonho posso começar a materializar hoje?",
+        "Como posso usar minhas habilidades para construir algo de valor duradouro?",
+        "Que passos práticos posso dar para manifestar minha visão?"
+    ]
 };

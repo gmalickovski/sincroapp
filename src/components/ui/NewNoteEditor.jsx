@@ -1,131 +1,151 @@
-// src/components/ui/NewNoteEditor.jsx
-
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { doc, getDoc, updateDoc, addDoc, collection, Timestamp } from 'firebase/firestore';
+import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../../services/firebase';
+import { doc, addDoc, updateDoc, collection, Timestamp } from 'firebase/firestore';
 import numerologyEngine from '../../services/numerologyEngine';
-import { XIcon, CheckIcon } from './Icons';
+// Importe o CheckIcon que corrigimos
+import { XIcon, CheckIcon, BookOpenIcon } from './Icons'; 
+import Spinner from './Spinner';
 import VibrationPill from './VibrationPill';
-import Spinner from './Spinner'; // Importe o Spinner
+import { journalPrompts } from '../../data/content';
+import MoodSelector from './MoodSelector';
 
-const NewNoteEditor = ({ onClose, entryData, user, userData, onInfoClick }) => {
-    const [localContent, setLocalContent] = useState('');
-    const [isLoading, setIsLoading] = useState(true);
-    const [isSaving, setIsSaving] = useState(false); // Novo estado para feedback de salvamento
-    const [docId, setDocId] = useState(entryData?.id || null); 
-    const textAreaRef = useRef(null);
+const NewNoteEditor = ({ entryData, user, userData, onClose, onInfoClick }) => {
+    const [content, setContent] = useState('');
+    const [mood, setMood] = useState(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const textareaRef = useRef(null);
+    const isEditing = !!entryData?.id;
 
-    const date = entryData.date ? (entryData.date instanceof Date ? entryData.date : entryData.date.toDate()) : new
-     Date();
+    // --- CORREÇÃO PRINCIPAL AQUI ---
+    // 1. Define a data da nota. Se for uma nota existente, usa a data de criação ('createdAt'). 
+    // Se for uma nota nova, usa a data passada pelo calendário ou a data atual.
+    const noteDate = entryData?.createdAt ? entryData.createdAt.toDate() : (entryData?.date || new Date());
 
-    useEffect(() => {
-        const fetchEntry = async () => {
-            setIsLoading(true);
-            if (entryData.id) {
-                const docRef = doc(db, 'users', user.uid, 'journalEntries', entryData.id);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    setLocalContent(docSnap.data().content || '');
-                }
-            } else {
-                setLocalContent(entryData.content || '');
-            }
-            setIsLoading(false);
-        };
-        fetchEntry();
-    }, [entryData, user.uid]);
+    // 2. Define a vibração do dia. Se for uma nota existente, usa o 'personalDay' já salvo.
+    // Se for uma nota nova, calcula a vibração para a 'noteDate'.
+    const personalDayForPill = entryData?.personalDay || numerologyEngine.calculatePersonalDayForDate(noteDate, userData.dataNasc);
 
     useEffect(() => {
-        if (!isLoading) {
-            textAreaRef.current?.focus();
+        if (entryData) {
+            setContent(entryData.content || '');
+            setMood(entryData.mood || null);
         }
-    }, [isLoading]);
-    
-    // ========== FUNÇÃO DE SALVAMENTO ATUALIZADA ==========
-    const handleSave = useCallback(async () => {
-        if (!user?.uid || !userData?.dataNasc || isSaving) return;
         
-        setIsSaving(true); // Ativa o estado de "salvando"
-        
-        // UI Otimista: Fecha o modal imediatamente para o usuário
-        onClose();
+        const timer = setTimeout(() => {
+            textareaRef.current?.focus();
+            if (textareaRef.current && entryData?.content) {
+                const len = entryData.content.length;
+                textareaRef.current.setSelectionRange(len, len);
+            }
+        }, 150);
 
-        const dataToSave = {
-            content: localContent,
-            date: Timestamp.fromDate(date),
-            personalDay: numerologyEngine.calculatePersonalDayForDate(date, userData.dataNasc),
-            userId: user.uid,
-            updatedAt: Timestamp.now(),
-        };
+        return () => clearTimeout(timer);
+    }, [entryData]);
+
+    const handleSave = async () => {
+        if (!content.trim() || !user?.uid || !userData?.dataNasc || isSaving) return;
+        
+        setIsSaving(true);
+        onClose(); 
 
         try {
-            if (docId) {
-                const docRef = doc(db, 'users', user.uid, 'journalEntries', docId);
-                await updateDoc(docRef, dataToSave);
-            } else {
-                const collectionRef = collection(db, 'users', user.uid, 'journalEntries');
-                // Não precisamos mais do newDocRef aqui, pois o componente será desmontado
-                await addDoc(collectionRef, { ...dataToSave, createdAt: Timestamp.now() });
-            }
-            // Opcional: Adicionar um toast/notificação de sucesso aqui
-        } catch (error) {
-            console.error("Erro ao salvar anotação em segundo plano:", error);
-            // Opcional: Adicionar um toast/notificação de erro aqui
-        }
-        // O setIsSaving(false) não é estritamente necessário, pois o componente já foi fechado.
-    }, [docId, user, userData, date, localContent, onClose, isSaving]);
-    
-    const personalDay = numerologyEngine.calculatePersonalDayForDate(date, userData.dataNasc);
-    const formattedDate = date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+            const dataToSave = {
+                content: content.trim(),
+                updatedAt: Timestamp.now(),
+                mood: mood,
+            };
 
-    if (isLoading) {
-        return (
-            <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-                <p className="text-white">Carregando...</p>
-            </div>
-        );
-    }
+            if (isEditing) {
+                // Ao editar, só atualizamos o conteúdo, humor e a data de modificação.
+                // A data de criação e o dia pessoal permanecem os mesmos.
+                const noteRef = doc(db, 'users', user.uid, 'journalEntries', entryData.id);
+                await updateDoc(noteRef, dataToSave);
+            } else {
+                // Ao criar, salvamos todos os dados, incluindo a vibração e a data de criação.
+                dataToSave.personalDay = personalDayForPill;
+                dataToSave.createdAt = Timestamp.fromDate(noteDate);
+                const collectionRef = collection(db, 'users', user.uid, 'journalEntries');
+                await addDoc(collectionRef, dataToSave);
+            }
+        } catch (error) {
+            console.error("Erro ao salvar anotação:", error);
+            alert("Sua anotação não pôde ser salva. Verifique sua conexão e tente novamente.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
     
+    const formattedDate = noteDate.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).replace(/ De /g, ' de ');
+    const promptsForToday = journalPrompts[personalDayForPill] || [];
+
+    const handlePromptClick = (prompt) => {
+        setContent(prompt + '\n\n');
+        textareaRef.current?.focus();
+    };
+
     return (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 animate-fade-in-fast">
-            <div className="relative w-full max-w-2xl">
-                <div className="absolute top-0 right-0 -mt-3 -mr-3 flex gap-2 z-10">
-                    <button 
-                        onClick={handleSave} 
-                        disabled={isSaving}
-                        className="bg-green-500 text-white rounded-full p-2 w-10 h-10 flex items-center justify-center shadow-lg hover:bg-green-600 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-green-400 disabled:bg-gray-500 disabled:scale-100"
-                        title="Salvar Anotação"
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 animate-fade-in" onClick={onClose}>
+            <div 
+                className="bg-gray-800 text-white w-full h-full flex flex-col shadow-2xl transition-transform duration-300 ease-out sm:rounded-2xl sm:w-full sm:max-w-2xl sm:h-[70vh]" 
+                onClick={e => e.stopPropagation()}
+            >
+                <header className="flex justify-between items-start p-4 border-b border-gray-700 flex-shrink-0">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                        <BookOpenIcon className="w-8 h-8 sm:w-8 sm:h-8 text-purple-300 flex-shrink-0 mt-1" />
+                        <div className="flex flex-col">
+                            <h2 className="text-base sm:text-lg font-bold capitalize leading-tight">{formattedDate}</h2>
+                            <div className="mt-2 sm:hidden">
+                                <VibrationPill 
+                                    vibrationNumber={personalDayForPill} 
+                                    onClick={() => onInfoClick(personalDayForPill)} 
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 sm:gap-4 pl-2">
+                        <div className="hidden sm:block">
+                            <VibrationPill 
+                                vibrationNumber={personalDayForPill} 
+                                onClick={() => onInfoClick(personalDayForPill)} 
+                            />
+                        </div>
+                        <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-700 transition-colors">
+                            <XIcon className="w-5 h-5" />
+                        </button>
+                    </div>
+                </header>
+                
+                {/* A seção de prompts só aparece para notas novas */}
+                {!isEditing && !content && promptsForToday.length > 0 && (
+                     <div className="p-4 border-b border-gray-700">
+                        <h3 className="text-sm font-semibold text-gray-300 mb-3 text-center">Inspire-se para começar...</h3>
+                        <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                            {promptsForToday.slice(0, 3).map((prompt, index) => (
+                                <button key={index} onClick={() => handlePromptClick(prompt)} className="text-xs text-center bg-gray-700/50 hover:bg-gray-700 transition-colors p-2 rounded-lg" >
+                                    {prompt}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                <main className="flex-1 p-4 sm:p-6 overflow-y-auto custom-scrollbar">
+                    <textarea ref={textareaRef} value={content} onChange={(e) => setContent(e.target.value)} placeholder="Escreva seus pensamentos, sentimentos e reflexões do dia aqui..." className="w-full h-full bg-transparent text-gray-200 resize-none focus:outline-none placeholder-gray-500 font-serif text-lg leading-relaxed" />
+                </main>
+                
+                <footer className="p-4 border-t border-gray-700 flex-shrink-0 flex items-center justify-between">
+                    <div>
+                        <p className="text-xs text-gray-500 mb-2 sm:hidden text-center">Como você se sentiu hoje?</p>
+                        <MoodSelector selectedMood={mood} onMoodSelect={setMood} />
+                    </div>
+                    <button
+                        onClick={handleSave}
+                        disabled={isSaving || !content.trim()}
+                        className="bg-purple-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-all transform hover:scale-110"
+                        aria-label="Salvar anotação"
                     >
                         {isSaving ? <Spinner /> : <CheckIcon className="w-6 h-6" />}
                     </button>
-                    <button 
-                        onClick={onClose}
-                        disabled={isSaving}
-                        className="bg-red-500 text-white rounded-full p-2 shadow-lg hover:bg-red-600 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-red-400 disabled:bg-gray-500 disabled:scale-100"
-                        title="Fechar (não salvar)"
-                    >
-                        <XIcon className="w-6 h-6" />
-                    </button>
-                </div>
-                
-                <div className="bg-[#FBF3D9] rounded-lg shadow-2xl w-full h-[80vh] flex flex-col">
-                    <header className="flex-shrink-0 mb-4 px-8 pt-12 pb-4 flex justify-between items-center">
-                        <h2 className="text-gray-700 font-serif font-bold text-xl">{formattedDate}</h2>
-                        <div onClick={() => onInfoClick(personalDay)}>
-                            <VibrationPill vibrationNumber={personalDay} />
-                        </div>
-                    </header>
-                    
-                    <div className="flex-1 overflow-y-auto custom-scrollbar-light px-8 pb-8">
-                        <textarea
-                            ref={textAreaRef}
-                            value={localContent}
-                            onChange={(e) => setLocalContent(e.target.value)}
-                            placeholder="Comece a escrever aqui..."
-                            className="w-full h-full bg-transparent text-gray-800 placeholder-gray-500 focus:outline-none resize-none font-serif text-lg leading-relaxed"
-                        />
-                    </div>
-                </div>
+                </footer>
             </div>
         </div>
     );

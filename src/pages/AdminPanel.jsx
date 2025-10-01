@@ -175,7 +175,6 @@ const EditContentModal = ({ contentData, onClose, onSave, contentKey }) => {
     const renderField = (key, value) => {
         if (key === 'numero' || key === 'id') return null;
         const label = key.charAt(0).toUpperCase() + key.slice(1);
-        // ATUALIZAÇÃO: Adicionado 'inspiracao' para ser tratado como textarea
         const isTextarea = key === 'desc' || key === 'descricao' || key === 'texto' || key === 'inspiracao';
         const isArray = Array.isArray(value);
         if (isTextarea) return (<div key={key}><label className="text-sm text-gray-400">{label}</label><textarea name={key} value={value || ''} onChange={handleChange} rows="4" className="w-full bg-gray-900 border border-gray-600 rounded-lg p-2 mt-1" /></div>);
@@ -208,7 +207,7 @@ const ContentManagementView = () => {
     const [editingItem, setEditingItem] = useState(null);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     
-    // ATUALIZAÇÃO: Lista de conteúdos a serem gerenciados.
+    // ATUALIZAÇÃO: Adicionada a nova chave 'journalPrompts'
     const contentKeys = [
         { id: 'textosArcanos', name: 'Arcanos' },
         { id: 'textosDiaPessoal', name: 'Dia Pessoal' },
@@ -217,7 +216,8 @@ const ContentManagementView = () => {
         { id: 'textosCiclosDeVida', name: 'Ciclos de Vida' },
         { id: 'bussolaAtividades', name: 'Bússola' },
         { id: 'textosVibracoes', name: 'Vibrações' },
-        { id: 'textosExplicativos', name: 'Explicações' }
+        { id: 'textosExplicativos', name: 'Explicações' },
+        { id: 'journalPrompts', name: 'Prompts do Diário' } // <-- NOVA LINHA ADICIONADA
     ];
 
     useEffect(() => {
@@ -235,7 +235,7 @@ const ContentManagementView = () => {
                     }
                 }
                 setContent(fetchedContent);
-            } catch (err) { console.error("Erro:", err); }
+            } catch (err) { console.error("Erro ao buscar conteúdo:", err); }
             finally { setIsLoading(false); }
         };
         fetchAllContent();
@@ -243,15 +243,39 @@ const ContentManagementView = () => {
 
     const handleSave = async (id, dataToSave) => {
         try {
-            await updateDoc(doc(db, "textos_sistema", activeTab), { [id]: dataToSave });
-            setContent(prev => ({ ...prev, [activeTab]: prev[activeTab].map(item => item.id === id ? { id, data: dataToSave } : item) }));
-        } catch (error) { console.error("Erro:", error); alert("Erro ao salvar."); }
+            // A lógica de salvamento para `journalPrompts` precisa ser diferente
+            if (activeTab === 'journalPrompts') {
+                const docRef = doc(db, "textos_sistema", activeTab);
+                const currentDoc = await getDoc(docRef);
+                const currentData = currentDoc.data() || {};
+                const updatedData = { ...currentData, [id]: dataToSave };
+                await updateDoc(docRef, updatedData);
+                
+                // Atualiza o estado local
+                 setContent(prev => {
+                    const updatedActiveContent = prev[activeTab].map(item => 
+                        item.id === id ? { ...item, data: dataToSave } : item
+                    );
+                    return { ...prev, [activeTab]: updatedActiveContent };
+                });
+
+            } else {
+                 await updateDoc(doc(db, "textos_sistema", activeTab), { [id]: dataToSave });
+                 setContent(prev => ({ ...prev, [activeTab]: prev[activeTab].map(item => item.id === id ? { id, data: dataToSave } : item) }));
+            }
+        } catch (error) { console.error("Erro ao salvar conteúdo:", error); alert("Erro ao salvar."); }
     };
     
     const activeContent = content[activeTab] || [];
     const filteredContent = activeContent.filter(item => {
         const searchTerm = filtro.toLowerCase();
         if (item.id.toString().toLowerCase().includes(searchTerm)) return true;
+        
+        // Trata a busca em arrays (como em journalPrompts)
+        if (Array.isArray(item.data)) {
+            return item.data.some(prompt => String(prompt).toLowerCase().includes(searchTerm));
+        }
+
         for (const key in item.data) {
             if (String(item.data[key]).toLowerCase().includes(searchTerm)) return true;
         }
