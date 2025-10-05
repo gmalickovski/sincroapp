@@ -3,7 +3,8 @@ import { collection, addDoc, onSnapshot } from 'firebase/firestore';
 import { db, auth } from '../services/firebase';
 import CreateGoalModal from '../components/ui/CreateGoalModal';
 import GoalDetail from './GoalDetail';
-import { PlusIcon, IconTarget } from '../components/ui/Icons';
+// Importando os ícones necessários
+import { PlusIcon, IconTarget, CalendarIcon } from '../components/ui/Icons';
 
 const Goals = ({ data }) => { 
   const [goals, setGoals] = useState([]);
@@ -41,10 +42,10 @@ const Goals = ({ data }) => {
   const formatDate = (dateString) => {
     if (!dateString) return 'Data não definida';
     const date = new Date(dateString + 'T00:00:00');
-    return date.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+    // Usando formato numérico para os cards menores
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
-  // AQUI ESTÁ A MUDANÇA: Passamos a prop 'data' para o GoalDetail
   if (selectedGoal) {
     return <GoalDetail goal={selectedGoal} onBack={() => setSelectedGoal(null)} data={data} />;
   }
@@ -87,10 +88,16 @@ const Goals = ({ data }) => {
                       <span className="text-sm font-medium text-gray-300">Progresso</span>
                       <span className="text-sm font-medium text-purple-400">{goal.progress}%</span>
                   </div>
-                  <div className="w-full bg-gray-700 rounded-full h-2.5">
+                  <div className="w-full bg-gray-700 rounded-full h-2.5 mb-3">
                     <div className="bg-purple-600 h-2.5 rounded-full" style={{ width: `${goal.progress}%` }}></div>
                   </div>
-                  <p className="text-right text-xs text-gray-500 mt-2">Data Alvo: {formatDate(goal.targetDate)}</p>
+                  {/* ### ALTERAÇÃO APLICADA AQUI ### */}
+                  {/* Novo layout para a Data Alvo */}
+                  <div className="flex items-center justify-end text-xs">
+                      <CalendarIcon className="w-4 h-4 mr-1.5 text-gray-400" />
+                      <span className="text-gray-400 mr-1">Alvo:</span>
+                      <span className="font-semibold text-purple-300">{formatDate(goal.targetDate)}</span>
+                  </div>
                 </div>
               </div>
             ))}
