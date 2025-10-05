@@ -7,16 +7,16 @@ admin.initializeApp();
 
 // --- INÍCIO DA CLOUD FUNCTION PARA IA (VERSÃO CORRIGIDA E FINAL) ---
 
+// ### CORREÇÃO: Lendo a chave a partir das configs do Firebase ###
 // Carrega a chave de API a partir das variáveis de ambiente do Firebase
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
+const genAI = new GoogleGenerativeAI(functions.config().gemini.key);
 
-// ### CORREÇÃO: Voltando para 'onCall' que resolve o CORS e o Bad Request automaticamente ###
 exports.generateMilestones = functions.https.onCall(async (data, context) => {
   // 1. Autenticação (já inclusa no 'onCall')
   if (!context.auth) {
     throw new functions.https.HttpsError(
-        "unauthenticated",
-        "Você precisa estar autenticado para usar esta funcionalidade.",
+      "unauthenticated",
+      "Você precisa estar autenticado para usar esta funcionalidade.",
     );
   }
 
@@ -63,9 +63,13 @@ exports.generateMilestones = functions.https.onCall(async (data, context) => {
 
 // Suas funções existentes permanecem intactas abaixo
 
-const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL;
+const N8N_WEBHOOK_URL = functions.config().n8n?.url; // Boa prática: usar configs para webhooks também
 
 const sendToWebhook = async (payload) => {
+  if (!N8N_WEBHOOK_URL) {
+      functions.logger.warn("URL do Webhook N8N não configurada. Pulando o envio.");
+      return;
+  }
   try {
     functions.logger.info("Tentando enviar dados para o n8n:", payload);
     await axios.post(N8N_WEBHOOK_URL, payload);
