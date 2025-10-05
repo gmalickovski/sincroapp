@@ -3,7 +3,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, connectAuthEmulator } from "firebase/auth";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
-import { getFunctions, connectFunctionsEmulator } from "firebase/functions"; // ADICIONADO
+import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 
 // Configuração do Firebase a partir das variáveis de ambiente
 const firebaseConfig = {
@@ -21,23 +21,39 @@ const app = initializeApp(firebaseConfig);
 // Pega as instâncias dos serviços
 const auth = getAuth(app);
 const db = getFirestore(app);
-const functions = getFunctions(app, 'southamerica-east1'); // ADICIONADO (especificar a região é uma boa prática)
 
-// Conecta aos emuladores APENAS em ambiente de desenvolvimento
+// Declara a variável 'functions' que será configurada abaixo
+let functions;
+
+// Lógica de ambiente para diferenciar desenvolvimento de produção
 if (import.meta.env.DEV) {
-  try {
-    // Para o Auth Emulator, é uma boa prática não usar a chave de produção.
-    firebaseConfig.apiKey = "firebase-emulator-api-key";
+  // --- AMBIENTE DE DESENVOLVIMENTO (npm run dev) ---
+  
+  // Inicializa sem região para poder conectar ao emulador local
+  functions = getFunctions(app);
 
+  try {
+    // Usa uma chave de API genérica para o emulador
+    firebaseConfig.apiKey = "firebase-emulator-api-key";
+    
+    // Conecta aos emuladores locais
     connectAuthEmulator(auth, "http://localhost:9099", { disableWarnings: true });
     connectFirestoreEmulator(db, "localhost", 8080);
-    connectFunctionsEmulator(functions, "localhost", 5001); // ADICIONADO
-
+    connectFunctionsEmulator(functions, "localhost", 5001);
+    
     console.log("✅ Conexão com emuladores (Auth, Firestore, Functions) estabelecida com sucesso!");
   } catch (error) {
     console.error("❌ Erro ao conectar aos emuladores em firebase.js:", error);
   }
+
+} else {
+  // --- AMBIENTE DE PRODUÇÃO (npm run build) ---
+  
+  // Inicializa especificando a região onde a função foi publicada ('us-central1')
+  functions = getFunctions(app, 'us-central1');
+  console.log("✅ Conectado aos serviços de produção do Firebase.");
 }
 
-// Exporta os serviços já configurados
-export { auth, db, functions }; // ADICIONADO
+
+// Exporta os serviços já configurados para serem usados no resto do app
+export { auth, db, functions };
