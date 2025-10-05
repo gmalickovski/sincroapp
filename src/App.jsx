@@ -3,35 +3,46 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, onSnapshot, setDoc, collection, addDoc, updateDoc, deleteDoc, Timestamp } from "firebase/firestore";
 
+// Context
+import { AppProvider } from './contexts/AppContext'; // 1. Importar o AppProvider
+
+// Serviços e Dados
 import { auth, db } from './services/firebase';
 import numerologyEngine from './services/numerologyEngine';
 import { textosExplicativos, textosVibracoes } from './data/content'; 
 
+// Componentes UI
 import Spinner from './components/ui/Spinner';
+import UserDetailsModal from './components/ui/UserDetailsModal';
+import NewNoteEditor from './components/ui/NewNoteEditor';
+import InfoModal from './components/ui/InfoModal';
+import SettingsModal from './components/ui/SettingsModal'; 
+import UpgradeModal from './components/ui/UpgradeModal';
+
+// Layout
+import Sidebar from './components/layout/Sidebar';
+import Header from './components/layout/Header';
+
+// Páginas
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
-import UserDetailsModal from './components/ui/UserDetailsModal';
-import Sidebar from './components/layout/Sidebar';
-import Header from './components/layout/Header';
 import Dashboard from './pages/Dashboard';
 import Calendar from './pages/Calendar';
 import Journal from './pages/Journal';
 import Tasks from './pages/Tasks';
+import Goals from './pages/Goals'; // 2. Importar a página de Metas
 import AdminPanel from './pages/AdminPanel';
-import NewNoteEditor from './components/ui/NewNoteEditor';
-import InfoModal from './components/ui/InfoModal';
-import SettingsModal from './components/ui/SettingsModal'; 
-import UpgradeModal from './components/ui/UpgradeModal';
 
 let handleSaveUserDetails;
 
 const PrivateRoute = ({ user, userData, isLoading, showDetailsModal }) => {
     if (isLoading) { return <div className="min-h-screen bg-gray-900 flex items-center justify-center"><Spinner /></div>; }
     if (!user) { return <Navigate to="/login" replace />; }
+    // O UserDetailsModal é renderizado aqui, e agora estará dentro do AppProvider
     if (showDetailsModal) { return <div className="min-h-screen bg-gray-900"><UserDetailsModal onSave={handleSaveUserDetails} /></div>; }
     if (user && userData) { return <Outlet />; }
     return <div className="min-h-screen bg-gray-900 flex items-center justify-center"><Spinner /></div>;
@@ -89,6 +100,8 @@ const AppLayout = ({ user, userData, taskUpdater }) => {
                 return <Journal user={user} userData={userData} setEditingEntry={handleEditNote} openNewNoteEditor={handleOpenNewNote} onInfoClick={handleInfoClick} />;
             case 'tasks': 
                 return <Tasks user={user} userData={userData} setActiveView={setActiveView} onInfoClick={handleInfoClick} taskUpdater={taskUpdater} />;
+            case 'goals': // 3. Adicionado o case para a view de Metas
+                return <Goals {...viewProps} />;
             case 'admin': 
                 return userData?.isAdmin ? <AdminPanel /> : <Navigate to="/app" />;
             default: 
@@ -122,10 +135,6 @@ const AppLayout = ({ user, userData, taskUpdater }) => {
                     onSettingsClick={() => setIsSettingsModalOpen(true)}
                 />
 
-                {/* --- MUDANÇA PRINCIPAL --- 
-                  Adicionado 'flex flex-col items-center' para centralizar o conteúdo da página.
-                  As classes de margem para o sidebar foram mantidas e estão corretas.
-                */}
                 <main className={`flex-1 overflow-y-auto overflow-x-hidden transition-all duration-300 ease-in-out flex flex-col items-center ${mobileState === 'pinned' ? 'max-lg:ml-16' : ''}`}>
                     {numerologyData ? renderView() : <div className="h-full w-full flex justify-center items-center"><Spinner /></div>}
                 </main>
@@ -147,7 +156,6 @@ const AppLayout = ({ user, userData, taskUpdater }) => {
 };
 
 function App() {
-    // ... O resto do seu código App() permanece exatamente igual ...
     const [user, setUser] = useState(null);
     const [userData, setUserData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -217,21 +225,24 @@ function App() {
     }
 
     return (
-        <Router>
-            <Routes>
-                <Route path="/" element={user ? <Navigate to="/app" replace /> : <LandingPage />} />
-                <Route path="/login" element={user && !isLoading ? <Navigate to="/app"/> : <LoginPage />} />
-                <Route path="/register" element={user && !isLoading ? <Navigate to="/app"/> : <RegisterPage />} />
-                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                <Route path="/terms-of-service" element={<TermsOfService />} />
-                
-                <Route path="/app" element={<PrivateRoute user={user} userData={userData} isLoading={isLoading} showDetailsModal={showDetailsModal} />}>
-                    <Route index element={<AppLayout user={user} userData={userData} taskUpdater={taskUpdater} />} />
-                </Route>
-                 <Route path="*" element={<Navigate to={user ? "/app" : "/"} replace />} />
-            </Routes>
-        </Router>
+        // 4. O AppProvider envolve toda a aplicação, corrigindo o erro
+        <AppProvider>
+            <Router>
+                <Routes>
+                    <Route path="/" element={user ? <Navigate to="/app" replace /> : <LandingPage />} />
+                    <Route path="/login" element={user && !isLoading ? <Navigate to="/app"/> : <LoginPage />} />
+                    <Route path="/register" element={user && !isLoading ? <Navigate to="/app"/> : <RegisterPage />} />
+                    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                    <Route path="/terms-of-service" element={<TermsOfService />} />
+                    
+                    <Route path="/app" element={<PrivateRoute user={user} userData={userData} isLoading={isLoading} showDetailsModal={showDetailsModal} />}>
+                        <Route index element={<AppLayout user={user} userData={userData} taskUpdater={taskUpdater} />} />
+                    </Route>
+                    <Route path="*" element={<Navigate to={user ? "/app" : "/"} replace />} />
+                </Routes>
+            </Router>
+        </AppProvider>
     );
 }
 

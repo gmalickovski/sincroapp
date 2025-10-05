@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { HomeIcon, CalendarIcon, BookIcon, CheckSquareIcon, SettingsIcon, LogOutIcon, UserIcon, PanelLeftCloseIcon } from '../ui/Icons';
+// Adicionando o novo IconTarget à lista de importações
+import { HomeIcon, CalendarIcon, BookIcon, CheckSquareIcon, SettingsIcon, LogOutIcon, UserIcon, PanelLeftCloseIcon, IconTarget } from '../ui/Icons';
 
 const Sidebar = ({ 
     activeView, 
@@ -33,6 +34,8 @@ const Sidebar = ({
         { id: 'calendar', icon: <CalendarIcon className="h-5 w-5 flex-shrink-0" />, label: 'Calendário' },
         { id: 'journal', icon: <BookIcon className="h-5 w-5 flex-shrink-0" />, label: 'Anotações do Dia' },
         { id: 'tasks', icon: <CheckSquareIcon className="h-5 w-5 flex-shrink-0" />, label: 'Diário de Tarefas' },
+        // Adicionando o novo item de menu para Metas
+        { id: 'goals', icon: <IconTarget className="h-5 w-5 flex-shrink-0" />, label: 'Metas' },
     ];
     if (userData?.isAdmin) {
         navItems.push({ id: 'admin', icon: <UserIcon className="h-5 w-5 flex-shrink-0" />, label: 'Painel Admin' });
@@ -73,7 +76,6 @@ const Sidebar = ({
                                      ${!isTextVisible ? 'justify-center' : 'justify-start'}
                                      ${ activeView === item.id ? 'bg-purple-600 text-white' : 'hover:bg-gray-800 hover:text-white'}`}>
                             {item.icon}
-                            {/* CORREÇÃO DE CENTRALIZAÇÃO: A margem 'ml-4' agora é condicional */}
                             <span className={`font-medium whitespace-nowrap overflow-hidden transition-opacity duration-200 ${isTextVisible ? 'ml-4 opacity-100' : 'opacity-0 w-0'}`}>
                                 {item.label}
                             </span>
@@ -82,27 +84,25 @@ const Sidebar = ({
                 </nav>
 
                 <div className="py-4 px-2 border-t border-gray-700/50 space-y-2">
-                       <a href="#" onClick={(e) => { e.preventDefault(); onSettingsClick(); }}
-                           title="Configurações"
-                           className={`flex items-center p-3 rounded-lg transition-colors duration-200 
+                        <a href="#" onClick={(e) => { e.preventDefault(); onSettingsClick(); }}
+                            title="Configurações"
+                            className={`flex items-center p-3 rounded-lg transition-colors duration-200 
                                      ${!isTextVisible ? 'justify-center' : 'justify-start'}
                                      ${ activeView === 'settings' ? 'bg-purple-600 text-white' : 'hover:bg-gray-800 hover:text-white'}`}>
-                           <SettingsIcon className="h-5 w-5 flex-shrink-0" />
-                           {/* CORREÇÃO DE CENTRALIZAÇÃO: A margem 'ml-4' agora é condicional */}
-                           <span className={`font-medium whitespace-nowrap overflow-hidden transition-opacity duration-200 ${isTextVisible ? 'ml-4 opacity-100' : 'opacity-0 w-0'}`}>
-                               Configurações
-                           </span>
-                       </a>
-                       <a href="#" onClick={(e) => { e.preventDefault(); onLogout(); }}
-                           title="Sair"
-                           className={`flex items-center p-3 rounded-lg transition-colors duration-200 text-red-400 hover:bg-red-500/20 hover:text-red-300
+                            <SettingsIcon className="h-5 w-5 flex-shrink-0" />
+                            <span className={`font-medium whitespace-nowrap overflow-hidden transition-opacity duration-200 ${isTextVisible ? 'ml-4 opacity-100' : 'opacity-0 w-0'}`}>
+                                Configurações
+                            </span>
+                        </a>
+                        <a href="#" onClick={(e) => { e.preventDefault(); onLogout(); }}
+                            title="Sair"
+                            className={`flex items-center p-3 rounded-lg transition-colors duration-200 text-red-400 hover:bg-red-500/20 hover:text-red-300
                                      ${!isTextVisible ? 'justify-center' : 'justify-start'}`}>
-                           <LogOutIcon className="h-5 w-5 flex-shrink-0" />
-                           {/* CORREÇÃO DE CENTRALIZAÇÃO: A margem 'ml-4' agora é condicional */}
-                           <span className={`font-medium whitespace-nowrap overflow-hidden transition-opacity duration-200 ${isTextVisible ? 'ml-4 opacity-100' : 'opacity-0 w-0'}`}>
-                               Sair
-                           </span>
-                       </a>
+                            <LogOutIcon className="h-5 w-5 flex-shrink-0" />
+                            <span className={`font-medium whitespace-nowrap overflow-hidden transition-opacity duration-200 ${isTextVisible ? 'ml-4 opacity-100' : 'opacity-0 w-0'}`}>
+                                Sair
+                            </span>
+                        </a>
                 </div>
             </aside>
         </>

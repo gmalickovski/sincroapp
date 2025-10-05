@@ -1,79 +1,94 @@
-// Textos para a Energia do Dia no Dashboard
+
+// src/data/content.js
+
 export const textosDescritivos = {
   diaPessoal: {
     1: {
       titulo: "Início e Ação",
+      descricaoCurta: "Ótimo para iniciar projetos, tomar decisões importantes e agir com independência.",
       desc: "Hoje é um dia para plantar sementes. Tome a iniciativa, lidere com confiança e não tenha medo de começar algo novo. A energia é de independência e coragem.",
       tags: ["Liderança", "Inovação", "Coragem"],
       inspiracao: "A página está em branco e a caneta está na sua mão. Hoje, a energia do número 1 te convida a ser o autor da sua própria história. Não espere por permissão ou pelo momento perfeito. O impulso criador do universo flui através de você, pedindo ação, coragem e originalidade. Dê o primeiro passo naquele projeto, faça aquela ligação importante, seja a força pioneira na sua vida. O caminho se revela para quem ousa caminhar. Confie na sua força e lidere seu dia com propósito."
     },
     2: {
       titulo: "Cooperação e Diplomacia",
+      descricaoCurta: "Favorece parcerias, trabalho em equipe, negociações e atividades que exigem paciência.",
       desc: "Foque em parcerias e no trabalho em equipe. A paciência e a diplomacia são suas melhores ferramentas. Ouça mais, seja receptivo e busque harmonia.",
       tags: ["Paciência", "Tato", "União"],
       inspiracao: "Nenhuma sinfonia é feita de uma única nota. Hoje, a vibração do 2 pede que você encontre a beleza na harmonia e na colaboração. É um dia para ouvir com o coração, para construir pontes em vez de muros. Sua força não está na imposição, mas na gentileza e na capacidade de unir. Seja o diplomata nas suas relações, o parceiro que apoia, a calma que equilibra. Nas trocas genuínas, você encontrará as soluções e a paz que busca. Lembre-se: juntos, somos mais fortes."
     },
     3: {
       titulo: "Comunicação e Criatividade",
+      descricaoCurta: "Ideal para reuniões criativas, socializar, escrever, apresentar ideias e se expressar.",
       desc: "Expresse-se! Um ótimo dia para socializar, escrever, e dar vazão à sua criatividade. O otimismo e a alegria estão no ar, aproveite para se conectar.",
       tags: ["Expressão", "Otimismo", "Sociabilidade"],
       inspiracao: "Sua alma tem uma voz, e hoje ela quer ser ouvida. A energia vibrante do 3 te convida a se expressar de todas as formas: através da palavra, da arte, do riso. Não guarde sua luz. Compartilhe suas ideias, conecte-se com pessoas, espalhe otimismo. A criatividade flui livremente, então permita-se criar sem julgamentos. Hoje é um dia para celebrar a vida, encontrar alegria nas pequenas coisas e deixar sua marca colorida no mundo. Comunique sua verdade com leveza e veja a magia acontecer."
     },
     4: {
       titulo: "Estrutura e Trabalho",
+      descricaoCurta: "Perfeito para organizar tarefas, planejar, focar em detalhes e realizar trabalhos práticos.",
       desc: "Dia de arregaçar as mangas. Foco na organização, no planejamento e no trabalho duro. Construa bases sólidas para seus projetos com disciplina e pé no chão.",
       tags: ["Ordem", "Disciplina", "Praticidade"],
       inspiracao: "Grandes catedrais são construídas tijolo por tijolo. Hoje, a energia do 4 te oferece a disciplina e a estabilidade para construir os alicerces dos seus sonhos. É um dia para transformar ideias em planos concretos e planos em ações consistentes. Organize seu espaço, sua mente e suas tarefas. O esforço dedicado agora trará segurança e resultados duradouros no futuro. Não busque atalhos; encontre a satisfação no trabalho bem-feito e na dedicação ao seu propósito. A paciência e a persistência são suas maiores aliadas."
     },
     5: {
       titulo: "Mudança e Liberdade",
+      descricaoCurta: "Propício para experimentar coisas novas, quebrar a rotina, viajar e ser flexível.",
       desc: "Abrace o inesperado. A energia de hoje favorece a mudança, a aventura e a versatilidade. Esteja aberto a novas experiências e fuja da rotina.",
       tags: ["Versatilidade", "Aventura", "Liberdade"],
       inspiracao: "O vento da mudança sopra a seu favor. A energia dinâmica do 5 te convida a quebrar a rotina e a se aventurar pelo desconhecido. Permita-se ser flexível, curioso e aberto a novas possibilidades. Hoje é um dia para experimentar um novo caminho, conversar com pessoas diferentes, aprender algo inusitado. A liberdade está em se adaptar e em encontrar crescimento na variedade. Não se apegue rigidamente aos planos; as melhores experiências do dia podem ser aquelas que você não planejou. Sinta o fluxo e mova-se com ele."
     },
     6: {
       titulo: "Harmonia e Responsabilidade",
+      descricaoCurta: "Foque em tarefas domésticas, assuntos familiares, e em resolver questões com diplomacia.",
       desc: "Um dia voltado para o lar, a família e a comunidade. Busque harmonia nos relacionamentos, cuide dos outros e assuma suas responsabilidades com amor.",
       tags: ["Família", "Amor", "Serviço"],
       inspiracao: "Seu coração é o seu lar. Hoje, a energia amorosa do 6 te convida a nutrir suas relações e a encontrar beleza no serviço. É um dia para cuidar: de si mesmo, da sua família, dos seus amigos, da sua casa. A harmonia se manifesta quando você doa seu tempo e afeto. Resolva um mal-entendido, ofereça um ombro amigo, embeleze o ambiente ao seu redor. Ao assumir suas responsabilidades com um coração generoso, você não apenas ajuda os outros, mas também cura e equilibra a si mesmo. O amor é a maior força de hoje."
     },
     7: {
       titulo: "Introspecção e Análise",
+      descricaoCurta: "Excelente para estudar, refletir, meditar e analisar projetos com mais profundidade.",
       desc: "Momento de olhar para dentro. Um dia perfeito para estudo, meditação e análise. Confie na sua intuição e busque respostas no silêncio.",
       tags: ["Sabedoria", "Fé", "Reflexão"],
       inspiracao: "O universo sussurra segredos para aqueles que silenciam para ouvir. Hoje, a energia introspectiva do 7 te chama para um encontro com sua própria sabedoria interior. Afaste-se do barulho do mundo e mergulhe nas profundezas da sua mente e do seu espírito. É um dia ideal para ler, estudar, meditar ou simplesmente estar em contato com a natureza. As respostas que você procura não estão fora, mas dentro. Confie na sua intuição; ela é a sua bússola mais fiel. A quietude de hoje revelará a clareza de amanhã."
     },
     8: {
       titulo: "Poder e Ambição",
+      descricaoCurta: "Ideal para focar em finanças, negócios, carreira e tomar decisões estratégicas.",
       desc: "Foque em suas finanças, carreira e poder pessoal. Um dia de grande força para tomar decisões importantes e colher os frutos do seu esforço. Seja justo e ético.",
       tags: ["Autoridade", "Sucesso", "Finanças"],
       inspiracao: "Você é mais poderoso do que imagina. Hoje, a energia magnética do 8 te alinha com o sucesso, a abundância e a sua capacidade de realização. É um dia para assumir o controle da sua vida profissional e financeira com confiança e visão estratégica. Tome decisões importantes, negocie, apresente seus projetos. Lembre-se que o verdadeiro poder vem com a responsabilidade. Use sua força para construir, para prosperar e para impactar positivamente o mundo ao seu redor. Aja com integridade e o universo recompensará sua ambição."
     },
     9: {
       titulo: "Finalização e Compaixão",
+      descricaoCurta: "Perfeito para concluir tarefas pendentes, organizar e limpar, e resolver pontas soltas.",
       desc: "Dia de concluir ciclos. Deixe ir o que não serve mais para abrir espaço para o novo. A energia é de compaixão, perdão e humanitarismo.",
       tags: ["Compaixão", "Desapego", "Universalismo"],
       inspiracao: "Toda porta que se fecha abre espaço para uma nova paisagem. A energia do 9 te convida a olhar para o passado com gratidão e a liberar o que já cumpriu seu propósito. É um dia de faxina emocional: perdoe, desapegue, finalize tarefas pendentes. Ao fazer isso, você não apenas cura a si mesmo, mas também abre um imenso espaço para o novo entrar. Sua compaixão está amplificada, então estenda a mão a quem precisa. O fim de um ciclo é sempre o prenúncio de um recomeço ainda mais brilhante."
     },
     11: {
       titulo: "Intuição e Revelação",
+      descricaoCurta: "Dia propício para tarefas que lidam com pessoas, reuniões e que exigem sensibilidade.",
       desc: "Um dia mestre de alta sensibilidade. Confie plenamente na sua intuição. Inspirações e revelações podem surgir. Mantenha o equilíbrio emocional e espiritual.",
       tags: ["Inspiração", "Idealismo", "Espiritualidade"],
       inspiracao: "Há uma conexão direta entre você e o cosmos hoje. A vibração elevada do Mestre 11 abre um portal para a sua intuição mais profunda. Preste atenção aos sinais, aos sonhos, àquela voz suave que guia seus passos. Grandes ideias e revelações espirituais estão ao seu alcance. Sua sensibilidade está aguçada, então se cerque de energias positivas. Você tem o poder de inspirar a si mesmo e aos outros. Canalize essa luz para iluminar seus ideais mais elevados e confie na sabedoria que flui através de você."
     },
     22: {
       titulo: "Construção e Poder",
+      descricaoCurta: "Excelente para transformar grandes ideias em planos práticos e avançar em projetos.",
       desc: "Um dia mestre com enorme potencial para realizações práticas. Sonhe grande, mas planeje com cuidado. Você tem o poder de transformar ideias em realidade.",
       tags: ["Pragmatismo", "Poder", "Realização"],
       inspiracao: "Você é o arquiteto do seu destino. A poderosa energia do Mestre 22 te entrega as ferramentas para construir sonhos no mundo material. Hoje, sua capacidade de unir o visionário ao prático está no auge. Não se contente com pouco. Pense grande, mas planeje com os pés no chão. Cada passo prático e disciplinado que você der hoje tem o potencial de criar um impacto duradouro. Transforme suas maiores inspirações em projetos concretos. O poder de manifestar uma realidade melhor está em suas mãos."
     },
     default: {
       titulo: "Vibração Neutra",
+      descricaoCurta: "Um bom dia para fluir com os acontecimentos, sem forçar uma direção específica.",
       desc: "Dia de energia equilibrada. Observe os acontecimentos e flua com eles, sem forçar nenhuma direção específica.",
       tags: ["Equilíbrio"]
     }
   },
 
+// ... (Restante do seu arquivo content.js)
   mesPessoal: {
     1: {
       titulo: "Mês de Inícios",

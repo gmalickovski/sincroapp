@@ -1,7 +1,5 @@
-// src/components/ui/TaskSheet.jsx
-
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { PlusIcon, TrashIcon, CheckIcon, CheckAllIcon, ChevronDownIcon } from './Icons';
+import { PlusIcon, TrashIcon, CheckIcon, CheckAllIcon, ChevronDownIcon, IconTarget } from './Icons'; // 1. Adicionar IconTarget
 import VibrationPill from './VibrationPill';
 
 // --- Função Utilitária para debounce ---
@@ -32,10 +30,16 @@ const TaskItem = ({ task, onUpdate, onDelete, onToggle, onEnter }) => {
     return (
         <div className="flex items-center group bg-gray-800/50 hover:bg-gray-800/90 rounded-lg p-2 transition-colors">
             <CustomCheckbox />
+            
+            {/* 2. ÍCONE DE META (adicionado aqui) */}
+            {task.goalId && (
+                <div title={`Meta: ${task.goalTitle || ''}`} className="ml-2 text-purple-400 cursor-help flex-shrink-0">
+                    <IconTarget className="w-4 h-4" />
+                </div>
+            )}
+
             <input type="text" value={text} onChange={handleChange} onBlur={handleBlur} onKeyDown={handleKeyDown} placeholder="Escreva uma tarefa..." className={`flex-1 mx-3 bg-transparent focus:outline-none text-sm leading-tight ${task.completed ? 'line-through text-gray-500' : 'text-gray-200'}`} />
             
-            {/* ### CORREÇÃO FINAL APLICADA AQUI ### */}
-            {/* O ícone agora tem 'opacity-50' em telas pequenas por padrão, e o comportamento de hover só no desktop ('lg') */}
             <button onClick={() => onDelete(task.id)} className="flex-shrink-0 text-gray-600 hover:text-red-400 opacity-50 lg:opacity-0 group-hover:opacity-100 transition-opacity" title="Excluir tarefa"><TrashIcon className="w-4 h-4" /></button>
         </div>
     );

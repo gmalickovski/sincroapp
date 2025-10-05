@@ -10,8 +10,14 @@ body {
 }
 
 .custom-date-input::-webkit-calendar-picker-indicator {
-  display: none;
-  -webkit-appearance: none;
+  filter: invert(1);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.custom-date-input::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
 }
 
 /* Estilo "Folha de Diário" Minimalista */
@@ -56,4 +62,8 @@ body {
 
 .custom-scrollbar-light::-webkit-scrollbar-thumb:hover {
   background-color: #c9c2a9; /* Cor da barra ao passar o mouse */
+}
+
+.equal-height-swiper .swiper-wrapper {
+    align-items: stretch;
 }

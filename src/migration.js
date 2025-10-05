@@ -9,7 +9,7 @@ import {
     textosCiclosDeVida,
     textosExplicativos,
     textosVibracoes,
-    journalPrompts // <-- ADICIONADA A NOVA IMPORTAÇÃO
+    journalPrompts
 } from './data/content.js';
 
 export const runMigration = async () => {
@@ -20,7 +20,8 @@ export const runMigration = async () => {
     console.log("Iniciando migração completa de textos para o Firestore...");
 
     try {
-        // Mapeia os objetos para os nomes dos documentos no Firestore
+        // O objeto já inclui a referência correta para 'textosDescritivos.diaPessoal',
+        // que agora contém o campo 'descricaoCurta'. Nenhuma alteração é necessária aqui.
         const migrations = {
             "textosArcanos": textosArcanos,
             "bussolaAtividades": bussolaAtividades,
@@ -30,7 +31,7 @@ export const runMigration = async () => {
             "textosAnoPessoal": textosDescritivos.anoPessoal,
             "textosExplicativos": textosExplicativos,
             "textosVibracoes": textosVibracoes,
-            "journalPrompts": journalPrompts // <-- ADICIONADA A NOVA MIGRAÇÃO
+            "journalPrompts": journalPrompts
         };
 
         // Itera e executa cada migração
