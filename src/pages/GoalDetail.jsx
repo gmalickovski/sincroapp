@@ -6,10 +6,11 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import { Pagination } from 'swiper/modules';
 import DicaDoDiaCard from '../components/ui/DicaDoDiaCard';
-import { ArrowLeftIcon, PlusIcon, TrashIcon, CheckIcon, ChevronUpIcon, ChevronDownIcon } from '../components/ui/Icons';
+// Importa o novo ícone e remove o 'PlusIcon' que não será mais usado no botão
+import { ArrowLeftIcon, TrashIcon, CheckIcon, ChevronUpIcon, ChevronDownIcon, ClipboardCheckIcon } from '../components/ui/Icons';
 import ScheduleMilestoneModal from '../components/ui/ScheduleMilestoneModal';
 
-// COMPONENTES COM AJUSTES
+// COMPONENTES (sem alterações)
 const GoalInfoCard = ({ goal, formatDate, className = '' }) => (
     <div className={`bg-gray-800 rounded-2xl shadow-lg p-6 flex flex-col ${className}`.trim()}>
         <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2">{goal.title}</h1>
@@ -33,7 +34,6 @@ const MilestonesList = ({ milestones, onToggle, onDelete }) => {
         const month = String(date.getMonth() + 1).padStart(2, '0');
         return `${day}/${month}`;
     };
-
     return (
         <div className="space-y-2 px-1 pb-4">
             {milestones.map(milestone => (
@@ -52,79 +52,40 @@ const MilestonesList = ({ milestones, onToggle, onDelete }) => {
     );
 };
 
-const AddMilestoneInput = ({ value, onChange, onKeyDown, inputRef }) => ( <div className="flex items-center group bg-gray-900 p-3 border-t-2 border-purple-800/30" onClick={() => inputRef.current?.focus()}><PlusIcon className="w-5 h-5 flex-shrink-0 text-gray-500 group-focus-within:text-purple-400" /><input ref={inputRef} type="text" value={value} onChange={onChange} onKeyDown={onKeyDown} placeholder="Adicionar novo marco..." className="flex-1 mx-3 bg-transparent focus:outline-none text-sm text-gray-300 placeholder-gray-500" /></div> );
-
 // =================================================================================
 // Componente principal
 // =================================================================================
 const GoalDetail = ({ goal: initialGoal, onBack, data }) => {
   const [currentGoal, setCurrentGoal] = useState(initialGoal);
   const [milestones, setMilestones] = useState([]);
-  const [newMilestoneText, setNewMilestoneText] = useState('');
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
-  const [milestoneToSchedule, setMilestoneToSchedule] = useState('');
   const [isTopSectionVisible, setIsTopSectionVisible] = useState(true);
   
   const user = auth.currentUser;
-  const inputRef = useRef(null);
   const diaPessoalNumero = data?.numeros?.diaPessoal;
 
-  // EFEITO 1: Ouve as atualizações da META em tempo real
-  useEffect(() => {
-    if (user && initialGoal.id) {
-        const goalDocRef = doc(db, 'users', user.uid, 'goals', initialGoal.id);
-        const unsubscribe = onSnapshot(goalDocRef, (doc) => {
-            if (doc.exists()) {
-                setCurrentGoal({ id: doc.id, ...doc.data() });
-            }
-        });
-        return () => unsubscribe();
-    }
-  }, [user, initialGoal.id]);
+  useEffect(() => { if (user && initialGoal.id) { const unsub = onSnapshot(doc(db, 'users', user.uid, 'goals', initialGoal.id), (doc) => { if (doc.exists()) { setCurrentGoal({ id: doc.id, ...doc.data() }); } }); return () => unsub(); } }, [user, initialGoal.id]);
+  useEffect(() => { if (user && currentGoal.id) { const q = query(collection(db, 'users', user.uid, 'tasks'), where('goalId', '==', currentGoal.id), orderBy('createdAt', 'asc')); const unsub = onSnapshot(q, (snapshot) => { setMilestones(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))); }); return () => unsub(); } }, [user, currentGoal.id]);
+  useEffect(() => { if (user && currentGoal.id) { if (milestones.length > 0) { const c = milestones.filter(m => m.completed).length; const p = Math.round((c / milestones.length) * 100); if (p !== currentGoal.progress) { updateDoc(doc(db, 'users', user.uid, 'goals', currentGoal.id), { progress: p }); } } else if (currentGoal.progress !== 0) { updateDoc(doc(db, 'users', user.uid, 'goals', currentGoal.id), { progress: 0 }); } } }, [milestones, user, currentGoal]);
 
-  // EFEITO 2: Ouve as atualizações dos MARCOS (tarefas)
-  useEffect(() => { 
-    if (user && currentGoal.id) { 
-        const tasksColRef = collection(db, 'users', user.uid, 'tasks'); 
-        const q = query(tasksColRef, where('goalId', '==', currentGoal.id), orderBy('createdAt', 'asc')); 
-        const unsubscribe = onSnapshot(q, (snapshot) => { setMilestones(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))); }); return () => unsubscribe(); 
-    } 
-  }, [user, currentGoal.id]);
-
-  // EFEITO 3: Atualiza o progresso da meta (agora está correto e reativo)
-  useEffect(() => { 
-    if (user && currentGoal.id) { 
-        if (milestones.length > 0) { 
-            const c = milestones.filter(m => m.completed).length; 
-            const p = Math.round((c / milestones.length) * 100); 
-            if (p !== currentGoal.progress) { 
-                updateDoc(doc(db, 'users', user.uid, 'goals', currentGoal.id), { progress: p }); 
-            } 
-        } else if (currentGoal.progress !== 0) { 
-            updateDoc(doc(db, 'users', user.uid, 'goals', currentGoal.id), { progress: 0 }); 
-        } 
-    } 
-  }, [milestones, user, currentGoal]);
-
-  const handleOpenScheduleModal = () => { const text = newMilestoneText.trim(); if (text === '') return; setMilestoneToSchedule(text); setIsScheduleModalOpen(true); setNewMilestoneText(''); };
+  const handleOpenScheduleModal = () => setIsScheduleModalOpen(true);
   
-  // NOVA LÓGICA DE AGENDAMENTO (SIMPLES E RECORRENTE)
+  // ### CORREÇÃO DO BUG DE PRODUÇÃO APLICADA AQUI ###
   const handleScheduleMilestone = async (scheduleData) => {
     if (!user || !currentGoal.id) return;
-
     const { title, startDate, isRecurrent, endDate, weekdays } = scheduleData;
+    if (!title) {
+        alert("O título do marco não pode estar vazio.");
+        return;
+    }
     const tasksColRef = collection(db, 'users', user.uid, 'tasks');
     
-    // Agendamento simples
     if (!isRecurrent) {
         const sDate = new Date(startDate.replace(/-/g, '/'));
-        try {
-            await addDoc(tasksColRef, { text: title, completed: false, createdAt: Timestamp.fromDate(sDate), goalId: currentGoal.id, goalTitle: currentGoal.title });
-        } catch (e) { console.error("Erro ao criar tarefa:", e); }
+        try { await addDoc(tasksColRef, { text: title, completed: false, createdAt: Timestamp.fromDate(sDate), goalId: currentGoal.id, goalTitle: currentGoal.title }); } catch (e) { console.error("Erro ao criar tarefa:", e); }
         return;
     }
 
-    // Agendamento recorrente
     const batch = writeBatch(db);
     let currentDate = new Date(startDate.replace(/-/g, '/'));
     const finalDate = new Date(endDate.replace(/-/g, '/'));
@@ -133,86 +94,63 @@ const GoalDetail = ({ goal: initialGoal, onBack, data }) => {
 
     while (currentDate <= finalDate) {
         if (selectedDays.includes(currentDate.getDay())) {
-            const newDocRef = doc(tasksColRef); // Cria uma referência para um novo documento
-            batch.set(newDocRef, {
-                text: title,
-                completed: false,
-                createdAt: Timestamp.fromDate(currentDate),
-                goalId: currentGoal.id,
-                goalTitle: currentGoal.title
-            });
+            const newDocRef = doc(tasksColRef);
+            batch.set(newDocRef, { text: title, completed: false, createdAt: Timestamp.fromDate(currentDate), goalId: currentGoal.id, goalTitle: currentGoal.title });
         }
         currentDate.setDate(currentDate.getDate() + 1);
     }
-
-    try {
-        await batch.commit();
-    } catch (e) {
-        console.error("Erro ao criar tarefas recorrentes:", e);
-    }
+    try { await batch.commit(); } catch (e) { console.error("Erro ao criar tarefas recorrentes:", e); }
   };
 
-  const handleNewMilestoneKeyDown = (e) => { if (e.key === 'Enter') { e.preventDefault(); handleOpenScheduleModal(); } };
   const handleToggleMilestone = async (m) => { if (user) { await updateDoc(doc(db, 'users', user.uid, 'tasks', m.id), { completed: !m.completed }); } };
   const handleDeleteMilestone = async (id) => { if (user) { await deleteDoc(doc(db, 'users', user.uid, 'tasks', id)); } };
   const formatDate = (dStr) => { if (!dStr) return ''; const date = new Date(dStr + 'T00:00:00'); return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }); };
 
   return (
     <>
-      <ScheduleMilestoneModal isOpen={isScheduleModalOpen} onClose={() => setIsScheduleModalOpen(false)} onSchedule={handleScheduleMilestone} milestoneTitle={milestoneToSchedule} />
+      <ScheduleMilestoneModal isOpen={isScheduleModalOpen} onClose={() => setIsScheduleModalOpen(false)} onSchedule={handleScheduleMilestone} milestoneTitle="" />
       
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in h-full lg:h-auto lg:py-8">
+        {/* Layout Mobile */}
         <div className="lg:hidden flex flex-col h-full">
-            <div className="flex-shrink-0 pt-4">
-              <button onClick={onBack} className="flex items-center text-sm font-semibold text-purple-400 hover:text-purple-300 transition-colors mb-4">
-                  <ArrowLeftIcon className="h-5 w-5 mr-2" />
-                  Voltar para todas as metas
-              </button>
-            </div>
+            <div className="flex-shrink-0 pt-4"><button onClick={onBack} className="flex items-center text-sm font-semibold text-purple-400 hover:text-purple-300 transition-colors mb-4"><ArrowLeftIcon className="h-5 w-5 mr-2" />Voltar</button></div>
             <div className={`flex-shrink-0 transition-all duration-300 ease-in-out overflow-hidden ${isTopSectionVisible ? 'max-h-96' : 'max-h-0 opacity-0'}`}>
                 <Swiper modules={[Pagination]} spaceBetween={16} slidesPerView={1} pagination={{ clickable: true }} className="pb-4 equal-height-swiper">
-                    <SwiperSlide className="h-full pb-4">
-                        <GoalInfoCard goal={currentGoal} formatDate={formatDate} className="h-full" />
-                    </SwiperSlide>
-                    <SwiperSlide className="h-full pb-4">
-                        <DicaDoDiaCard personalDayNumber={diaPessoalNumero} className="h-full" />
-                    </SwiperSlide>
+                    <SwiperSlide className="h-full pb-4"><GoalInfoCard goal={currentGoal} formatDate={formatDate} className="h-full" /></SwiperSlide>
+                    <SwiperSlide className="h-full pb-4"><DicaDoDiaCard personalDayNumber={diaPessoalNumero} className="h-full" /></SwiperSlide>
                 </Swiper>
             </div>
             <div className="flex-1 flex flex-col min-h-0">
                 <div className="flex justify-between items-center mb-2 flex-shrink-0 px-1">
-                    <h2 className="text-2xl font-semibold text-white">Marcos da Jornada</h2>
-                    <button onClick={() => setIsTopSectionVisible(!isTopSectionVisible)} className="p-2 text-gray-400 hover:text-white">
-                        {isTopSectionVisible ? <ChevronUpIcon className="w-6 h-6"/> : <ChevronDownIcon className="w-6 h-6" />}
-                    </button>
+                    <h2 className="text-2xl font-semibold text-white">Marcos</h2>
+                    <button onClick={() => setIsTopSectionVisible(!isTopSectionVisible)} className="p-2 text-gray-400 hover:text-white">{isTopSectionVisible ? <ChevronUpIcon className="w-6 h-6"/> : <ChevronDownIcon className="w-6 h-6" />}</button>
                 </div>
                 <div className="overflow-y-auto custom-scrollbar flex-grow">
                     <MilestonesList milestones={milestones} onToggle={handleToggleMilestone} onDelete={handleDeleteMilestone} />
                 </div>
             </div>
-            <div className="flex-shrink-0 mt-auto">
-              <AddMilestoneInput value={newMilestoneText} onChange={(e) => setNewMilestoneText(e.target.value)} onKeyDown={handleNewMilestoneKeyDown} inputRef={inputRef} />
-            </div>
         </div>
         
+        {/* Layout do Desktop */}
         <div className="hidden lg:grid lg:grid-cols-5 lg:gap-8">
-            <div className="flex-shrink-0 col-span-5">
-              <button onClick={onBack} className="flex items-center text-sm font-semibold text-purple-400 hover:text-purple-300 transition-colors mb-6">
-                  <ArrowLeftIcon className="h-5 w-5 mr-2" />
-                  Voltar para todas as metas
-              </button>
-            </div>
-            <div className="lg:col-span-2 space-y-8">
-                <GoalInfoCard goal={currentGoal} formatDate={formatDate} />
-                <DicaDoDiaCard personalDayNumber={diaPessoalNumero} />
-            </div>
+            <div className="flex-shrink-0 col-span-5"><button onClick={onBack} className="flex items-center text-sm font-semibold text-purple-400 hover:text-purple-300 transition-colors mb-6"><ArrowLeftIcon className="h-5 w-5 mr-2" />Voltar</button></div>
+            <div className="lg:col-span-2 space-y-8"><GoalInfoCard goal={currentGoal} formatDate={formatDate} /><DicaDoDiaCard personalDayNumber={diaPessoalNumero} /></div>
             <div className="lg:col-span-3">
                 <h2 className="text-2xl font-semibold text-white mb-4">Marcos da Jornada</h2>
                 <MilestonesList milestones={milestones} onToggle={handleToggleMilestone} onDelete={handleDeleteMilestone} />
-                <AddMilestoneInput value={newMilestoneText} onChange={(e) => setNewMilestoneText(e.target.value)} onKeyDown={handleNewMilestoneKeyDown} inputRef={inputRef} />
             </div>
         </div>
       </div>
+      
+      {/* ### NOVO BOTÃO FLUTUANTE ### */}
+      {/* Aparece em AMBAS as versões, mobile e desktop */}
+      <button 
+        onClick={handleOpenScheduleModal}
+        className="fixed bottom-6 right-6 bg-purple-600 text-white rounded-full p-4 shadow-lg hover:bg-purple-700 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-500 z-20"
+        aria-label="Adicionar Novo Marco"
+      >
+          <ClipboardCheckIcon className="w-7 h-7" />
+      </button>
     </>
   );
 };
