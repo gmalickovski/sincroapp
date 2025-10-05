@@ -2,58 +2,60 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const axios = require("axios");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const cors = require("cors")({ origin: true }); // Importa e configura o CORS
 
 admin.initializeApp();
 
-// --- INÍCIO DA CLOUD FUNCTION PARA IA COM CORREÇÃO DE CORS ---
+// --- INÍCIO DA CLOUD FUNCTION PARA IA (VERSÃO CORRIGIDA E FINAL) ---
 
+// Carrega a chave de API a partir das variáveis de ambiente do Firebase
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
 
-exports.generateMilestones = functions.https.onRequest((req, res) => {
-  // Habilita o CORS para a função, permitindo chamadas do seu localhost
-  cors(req, res, async () => {
-    // Em produção, você pode adicionar uma verificação de autenticação aqui se desejar
-    // if (!context.auth) { ... }
+// ### CORREÇÃO: Voltando para 'onCall' que resolve o CORS e o Bad Request automaticamente ###
+exports.generateMilestones = functions.https.onCall(async (data, context) => {
+  // 1. Autenticação (já inclusa no 'onCall')
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+        "unauthenticated",
+        "Você precisa estar autenticado para usar esta funcionalidade.",
+    );
+  }
 
-    const { goalTitle, goalDescription } = req.body.data;
+  // 2. Recebendo os dados (o 'onCall' já formata o 'data' corretamente)
+  const { goalTitle, goalDescription } = data;
+  if (!goalTitle) {
+    throw new functions.https.HttpsError("invalid-argument", "O título da meta é obrigatório.");
+  }
 
-    if (!goalTitle) {
-      res.status(400).send({ error: { message: "O título da meta é obrigatório." } });
-      return;
-    }
+  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+  const prompt = `
+    Você é um assistente especialista em produtividade e planejamento.
+    Sua tarefa é quebrar uma meta principal em 5 a 7 marcos ou tarefas acionáveis.
+    A meta do usuário é: "${goalTitle}".
+    A descrição/motivação é: "${goalDescription}".
 
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    const prompt = `
-      Você é um assistente especialista em produtividade e planejamento.
-      Sua tarefa é quebrar uma meta principal em 5 a 7 marcos ou tarefas acionáveis.
-      A meta do usuário é: "${goalTitle}".
-      A descrição/motivação é: "${goalDescription}".
+    Baseado nisso, sugira de 5 a 7 marcos claros e concisos.
+    Responda apenas com uma lista de frases, onde cada frase é um marco.
+    Não adicione números, marcadores (como "-"), ou qualquer texto extra antes ou depois da lista.
+    Cada marco deve estar em uma nova linha.
 
-      Baseado nisso, sugira de 5 a 7 marcos claros e concisos.
-      Responda apenas com uma lista de frases, onde cada frase é um marco.
-      Não adicione números, marcadores (como "-"), ou qualquer texto extra antes ou depois da lista.
-      Cada marco deve estar em uma nova linha.
+    Exemplo de resposta esperada:
+    Definir a estrutura e os primeiros 5 episódios
+    Criar a identidade visual e as vinhetas
+    Gravar o primeiro episódio piloto
+    Planejar a estratégia de lançamento nas redes sociais
+    Publicar o primeiro episódio
+  `;
 
-      Exemplo de resposta esperada:
-      Definir a estrutura e os primeiros 5 episódios
-      Criar a identidade visual e as vinhetas
-      Gravar o primeiro episódio piloto
-      Planejar a estratégia de lançamento nas redes sociais
-      Publicar o primeiro episódio
-    `;
-
-    try {
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
-      const milestones = text.split("\n").filter((line) => line.trim() !== "");
-      res.status(200).send({ data: { milestones } });
-    } catch (error) {
-      console.error("Erro ao chamar a API do Gemini:", error);
-      res.status(500).send({ error: { message: "Não foi possível gerar as sugestões. Tente novamente." } });
-    }
-  });
+  try {
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+    const milestones = text.split("\n").filter((line) => line.trim() !== "");
+    return { milestones }; // O 'onCall' formata o retorno automaticamente
+  } catch (error) {
+    console.error("Erro ao chamar a API do Gemini:", error);
+    throw new functions.https.HttpsError("internal", "Não foi possível gerar as sugestões. Tente novamente.");
+  }
 });
 
 // --- FIM DA NOVA CLOUD FUNCTION PARA IA ---
