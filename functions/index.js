@@ -1,89 +1,16 @@
-// functions/index.js
+// functions/index.js (VERSÃO FINAL ATUALIZADA)
 
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const axios = require("axios");
-const { VertexAI } = require("@google-cloud/vertexai");
+// A importação do VertexAI não é mais necessária aqui
+// const { VertexAI } = require("@google-cloud/vertexai");
 
 // Inicializa o SDK Admin
 admin.initializeApp();
 
-// --- INÍCIO DA CLOUD FUNCTION PARA IA (VERSÃO CORRIGIDA E ROBUSTA) ---
-
-exports.generateMilestones = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
-      "unauthenticated",
-      "Você precisa estar autenticado para usar esta funcionalidade.",
-    );
-  }
-
-  const { goalTitle, goalDescription } = data;
-  if (!goalTitle) {
-    throw new functions.https.HttpsError("invalid-argument", "O título da meta é obrigatório.");
-  }
-
-  try {
-    const vertex_ai = new VertexAI({
-      project: "sincroapp-529cc",
-      location: "us-central1",
-    });
-
-    const model = "gemini-1.5-flash-001"; // Usando uma versão estável do modelo
-
-    const generativeModel = vertex_ai.getGenerativeModel({
-      model: model,
-    });
-
-    const prompt = `
-      Você é um assistente especialista em produtividade e planejamento.
-      Sua tarefa é quebrar uma meta principal em 5 a 7 marcos ou tarefas acionáveis.
-      A meta do usuário é: "${goalTitle}".
-      A descrição/motivação é: "${goalDescription || "Não fornecida"}".
-
-      Baseado nisso, sugira de 5 a 7 marcos claros e concisos.
-      Responda apenas com uma lista de frases, onde cada frase é um marco.
-      Não adicione números, marcadores (como "-"), ou qualquer texto extra antes ou depois da lista.
-      Cada marco deve estar em uma nova linha.
-
-      Exemplo de resposta esperada:
-      Definir a estrutura e os primeiros 5 episódios
-      Criar a identidade visual e as vinhetas
-      Gravar o primeiro episódio piloto
-      Planejar a estratégia de lançamento nas redes sociais
-      Publicar o primeiro episódio
-    `;
-
-    const request = {
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-    };
-    
-    const result = await generativeModel.generateContent(request);
-    
-    // Verificação de segurança aprimorada da resposta
-    const response = result.response;
-    const text = response?.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!text) {
-        functions.logger.error("Resposta da IA em formato inesperado:", response);
-        throw new Error("Resposta da IA em formato inesperado ou vazia.");
-    }
-
-    const milestones = text.split("\n").filter((line) => line.trim() !== "");
-
-    return { milestones };
-
-  } catch (error) {
-    functions.logger.error("Erro ao chamar a API do Vertex AI:", error);
-    // Lança um erro mais detalhado para o cliente se for um erro conhecido
-    if (error.message.includes("Publisher Model") || error.code === 404) {
-         throw new functions.https.HttpsError("not-found", "O modelo de IA não foi encontrado. Verifique a configuração do projeto.");
-    }
-    throw new functions.https.HttpsError("internal", "Não foi possível gerar as sugestões com a IA. Tente novamente.");
-  }
-});
-
-// --- FIM DA NOVA CLOUD FUNCTION PARA IA ---
+// --- A CLOUD FUNCTION 'generateMilestones' FOI REMOVIDA DAQUI ---
+// A lógica agora está no frontend, no arquivo src/services/aiService.js
 
 
 // Suas funções existentes permanecem intactas abaixo

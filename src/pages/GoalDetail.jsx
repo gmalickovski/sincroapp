@@ -1,3 +1,5 @@
+// src/pages/GoalDetail.jsx (VERSÃO FINAL COM IA)
+
 import React, { useState, useEffect, useRef } from 'react';
 import { db, auth } from '../services/firebase';
 import { collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc, query, orderBy, where, Timestamp, writeBatch } from 'firebase/firestore';
@@ -24,7 +26,6 @@ const GoalDetail = ({ goal: initialGoal, onBack, data }) => {
   const [isTopSectionVisible, setIsTopSectionVisible] = useState(true);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   
-  // Novo estado para agendar múltiplos marcos (sugeridos pela IA)
   const [milestonesToSchedule, setMilestonesToSchedule] = useState([]);
 
   const user = auth.currentUser;
@@ -34,18 +35,54 @@ const GoalDetail = ({ goal: initialGoal, onBack, data }) => {
   useEffect(() => { if (user && currentGoal.id) { const q = query(collection(db, 'users', user.uid, 'tasks'), where('goalId', '==', currentGoal.id), orderBy('createdAt', 'asc')); const unsub = onSnapshot(q, (snapshot) => { setMilestones(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))); }); return () => unsub(); } }, [user, currentGoal.id]);
   useEffect(() => { if (user && currentGoal.id) { if (milestones.length > 0) { const c = milestones.filter(m => m.completed).length; const p = Math.round((c / milestones.length) * 100); if (p !== currentGoal.progress) { updateDoc(doc(db, 'users', user.uid, 'goals', currentGoal.id), { progress: p }); } } else if (currentGoal.progress !== 0) { updateDoc(doc(db, 'users', user.uid, 'goals', currentGoal.id), { progress: 0 }); } } }, [milestones, user, currentGoal]);
 
-  // Abre o modal de agendamento para um único marco
   const handleOpenScheduleModal = () => {
-    setMilestonesToSchedule(['']); // Define um marco em branco para o agendamento individual
+    setMilestonesToSchedule(['']); 
     setIsScheduleModalOpen(true);
   };
   
-  const handleScheduleMilestone = async (scheduleData) => { if (!user || !currentGoal.id) return; const { title, startDate, isRecurrent, endDate, weekdays } = scheduleData; if (!title) { alert("O título do marco não pode estar vazio."); return; } const tasksColRef = collection(db, 'users', user.uid, 'tasks'); if (!isRecurrent) { const sDate = new Date(startDate.replace(/-/g, '/')); try { await addDoc(tasksColRef, { text: title, completed: false, createdAt: Timestamp.fromDate(sDate), goalId: currentGoal.id, goalTitle: currentGoal.title }); } catch (e) { console.error("Erro ao criar tarefa:", e); } return; } const batch = writeBatch(db); let currentDate = new Date(startDate.replace(/-/g, '/')); const finalDate = new Date(endDate.replace(/-/g, '/')); const dayMap = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 }; const selectedDays = weekdays.map(d => dayMap[d]); while (currentDate <= finalDate) { if (selectedDays.includes(currentDate.getDay())) { const newDocRef = doc(tasksColRef); batch.set(newDocRef, { text: title, completed: false, createdAt: Timestamp.fromDate(currentDate), goalId: currentGoal.id, goalTitle: currentGoal.title }); } currentDate.setDate(currentDate.getDate() + 1); } try { await batch.commit(); } catch (e) { console.error("Erro ao criar tarefas recorrentes:", e); } };
+  // ### ALTERAÇÃO PRINCIPAL: FUNÇÃO AGORA LIDA COM MÚLTIPLOS MARCOS ###
+  const handleScheduleMilestone = async (scheduleData) => {
+    if (!user || !currentGoal.id) return;
+    const { titles, startDate, isRecurrent, endDate, weekdays } = scheduleData;
+    if (!titles || titles.length === 0 || !titles[0]) {
+      alert("O título do marco não pode estar vazio.");
+      return;
+    }
   
-  // ### NOVA FUNÇÃO PARA ADICIONAR SUGESTÕES DA IA ###
+    const tasksColRef = collection(db, 'users', user.uid, 'tasks');
+    const batch = writeBatch(db);
+  
+    titles.forEach(title => {
+      if (!isRecurrent) {
+        const sDate = new Date(startDate.replace(/-/g, '/'));
+        const newDocRef = doc(tasksColRef);
+        batch.set(newDocRef, { text: title, completed: false, createdAt: Timestamp.fromDate(sDate), goalId: currentGoal.id, goalTitle: currentGoal.title });
+      } else {
+        let currentDate = new Date(startDate.replace(/-/g, '/'));
+        const finalDate = new Date(endDate.replace(/-/g, '/'));
+        const dayMap = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
+        const selectedDays = weekdays.map(d => dayMap[d]);
+  
+        while (currentDate <= finalDate) {
+          if (selectedDays.includes(currentDate.getDay())) {
+            const newDocRef = doc(tasksColRef);
+            batch.set(newDocRef, { text: title, completed: false, createdAt: Timestamp.fromDate(currentDate), goalId: currentGoal.id, goalTitle: currentGoal.title });
+          }
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+      }
+    });
+  
+    try {
+      await batch.commit();
+    } catch (e) {
+      console.error("Erro ao agendar marcos:", e);
+    }
+  };
+
   const handleAiSuggestions = (suggestions) => {
     setMilestonesToSchedule(suggestions);
-    setIsScheduleModalOpen(true); // Abre o modal de agendamento com as sugestões
+    setIsScheduleModalOpen(true); 
   };
 
   const handleToggleMilestone = async (m) => { if (user) { await updateDoc(doc(db, 'users', user.uid, 'tasks', m.id), { completed: !m.completed }); } };
@@ -58,8 +95,7 @@ const GoalDetail = ({ goal: initialGoal, onBack, data }) => {
         isOpen={isScheduleModalOpen} 
         onClose={() => setIsScheduleModalOpen(false)} 
         onSchedule={handleScheduleMilestone} 
-        // Passa o primeiro marco da lista para o modal agendar
-        milestoneTitle={milestonesToSchedule[0] || ''} 
+        milestoneTitles={milestonesToSchedule} // Passa a lista de títulos
       />
       <AISuggestionsModal 
         isOpen={isAiModalOpen} 
