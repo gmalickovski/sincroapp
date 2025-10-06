@@ -26,7 +26,7 @@ exports.generateMilestones = functions.https.onCall(async (data, context) => {
   });
 
   // ### CORREÇÃO FINAL: Usando o modelo mais recente e específico do Vertex AI ###
-  const model = "gemini-1.5-flash-001"; 
+  const model = "gemini-1.5-flash"; 
 
   const generativeModel = vertex_ai.getGenerativeModel({
     model: model,
