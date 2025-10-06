@@ -4,8 +4,9 @@ import { initializeApp } from "firebase/app";
 import { getAuth, connectAuthEmulator } from "firebase/auth";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
+import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
-// Configuração do Firebase a partir das variáveis de ambiente
+// Configuração do Firebase
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -21,39 +22,31 @@ const app = initializeApp(firebaseConfig);
 // Pega as instâncias dos serviços
 const auth = getAuth(app);
 const db = getFirestore(app);
-
-// Declara a variável 'functions' que será configurada abaixo
 let functions;
 
-// Lógica de ambiente para diferenciar desenvolvimento de produção
+// Lógica de ambiente
 if (import.meta.env.DEV) {
-  // --- AMBIENTE DE DESENVOLVIMENTO (npm run dev) ---
-  
-  // Inicializa sem região para poder conectar ao emulador local
+  // AMBIENTE DE DESENVOLVIMENTO
+  self.FIREBASE_APPCHECK_DEBUG_TOKEN = true; // Permite testes locais do App Check
   functions = getFunctions(app);
-
   try {
-    // Usa uma chave de API genérica para o emulador
-    firebaseConfig.apiKey = "firebase-emulator-api-key";
-    
-    // Conecta aos emuladores locais
     connectAuthEmulator(auth, "http://localhost:9099", { disableWarnings: true });
     connectFirestoreEmulator(db, "localhost", 8080);
     connectFunctionsEmulator(functions, "localhost", 5001);
-    
-    console.log("✅ Conexão com emuladores (Auth, Firestore, Functions) estabelecida com sucesso!");
+    console.log("✅ Conexão com emuladores (Auth, Firestore, Functions) estabelecida!");
   } catch (error) {
-    console.error("❌ Erro ao conectar aos emuladores em firebase.js:", error);
+    console.error("❌ Erro ao conectar aos emuladores:", error);
   }
-
 } else {
-  // --- AMBIENTE DE PRODUÇÃO (npm run build) ---
-  
-  // Inicializa especificando a região onde a função foi publicada ('us-central1')
+  // AMBIENTE DE PRODUÇÃO
+  // Inicializa o App Check para produção
+  initializeAppCheck(app, {
+    provider: new ReCaptchaV3Provider('6LcIrd8rAAAAAHWugzhwZ3TY1PEKjCQ4G5cWiEtA'),
+    isTokenAutoRefreshEnabled: true
+  });
   functions = getFunctions(app, 'us-central1');
   console.log("✅ Conectado aos serviços de produção do Firebase.");
 }
 
-
-// Exporta os serviços já configurados para serem usados no resto do app
+// Exporta os serviços
 export { auth, db, functions };
