@@ -4,7 +4,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth, connectAuthEmulator } from "firebase/auth";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
-import { initializeAppCheck, ReCaptchaV3Provider, CustomProvider } from "firebase/app-check";
+import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 // Configuração do Firebase a partir das variáveis de ambiente
 const firebaseConfig = {
@@ -22,27 +22,22 @@ const app = initializeApp(firebaseConfig);
 // Pega as instâncias dos serviços
 const auth = getAuth(app);
 const db = getFirestore(app);
-const functions = getFunctions(app); // Inicializa as functions para ambos os ambientes
+const functions = getFunctions(app);
 
 // Lógica de ambiente
 if (import.meta.env.DEV) {
   console.log("Executando em ambiente de DESENVOLVIMENTO.");
 
-  // Ativa o token de depuração do App Check para testes locais
-  // @ts-ignore
-  self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-
-  // Inicializa o App Check para o ambiente de desenvolvimento
-  initializeAppCheck(app, {
-    provider: new CustomProvider(() => {
-      return {
-        // @ts-ignore
-        token: window.FIREBASE_APPCHECK_DEBUG_TOKEN,
-        expireTimeMillis: Date.now() + 60 * 60 * 1000, // Expira em 1 hora
-      };
-    }),
-    isTokenAutoRefreshEnabled: false,
-  });
+  // Define o token de debug do App Check a partir da variável de ambiente
+  const debugToken = import.meta.env.VITE_APPCHECK_DEBUG_TOKEN;
+  
+  if (debugToken) {
+    // @ts-ignore
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = debugToken;
+    console.log("✅ App Check Debug Token configurado");
+  } else {
+    console.warn("⚠️ VITE_APPCHECK_DEBUG_TOKEN não encontrado no .env");
+  }
 
   // Conecta aos emuladores
   try {
@@ -56,13 +51,13 @@ if (import.meta.env.DEV) {
 
 } else {
   console.log("Executando em ambiente de PRODUÇÃO.");
-  
-  // Inicializa o App Check para o ambiente de produção
-  initializeAppCheck(app, {
-    provider: new ReCaptchaV3Provider('6LcIrd8rAAAAAHWugzhwZ3TY1PEKjCQ4G5cWiEtA'),
-    isTokenAutoRefreshEnabled: true
-  });
 }
+
+// Inicializa o App Check para todos os ambientes
+initializeAppCheck(app, {
+  provider: new ReCaptchaV3Provider('6LcIrd8rAAAAAHWugzhwZ3TY1PEKjCQ4G5cWiEtA'),
+  isTokenAutoRefreshEnabled: true
+});
 
 // Exporta tudo que o app precisa
 export { app, auth, db, functions };

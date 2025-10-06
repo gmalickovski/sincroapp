@@ -1,24 +1,32 @@
 // src/services/aiService.js
 
-import { getGenerativeModel, GoogleAIBackend } from "firebase/ai";
-import { app } from './firebase'; // Importamos a instância do app
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Declaramos a variável do modelo aqui, mas não a inicializamos.
+// Pega a API key do .env
+const API_KEY = import.meta.env.VITE_GOOGLE_AI_API_KEY;
+
+let genAI;
 let model;
 
-// Esta função garante que o modelo seja inicializado apenas uma vez, quando for necessário.
+// Valida se a API key existe
+if (!API_KEY) {
+  console.error("❌ VITE_GOOGLE_AI_API_KEY não encontrada no arquivo .env");
+}
+
 const getModel = () => {
   if (!model) {
     console.log("Inicializando o modelo de IA pela primeira vez...");
-    model = getGenerativeModel(app, {
-      model: "gemini-1.5-flash",
-      backend: new GoogleAIBackend(),
-    });
+    
+    if (!API_KEY) {
+      throw new Error("API Key do Google AI não configurada. Adicione VITE_GOOGLE_AI_API_KEY no arquivo .env");
+    }
+    
+    genAI = new GoogleGenerativeAI(API_KEY);
+    model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
   }
   return model;
 };
 
-// A função de geração de sugestões agora usa o getModel()
 export const generateSuggestions = async (goalTitle, goalDescription) => {
   const prompt = `
     Você é um assistente especialista em produtividade e planejamento.
@@ -40,20 +48,28 @@ export const generateSuggestions = async (goalTitle, goalDescription) => {
   `;
 
   try {
-    // 1. Pega o modelo (inicializa apenas se for a primeira vez)
     const generativeModel = getModel();
-    
-    // 2. Chama o modelo com o prompt
     const result = await generativeModel.generateContent(prompt);
     const response = result.response;
     const text = response.text();
 
-    // 3. Formata a resposta em um array de marcos
-    const milestones = text.split('\n').filter(line => line.trim() !== '');
+    const milestones = text
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line !== '');
+    
     return milestones;
 
   } catch (error) {
-    console.error("Erro ao gerar sugestões com Firebase AI Logic:", error);
-    return [];
+    console.error("Erro ao gerar sugestões:", error);
+    
+    // Fornece mensagens de erro mais específicas
+    if (error.message?.includes("API_KEY_INVALID")) {
+      throw new Error("API Key inválida. Verifique sua chave no Google AI Studio.");
+    } else if (error.message?.includes("QUOTA_EXCEEDED")) {
+      throw new Error("Cota de uso da API excedida. Tente novamente mais tarde.");
+    }
+    
+    throw error;
   }
 };
