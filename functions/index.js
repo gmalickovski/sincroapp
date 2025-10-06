@@ -8,7 +8,7 @@ admin.initializeApp();
 // --- INÍCIO DA CLOUD FUNCTION PARA IA ---
 
 exports.generateMilestones = functions
-  .runWith({ secrets: ["GEMINI_KEY"] }) 
+  .runWith({ secrets: ["GEMINI_KEY"] })
   .https.onCall(async (data, context) => {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
 
@@ -24,9 +24,8 @@ exports.generateMilestones = functions
       throw new functions.https.HttpsError("invalid-argument", "O título da meta é obrigatório.");
     }
 
-    // ### CORREÇÃO APLICADA AQUI ###
-    // Alterado "gemini-pro" para o nome oficial do modelo "gemini-1.0-pro".
-    const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
+    // ### CORREÇÃO FINAL: Usando o modelo mais recente e rápido "gemini-1.5-flash-latest" ###
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
     const prompt = `
       Você é um assistente especialista em produtividade e planejamento.
       Sua tarefa é quebrar uma meta principal em 5 a 7 marcos ou tarefas acionáveis.
