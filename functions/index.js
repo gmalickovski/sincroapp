@@ -5,71 +5,66 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 admin.initializeApp();
 
-// --- INÍCIO DA CLOUD FUNCTION PARA IA (VERSÃO CORRIGIDA E FINAL) ---
+// --- INÍCIO DA CLOUD FUNCTION PARA IA ---
 
-// ### CORREÇÃO: Lendo a chave a partir das configs do Firebase ###
-// Carrega a chave de API a partir das variáveis de ambiente do Firebase
-const genAI = new GoogleGenerativeAI(functions.config().gemini.key);
+exports.generateMilestones = functions
+  .runWith({ secrets: ["GEMINI_KEY"] }) 
+  .https.onCall(async (data, context) => {
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
 
-exports.generateMilestones = functions.https.onCall(async (data, context) => {
-  // 1. Autenticação (já inclusa no 'onCall')
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
-      "unauthenticated",
-      "Você precisa estar autenticado para usar esta funcionalidade.",
-    );
-  }
+    if (!context.auth) {
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "Você precisa estar autenticado para usar esta funcionalidade.",
+      );
+    }
 
-  // 2. Recebendo os dados (o 'onCall' já formata o 'data' corretamente)
-  const { goalTitle, goalDescription } = data;
-  if (!goalTitle) {
-    throw new functions.https.HttpsError("invalid-argument", "O título da meta é obrigatório.");
-  }
+    const { goalTitle, goalDescription } = data;
+    if (!goalTitle) {
+      throw new functions.https.HttpsError("invalid-argument", "O título da meta é obrigatório.");
+    }
 
-  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-  const prompt = `
-    Você é um assistente especialista em produtividade e planejamento.
-    Sua tarefa é quebrar uma meta principal em 5 a 7 marcos ou tarefas acionáveis.
-    A meta do usuário é: "${goalTitle}".
-    A descrição/motivação é: "${goalDescription}".
+    // ### CORREÇÃO APLICADA AQUI ###
+    // Alterado "gemini-pro" para o nome oficial do modelo "gemini-1.0-pro".
+    const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
+    const prompt = `
+      Você é um assistente especialista em produtividade e planejamento.
+      Sua tarefa é quebrar uma meta principal em 5 a 7 marcos ou tarefas acionáveis.
+      A meta do usuário é: "${goalTitle}".
+      A descrição/motivação é: "${goalDescription}".
 
-    Baseado nisso, sugira de 5 a 7 marcos claros e concisos.
-    Responda apenas com uma lista de frases, onde cada frase é um marco.
-    Não adicione números, marcadores (como "-"), ou qualquer texto extra antes ou depois da lista.
-    Cada marco deve estar em uma nova linha.
+      Baseado nisso, sugira de 5 a 7 marcos claros e concisos.
+      Responda apenas com uma lista de frases, onde cada frase é um marco.
+      Não adicione números, marcadores (como "-"), ou qualquer texto extra antes ou depois da lista.
+      Cada marco deve estar em uma nova linha.
 
-    Exemplo de resposta esperada:
-    Definir a estrutura e os primeiros 5 episódios
-    Criar a identidade visual e as vinhetas
-    Gravar o primeiro episódio piloto
-    Planejar a estratégia de lançamento nas redes sociais
-    Publicar o primeiro episódio
-  `;
+      Exemplo de resposta esperada:
+      Definir a estrutura e os primeiros 5 episódios
+      Criar a identidade visual e as vinhetas
+      Gravar o primeiro episódio piloto
+      Planejar a estratégia de lançamento nas redes sociais
+      Publicar o primeiro episódio
+    `;
 
-  try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-    const milestones = text.split("\n").filter((line) => line.trim() !== "");
-    return { milestones }; // O 'onCall' formata o retorno automaticamente
-  } catch (error) {
-    console.error("Erro ao chamar a API do Gemini:", error);
-    throw new functions.https.HttpsError("internal", "Não foi possível gerar as sugestões. Tente novamente.");
-  }
-});
+    try {
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      const milestones = text.split("\n").filter((line) => line.trim() !== "");
+      return { milestones };
+    } catch (error) {
+      console.error("Erro ao chamar a API do Gemini:", error);
+      throw new functions.https.HttpsError("internal", "Não foi possível gerar as sugestões. Tente novamente.");
+    }
+  });
 
 // --- FIM DA NOVA CLOUD FUNCTION PARA IA ---
 
 
 // Suas funções existentes permanecem intactas abaixo
-
-const N8N_WEBHOOK_URL = functions.config().n8n?.url; // Boa prática: usar configs para webhooks também
+const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || "https://n8n.studiomlk.com.br/webhook/sincroapp";
 
 const sendToWebhook = async (payload) => {
-  if (!N8N_WEBHOOK_URL) {
-      functions.logger.warn("URL do Webhook N8N não configurada. Pulando o envio.");
-      return;
-  }
   try {
     functions.logger.info("Tentando enviar dados para o n8n:", payload);
     await axios.post(N8N_WEBHOOK_URL, payload);
@@ -87,7 +82,7 @@ exports.onNewUserDocumentCreate = functions.firestore.document("users/{userId}")
   const payload = {
     event: "user_created",
     email: userData.email,
-    name: `${userData.primeiroNome || ''} ${userData.sobrenome || ''}`.trim(), 
+    name: `${userData.primeiroNome || ''} ${userData.sobrenome || ''}`.trim(),
     plan: userData.plano || "gratuito",
     userId: userId,
   };
@@ -126,7 +121,7 @@ exports.onUserDeleted = functions.auth.user().onDelete(async (user) => {
   try {
     await firestore.collection("users").doc(userId).delete();
     logger.log(`Documento do usuário ${userId} em /users deletado com sucesso.`);
-    
+
     const tasksRef = firestore.collection("users").doc(userId).collection("tasks");
     const tasksSnapshot = await tasksRef.get();
     if (!tasksSnapshot.empty) {

@@ -1,8 +1,8 @@
 {
-  "n8n": {
-    "webhook_url": "https://n8n.studiomlk.com.br/webhook/sincroapp"
-  },
   "gemini": {
     "key": "AIzaSyAwAnENjs7JeLdykP7dZr82y4Xr1aCJPOw"
+  },
+  "n8n": {
+    "webhook_url": "https://n8n.studiomlk.com.br/webhook/sincroapp"
   }
 }
