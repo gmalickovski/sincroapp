@@ -22,7 +22,8 @@ const getModel = () => {
     }
     
     genAI = new GoogleGenerativeAI(API_KEY);
-    model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // ATUALIZADO: Usar Gemini 2.5 Flash (os modelos 1.0 e 1.5 foram descontinuados)
+    model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
   }
   return model;
 };
@@ -68,6 +69,8 @@ export const generateSuggestions = async (goalTitle, goalDescription) => {
       throw new Error("API Key inválida. Verifique sua chave no Google AI Studio.");
     } else if (error.message?.includes("QUOTA_EXCEEDED")) {
       throw new Error("Cota de uso da API excedida. Tente novamente mais tarde.");
+    } else if (error.message?.includes("not found") || error.message?.includes("retired")) {
+      throw new Error("Modelo descontinuado. Usando Gemini 2.5 Flash.");
     }
     
     throw error;
