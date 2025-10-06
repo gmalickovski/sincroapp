@@ -1,67 +1,89 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const axios = require("axios");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+// 1. Importar a biblioteca correta: @google-cloud/vertexai
+const { VertexAI } = require("@google-cloud/vertexai");
 
 admin.initializeApp();
 
-// --- INÍCIO DA CLOUD FUNCTION PARA IA ---
+// --- INÍCIO DA CLOUD FUNCTION PARA IA (VERSÃO VERTEX AI) ---
 
-exports.generateMilestones = functions
-  .runWith({ secrets: ["GEMINI_KEY"] })
-  .https.onCall(async (data, context) => {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
+exports.generateMilestones = functions.https.onCall(async (data, context) => {
+  // Verificação de autenticação do usuário
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      "unauthenticated",
+      "Você precisa estar autenticado para usar esta funcionalidade.",
+    );
+  }
 
-    if (!context.auth) {
-      throw new functions.https.HttpsError(
-        "unauthenticated",
-        "Você precisa estar autenticado para usar esta funcionalidade.",
-      );
-    }
+  const { goalTitle, goalDescription } = data;
+  if (!goalTitle) {
+    throw new functions.https.HttpsError("invalid-argument", "O título da meta é obrigatório.");
+  }
 
-    const { goalTitle, goalDescription } = data;
-    if (!goalTitle) {
-      throw new functions.https.HttpsError("invalid-argument", "O título da meta é obrigatório.");
-    }
-
-    // ✅ CORREÇÃO: Usando o modelo correto "gemini-1.5-flash"
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const prompt = `
-      Você é um assistente especialista em produtividade e planejamento.
-      Sua tarefa é quebrar uma meta principal em 5 a 7 marcos ou tarefas acionáveis.
-      A meta do usuário é: "${goalTitle}".
-      A descrição/motivação é: "${goalDescription}".
-
-      Baseado nisso, sugira de 5 a 7 marcos claros e concisos.
-      Responda apenas com uma lista de frases, onde cada frase é um marco.
-      Não adicione números, marcadores (como "-"), ou qualquer texto extra antes ou depois da lista.
-      Cada marco deve estar em uma nova linha.
-
-      Exemplo de resposta esperada:
-      Definir a estrutura e os primeiros 5 episódios
-      Criar a identidade visual e as vinhetas
-      Gravar o primeiro episódio piloto
-      Planejar a estratégia de lançamento nas redes sociais
-      Publicar o primeiro episódio
-    `;
-
-    try {
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
-      const milestones = text.split("\n").filter((line) => line.trim() !== "");
-      return { milestones };
-    } catch (error) {
-      console.error("Erro ao chamar a API do Gemini:", error);
-      throw new functions.https.HttpsError("internal", "Não foi possível gerar as sugestões. Tente novamente.");
-    }
+  // 2. Inicializar o Vertex AI (autenticação automática)
+  const vertex_ai = new VertexAI({
+    project: "sincroapp-529cc",
+    location: "us-central1",
   });
+
+  // 3. Usar um nome de modelo estável e disponível no Vertex AI
+  const model = "gemini-1.0-pro"; 
+
+  const generativeModel = vertex_ai.getGenerativeModel({
+    model: model,
+  });
+
+  const prompt = `
+    Você é um assistente especialista em produtividade e planejamento.
+    Sua tarefa é quebrar uma meta principal em 5 a 7 marcos ou tarefas acionáveis.
+    A meta do usuário é: "${goalTitle}".
+    A descrição/motivação é: "${goalDescription || 'Não fornecida'}".
+
+    Baseado nisso, sugira de 5 a 7 marcos claros e concisos.
+    Responda apenas com uma lista de frases, onde cada frase é um marco.
+    Não adicione números, marcadores (como "-"), ou qualquer texto extra antes ou depois da lista.
+    Cada marco deve estar em uma nova linha.
+
+    Exemplo de resposta esperada:
+    Definir a estrutura e os primeiros 5 episódios
+    Criar a identidade visual e as vinhetas
+    Gravar o primeiro episódio piloto
+    Planejar a estratégia de lançamento nas redes sociais
+    Publicar o primeiro episódio
+  `;
+
+  try {
+    const request = {
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+    };
+    
+    const result = await generativeModel.generateContent(request);
+    
+    // A estrutura da resposta do Vertex AI é um pouco diferente
+    const response = result.response;
+    if (!response.candidates || !response.candidates[0].content || !response.candidates[0].content.parts[0]) {
+        throw new Error("Resposta da IA em formato inesperado.");
+    }
+
+    const text = response.candidates[0].content.parts[0].text;
+    const milestones = text.split("\n").filter((line) => line.trim() !== "");
+
+    return { milestones };
+
+  } catch (error) {
+    console.error("Erro ao chamar a API do Vertex AI:", error);
+    throw new functions.https.HttpsError("internal", "Não foi possível gerar as sugestões com Vertex AI. Tente novamente.");
+  }
+});
 
 // --- FIM DA NOVA CLOUD FUNCTION PARA IA ---
 
 
 // Suas funções existentes permanecem intactas abaixo
-const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || "https://n8n.studiomlk.com.br/webhook/sincroapp";
+const N8N_WEBHOOK_URL = "https://n8n.studiomlk.com.br/webhook/sincroapp";
 
 const sendToWebhook = async (payload) => {
   try {
