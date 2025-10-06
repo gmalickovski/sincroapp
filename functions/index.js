@@ -1,8 +1,6 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const axios = require("axios");
-
-// 1. Importar a biblioteca correta: @google-cloud/vertexai
 const { VertexAI } = require("@google-cloud/vertexai");
 
 admin.initializeApp();
@@ -10,7 +8,6 @@ admin.initializeApp();
 // --- INÍCIO DA CLOUD FUNCTION PARA IA (VERSÃO VERTEX AI) ---
 
 exports.generateMilestones = functions.https.onCall(async (data, context) => {
-  // Verificação de autenticação do usuário
   if (!context.auth) {
     throw new functions.https.HttpsError(
       "unauthenticated",
@@ -23,14 +20,13 @@ exports.generateMilestones = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError("invalid-argument", "O título da meta é obrigatório.");
   }
 
-  // 2. Inicializar o Vertex AI (autenticação automática)
   const vertex_ai = new VertexAI({
     project: "sincroapp-529cc",
     location: "us-central1",
   });
 
-  // 3. Usar um nome de modelo estável e disponível no Vertex AI
-  const model = "gemini-1.0-pro"; 
+  // ### CORREÇÃO FINAL: Usando o modelo mais recente e específico do Vertex AI ###
+  const model = "gemini-1.5-flash-001"; 
 
   const generativeModel = vertex_ai.getGenerativeModel({
     model: model,
@@ -62,7 +58,6 @@ exports.generateMilestones = functions.https.onCall(async (data, context) => {
     
     const result = await generativeModel.generateContent(request);
     
-    // A estrutura da resposta do Vertex AI é um pouco diferente
     const response = result.response;
     if (!response.candidates || !response.candidates[0].content || !response.candidates[0].content.parts[0]) {
         throw new Error("Resposta da IA em formato inesperado.");
