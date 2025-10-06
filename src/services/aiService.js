@@ -1,4 +1,4 @@
-// src/services/aiService.js (VERSÃO CORRIGIDA E ROBUSTA)
+// src/services/aiService.js
 
 import { getGenerativeModel, GoogleAIBackend } from "firebase/ai";
 import { app } from './firebase'; // Importamos a instância do app
