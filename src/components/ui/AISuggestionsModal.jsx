@@ -1,52 +1,65 @@
 // src/components/ui/AISuggestionsModal.jsx
 
 import React, { useState } from 'react';
-import { generateSuggestions } from '../../services/aiService';
-import { XIcon, SparklesIcon, CheckIcon } from './Icons';
+// ### ALTERAÇÃO 1: Usar a nova função do aiService ###
+import { generateSuggestionsWithDates } from '../../services/aiService';
+import { XIcon, SparklesIcon, CheckIcon, CalendarIcon } from './Icons';
 import Spinner from './Spinner';
 
-const AISuggestionsModal = ({ isOpen, onClose, onAddSuggestions, goalTitle, goalDescription }) => {
+// ### ALTERAÇÃO 2: Receber mais props para o contexto da IA ###
+const AISuggestionsModal = ({ isOpen, onClose, onAddSuggestions, goalTitle, goalDescription, userBirthDate }) => {
   const [suggestions, setSuggestions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedSuggestions, setSelectedSuggestions] = useState([]);
+  const [error, setError] = useState(null);
 
   const handleGenerate = async () => {
     setIsLoading(true);
+    setError(null);
     setSuggestions([]);
     setSelectedSuggestions([]);
     try {
-      const result = await generateSuggestions(goalTitle, goalDescription);
+      const result = await generateSuggestionsWithDates(goalTitle, goalDescription, userBirthDate, new Date());
       setSuggestions(result);
       // Pré-seleciona todas as sugestões por padrão
       setSelectedSuggestions(result);
-    } catch (error) {
-      console.error("Erro ao gerar sugestões:", error);
+    } catch (err) {
+      console.error("Erro ao gerar sugestões:", err);
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
   };
 
   const toggleSelection = (suggestion) => {
-    setSelectedSuggestions(prev => 
-      prev.includes(suggestion) 
-        ? prev.filter(s => s !== suggestion)
-        : [...prev, suggestion]
-    );
+    setSelectedSuggestions(prev => {
+      const isSelected = prev.some(s => s.title === suggestion.title && s.date === suggestion.date);
+      if (isSelected) {
+        return prev.filter(s => s.title !== suggestion.title || s.date !== suggestion.date);
+      } else {
+        return [...prev, suggestion];
+      }
+    });
   };
 
   const handleAdd = () => {
     if (selectedSuggestions.length > 0) {
       onAddSuggestions(selectedSuggestions);
     }
-    onClose();
+    handleClose(); // Usar handleClose para limpar o estado
   };
   
-  // Limpa o estado quando o modal fecha
   const handleClose = () => {
     setSuggestions([]);
     setSelectedSuggestions([]);
     setIsLoading(false);
+    setError(null);
     onClose();
+  };
+
+  const formatDate = (dateString) => {
+    const [year, month, day] = dateString.split('-');
+    return `${day}/${month}`;
   };
 
   if (!isOpen) {
@@ -66,11 +79,20 @@ const AISuggestionsModal = ({ isOpen, onClose, onAddSuggestions, goalTitle, goal
           </button>
         </div>
 
-        {suggestions.length === 0 && !isLoading && (
+        {error && (
+            <div className="text-center my-8 bg-red-900/50 p-4 rounded-lg">
+                <p className="text-red-300">Houve um erro: {error}</p>
+                <button onClick={handleGenerate} className="mt-4 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    Tentar Novamente
+                </button>
+            </div>
+        )}
+
+        {suggestions.length === 0 && !isLoading && !error && (
           <div className="text-center my-8">
-            <p className="text-gray-400 mb-4">Quebre sua meta em marcos menores com a ajuda da IA.</p>
+            <p className="text-gray-400 mb-4">Quebre sua meta em marcos menores com a ajuda da IA. Ela também sugerirá as melhores datas!</p>
             <button onClick={handleGenerate} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
-              Gerar Marcos
+              Gerar Marcos Inteligentes
             </button>
           </div>
         )}
@@ -78,26 +100,36 @@ const AISuggestionsModal = ({ isOpen, onClose, onAddSuggestions, goalTitle, goal
         {isLoading && (
           <div className="flex flex-col items-center justify-center my-8">
             <Spinner />
-            <p className="text-gray-400 mt-4">Aguarde, a IA está criando os marcos...</p>
+            <p className="text-gray-400 mt-4 text-center">Aguarde, a IA está analisando a melhor rota para sua meta...</p>
           </div>
         )}
 
-        {suggestions.length > 0 && !isLoading && (
+        {suggestions.length > 0 && !isLoading && !error && (
           <>
             <p className="text-sm text-gray-400 mb-4">Selecione os marcos que deseja adicionar à sua jornada:</p>
-            <div className="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
-              {suggestions.map((s, index) => (
-                <div 
-                  key={index} 
-                  onClick={() => toggleSelection(s)}
-                  className="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors bg-gray-700/50 hover:bg-gray-700"
-                >
-                  <div className={`w-5 h-5 flex-shrink-0 rounded-md border-2 flex items-center justify-center ${selectedSuggestions.includes(s) ? 'bg-purple-500 border-purple-500' : 'border-gray-500'}`}>
-                    {selectedSuggestions.includes(s) && <CheckIcon className="w-3 h-3 text-white" />}
+            <div className="space-y-2 max-h-72 overflow-y-auto pr-2 custom-scrollbar">
+              {suggestions.map((s, index) => {
+                const isSelected = selectedSuggestions.some(sel => sel.title === s.title && sel.date === s.date);
+                return (
+                  <div 
+                    key={index} 
+                    onClick={() => toggleSelection(s)}
+                    className="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors bg-gray-700/50 hover:bg-gray-700"
+                  >
+                    <div className={`w-5 h-5 flex-shrink-0 rounded-md border-2 flex items-center justify-center ${isSelected ? 'bg-purple-500 border-purple-500' : 'border-gray-500'}`}>
+                      {isSelected && <CheckIcon className="w-3 h-3 text-white" />}
+                    </div>
+                    {/* ### ALTERAÇÃO 3: Exibir o marco e a data sugerida ### */}
+                    <div className="flex-1">
+                        <span className="text-gray-200">{s.title}</span>
+                        <div className="flex items-center gap-1.5 mt-1 text-xs text-purple-300">
+                           <CalendarIcon className="w-3 h-3" />
+                           <span>{formatDate(s.date)}</span>
+                        </div>
+                    </div>
                   </div>
-                  <span className="text-gray-200">{s}</span>
-                </div>
-              ))}
+                )
+              })}
             </div>
             <div className="mt-6 flex justify-end">
               <button 
