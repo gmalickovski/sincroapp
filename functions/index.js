@@ -24,8 +24,8 @@ exports.generateMilestones = functions
       throw new functions.https.HttpsError("invalid-argument", "O título da meta é obrigatório.");
     }
 
-    // ### CORREÇÃO FINAL: Usando o modelo mais recente e rápido "gemini-1.5-flash-latest" ###
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    // ✅ CORREÇÃO: Usando o modelo correto "gemini-1.5-flash"
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const prompt = `
       Você é um assistente especialista em produtividade e planejamento.
       Sua tarefa é quebrar uma meta principal em 5 a 7 marcos ou tarefas acionáveis.
