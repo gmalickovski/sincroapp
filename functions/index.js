@@ -1,11 +1,14 @@
+// functions/index.js
+
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const axios = require("axios");
 const { VertexAI } = require("@google-cloud/vertexai");
 
+// Inicializa o SDK Admin
 admin.initializeApp();
 
-// --- INÍCIO DA CLOUD FUNCTION PARA IA (VERSÃO VERTEX AI) ---
+// --- INÍCIO DA CLOUD FUNCTION PARA IA (VERSÃO CORRIGIDA E ROBUSTA) ---
 
 exports.generateMilestones = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
@@ -20,57 +23,63 @@ exports.generateMilestones = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError("invalid-argument", "O título da meta é obrigatório.");
   }
 
-  const vertex_ai = new VertexAI({
-    project: "sincroapp-529cc",
-    location: "us-central1",
-  });
-
-  // ### CORREÇÃO FINAL: Usando o modelo mais recente e específico do Vertex AI ###
-  const model = "gemini-1.5-flash"; 
-
-  const generativeModel = vertex_ai.getGenerativeModel({
-    model: model,
-  });
-
-  const prompt = `
-    Você é um assistente especialista em produtividade e planejamento.
-    Sua tarefa é quebrar uma meta principal em 5 a 7 marcos ou tarefas acionáveis.
-    A meta do usuário é: "${goalTitle}".
-    A descrição/motivação é: "${goalDescription || 'Não fornecida'}".
-
-    Baseado nisso, sugira de 5 a 7 marcos claros e concisos.
-    Responda apenas com uma lista de frases, onde cada frase é um marco.
-    Não adicione números, marcadores (como "-"), ou qualquer texto extra antes ou depois da lista.
-    Cada marco deve estar em uma nova linha.
-
-    Exemplo de resposta esperada:
-    Definir a estrutura e os primeiros 5 episódios
-    Criar a identidade visual e as vinhetas
-    Gravar o primeiro episódio piloto
-    Planejar a estratégia de lançamento nas redes sociais
-    Publicar o primeiro episódio
-  `;
-
   try {
+    const vertex_ai = new VertexAI({
+      project: "sincroapp-529cc",
+      location: "us-central1",
+    });
+
+    const model = "gemini-1.5-flash-001"; // Usando uma versão estável do modelo
+
+    const generativeModel = vertex_ai.getGenerativeModel({
+      model: model,
+    });
+
+    const prompt = `
+      Você é um assistente especialista em produtividade e planejamento.
+      Sua tarefa é quebrar uma meta principal em 5 a 7 marcos ou tarefas acionáveis.
+      A meta do usuário é: "${goalTitle}".
+      A descrição/motivação é: "${goalDescription || "Não fornecida"}".
+
+      Baseado nisso, sugira de 5 a 7 marcos claros e concisos.
+      Responda apenas com uma lista de frases, onde cada frase é um marco.
+      Não adicione números, marcadores (como "-"), ou qualquer texto extra antes ou depois da lista.
+      Cada marco deve estar em uma nova linha.
+
+      Exemplo de resposta esperada:
+      Definir a estrutura e os primeiros 5 episódios
+      Criar a identidade visual e as vinhetas
+      Gravar o primeiro episódio piloto
+      Planejar a estratégia de lançamento nas redes sociais
+      Publicar o primeiro episódio
+    `;
+
     const request = {
       contents: [{ role: "user", parts: [{ text: prompt }] }],
     };
     
     const result = await generativeModel.generateContent(request);
     
+    // Verificação de segurança aprimorada da resposta
     const response = result.response;
-    if (!response.candidates || !response.candidates[0].content || !response.candidates[0].content.parts[0]) {
-        throw new Error("Resposta da IA em formato inesperado.");
+    const text = response?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!text) {
+        functions.logger.error("Resposta da IA em formato inesperado:", response);
+        throw new Error("Resposta da IA em formato inesperado ou vazia.");
     }
 
-    const text = response.candidates[0].content.parts[0].text;
     const milestones = text.split("\n").filter((line) => line.trim() !== "");
 
     return { milestones };
 
   } catch (error) {
-    console.error("Erro ao chamar a API do Vertex AI:", error);
-    throw new functions.https.HttpsError("internal", "Não foi possível gerar as sugestões com Vertex AI. Tente novamente.");
+    functions.logger.error("Erro ao chamar a API do Vertex AI:", error);
+    // Lança um erro mais detalhado para o cliente se for um erro conhecido
+    if (error.message.includes("Publisher Model") || error.code === 404) {
+         throw new functions.https.HttpsError("not-found", "O modelo de IA não foi encontrado. Verifique a configuração do projeto.");
+    }
+    throw new functions.https.HttpsError("internal", "Não foi possível gerar as sugestões com a IA. Tente novamente.");
   }
 });
 
