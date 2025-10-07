@@ -5,6 +5,7 @@ import Spinner from '../components/ui/Spinner';
 import UpgradeModal from '../components/ui/UpgradeModal';
 import { CalendarIcon, EditIcon, ChevronDownIcon, TrashIcon, FilterIcon, XIcon, DotsVerticalIcon } from '../components/ui/Icons';
 import VibrationPill from '../components/ui/VibrationPill';
+import FloatingActionButton from '../components/ui/FloatingActionButton'; // 1. Importar o componente central
 
 const moodMap = { 1: '😔', 2: '😟', 3: '😐', 4: '😊', 5: '😄' };
 
@@ -100,7 +101,6 @@ const FilterPopover = ({ isVisible, onClose, filters, setFilters, dateInputRef }
                     {isVibrationFilterOpen && (<div className="absolute top-full mt-2 w-full bg-gray-900 border border-gray-600 rounded-lg z-10 max-h-48 overflow-y-auto custom-scrollbar">{filterOptions.map(option => (<button key={option} onClick={() => { setVibration(option); setIsVibrationFilterOpen(false); }} className={`w-full text-left px-4 py-2 text-sm hover:bg-purple-600 ${vibration.toString() === option.toString() ? 'bg-purple-700' : ''}`}>{option === 'all' ? 'Todas' : option}</button>))}</div>)}
                 </div>
                 
-                {/* AJUSTE 1: EMOJIS COM LAYOUT FLEXÍVEL DEFINITIVO */}
                 <div>
                     <label className="text-sm text-gray-400 mb-2 block">Filtrar por humor:</label>
                     <div className="flex items-center bg-gray-700 border border-gray-600 rounded-lg p-1 gap-1">
@@ -191,7 +191,6 @@ const Journal = ({ user, userData, setEditingEntry, openNewNoteEditor, onInfoCli
                     </div>
                 </div>
 
-                {/* AJUSTE 2: ESPAÇAMENTO DA BARRA DE ROLAGEM AUMENTADO (pr-8) */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar px-4 pt-4 pr-8 md:pr-4">
                     {isLoading ? <div className="flex justify-center mt-16"><Spinner /></div> : 
                         entries.length === 0 ? 
@@ -221,7 +220,11 @@ const Journal = ({ user, userData, setEditingEntry, openNewNoteEditor, onInfoCli
                     }
                 </div>
                 
-                <button onClick={handleNewNoteClick} className="fixed bottom-6 right-6 bg-purple-600 text-white rounded-full p-4 shadow-lg hover:bg-purple-700 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-500 z-20" aria-label="Nova Anotação"><EditIcon className="w-6 h-6" /></button>
+                {/* 2. Botão antigo substituído pelo componente centralizado */}
+                <FloatingActionButton 
+                    page="journal"
+                    onNewNote={handleNewNoteClick}
+                />
             </div>
         </>
     );

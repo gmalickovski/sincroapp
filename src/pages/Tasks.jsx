@@ -5,10 +5,9 @@ import { db, auth } from '../services/firebase';
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import Spinner from '../components/ui/Spinner';
 import numerologyEngine from '../services/numerologyEngine';
-// --- CORREÇÃO DO CAMINHO DA IMPORTAÇÃO ---
-import { CalendarIcon } from '../components/ui/Icons';
 import { TaskSheet } from '../components/ui/TaskSheet';
 import EditableTaskCard from '../components/ui/EditableTaskCard';
+import FloatingActionButton from '../components/ui/FloatingActionButton'; // 1. Importar o componente central
 
 const Tasks = ({ userData, setActiveView, onInfoClick, taskUpdater }) => {
     const [allTasks, setAllTasks] = useState([]);
@@ -29,22 +28,17 @@ const Tasks = ({ userData, setActiveView, onInfoClick, taskUpdater }) => {
     const { todayData, otherDays, todayKey } = useMemo(() => {
         const today = new Date();
         const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-
         const groups = allTasks.reduce((acc, task) => {
             if (!task.createdAt) return acc;
             const date = task.createdAt.toDate();
             const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-            
             if (!acc[dateKey]) acc[dateKey] = [];
             acc[dateKey].push(task);
             return acc;
         }, {});
-        
         const todayTasks = groups[todayKey] || [];
         delete groups[todayKey];
-
-        const otherTaskGroups = Object.entries(groups);
-
+        const otherTaskGroups = Object.entries(groups).sort((a, b) => new Date(b[0]) - new Date(a[0]));
         return { todayData: todayTasks, otherDays: otherTaskGroups, todayKey };
     }, [allTasks]);
 
@@ -117,9 +111,11 @@ const Tasks = ({ userData, setActiveView, onInfoClick, taskUpdater }) => {
                 </div>
             </div>
 
-            <button onClick={() => setActiveView('calendar')} className="fixed bottom-6 right-6 bg-purple-600 text-white rounded-full p-4 shadow-lg hover:bg-purple-700 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-purple-500 z-20" aria-label="Planejar no Calendário">
-                <CalendarIcon className="w-6 h-6" />
-            </button>
+            {/* 2. Botão antigo substituído pelo componente centralizado */}
+            <FloatingActionButton 
+                page="tasks"
+                onGoToCalendar={() => setActiveView('calendar')}
+            />
         </div>
     );
 };

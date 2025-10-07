@@ -67,3 +67,36 @@ body {
 .equal-height-swiper .swiper-wrapper {
     align-items: stretch;
 }
+
+.goals-progress-swiper {
+  display: flex;
+  flex-direction: column;
+}
+
+.goals-progress-swiper .swiper-wrapper {
+  flex: 1 1 auto;
+}
+
+.goals-progress-swiper .swiper-pagination {
+  position: relative !important; /* Remove o posicionamento absoluto */
+  bottom: auto !important;
+  padding-top: 8px; /* Adiciona espaço acima das bolinhas */
+  padding-bottom: 4px; /* Adiciona espaço abaixo das bolinhas */
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.goals-progress-swiper .swiper-pagination-bullet {
+  width: 6px;
+  height: 6px;
+  background-color: #4B5563; /* gray-600 */
+  border-radius: 9999px;
+  opacity: 1;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
+.goals-progress-swiper .swiper-pagination-bullet-active {
+  background-color: #8B5CF6 !important; /* purple-500 */
+}

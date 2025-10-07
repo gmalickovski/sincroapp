@@ -1,7 +1,7 @@
 // src/components/ui/TaskSummaryCard.jsx
 
 import React, { useState } from 'react';
-import { CheckCircleIcon, ChevronDownIcon, CheckIcon } from './Icons';
+import { CheckCircleIcon, ChevronDownIcon, IconTarget } from './Icons'; // Adicionado IconTarget
 import VibrationPill from './VibrationPill';
 
 const TaskSummaryCard = ({ date, tasks, personalDay, onInfoClick }) => {
@@ -24,19 +24,25 @@ const TaskSummaryCard = ({ date, tasks, personalDay, onInfoClick }) => {
                 </div>
                 <div className="flex items-center gap-3">
                     <span className="text-xs text-gray-400">{completedCount} / {tasks.length}</span>
-                    <VibrationPill vibrationNumber={personalDay} onClick={onInfoClick}/>
+                    <VibrationPill vibrationNumber={personalDay} onClick={(e) => { e.stopPropagation(); onInfoClick(personalDay); }}/>
                     <ChevronDownIcon className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </div>
             </button>
             {isOpen && (
                 <div className="p-3 border-t border-gray-700 space-y-2">
-                    {tasks.sort((a, b) => a.createdAt.seconds - b.createdAt.seconds).map(task => (
-                         <div key={task.id} className="flex items-center text-sm text-gray-400 pl-4">
-                             <div className="w-5 h-5 flex-shrink-0 flex items-center justify-center">
-                                 {task.completed ? <CheckCircleIcon className="w-4 h-4 text-green-500" /> : <div className="w-4 h-4 rounded-full border-2 border-gray-600"></div>}
-                             </div>
-                             <span className={`ml-3 ${task.completed ? 'line-through' : ''}`}>{task.text}</span>
-                         </div>
+                    {tasks.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)).map(task => (
+                         // ### ATUALIZAÇÃO: Container ajustado para quebra de linha ###
+                        <div key={task.id} className="flex items-start text-sm text-gray-400 pl-4">
+                            <div className="w-5 h-5 flex-shrink-0 flex items-center justify-center mt-0.5">
+                                {task.completed ? <CheckCircleIcon className="w-4 h-4 text-green-500" /> : <div className="w-4 h-4 rounded-full border-2 border-gray-600"></div>}
+                            </div>
+                            {task.goalId && (
+                                <div title={`Meta: ${task.goalTitle || ''}`} className="ml-2 text-purple-400 cursor-help flex-shrink-0 mt-0.5">
+                                    <IconTarget className="w-4 h-4" />
+                                </div>
+                            )}
+                            <p className={`ml-3 ${task.completed ? 'line-through' : ''} break-words w-full`}>{task.text}</p>
+                        </div>
                     ))}
                 </div>
             )}

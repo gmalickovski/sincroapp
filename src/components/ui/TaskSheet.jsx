@@ -1,8 +1,9 @@
+// src/components/ui/TaskSheet.jsx
+
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { PlusIcon, TrashIcon, CheckIcon, CheckAllIcon, ChevronDownIcon, IconTarget } from './Icons'; // 1. Adicionar IconTarget
+import { PlusIcon, TrashIcon, CheckIcon, CheckAllIcon, ChevronDownIcon, IconTarget } from './Icons';
 import VibrationPill from './VibrationPill';
 
-// --- Função Utilitária para debounce ---
 function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
@@ -12,40 +13,76 @@ function debounce(func, wait) {
     };
 }
 
-// --- Subcomponente TaskItem (Item individual da lista) ---
+// ### ATUALIZAÇÃO PRINCIPAL: TaskItem agora usa <textarea> com auto-resize ###
 const TaskItem = ({ task, onUpdate, onDelete, onToggle, onEnter }) => {
     const [text, setText] = useState(task.text);
+    const textareaRef = useRef(null);
+
     const debouncedUpdate = useCallback(debounce((newText) => { if (newText !== task.text) { onUpdate(task.id, { text: newText }); } }, 400), [task.id, task.text, onUpdate]);
-    useEffect(() => { setText(task.text); }, [task.text]);
-    const handleChange = (e) => { setText(e.target.value); debouncedUpdate(e.target.value); };
-    const handleBlur = () => { if (text !== task.text) { onUpdate(task.id, { text }); } };
-    const handleKeyDown = (e) => { if (e.key === 'Enter') { e.preventDefault(); onEnter(); } };
+
+    // Ajusta a altura do textarea dinamicamente
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+            textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+        }
+    }, [text]);
+
+    useEffect(() => {
+        setText(task.text);
+    }, [task.text]);
+
+    const handleChange = (e) => {
+        setText(e.target.value);
+        debouncedUpdate(e.target.value);
+    };
+
+    const handleBlur = () => {
+        if (text !== task.text) {
+            onUpdate(task.id, { text });
+        }
+    };
+
+    // Enter foca no próximo campo; Shift+Enter cria nova linha
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            onEnter();
+        }
+    };
 
     const CustomCheckbox = () => (
-        <button onClick={() => onToggle(task.id, !task.completed)} className={`w-5 h-5 flex-shrink-0 rounded-full border-2 transition-all flex items-center justify-center ${task.completed ? 'bg-green-500 border-green-500' : 'border-gray-500 group-hover:border-purple-400'}`}>
+        <button onClick={() => onToggle(task.id, !task.completed)} className={`w-5 h-5 flex-shrink-0 rounded-full border-2 transition-all flex items-center justify-center self-start mt-1 ${task.completed ? 'bg-green-500 border-green-500' : 'border-gray-500 group-hover:border-purple-400'}`}>
             {task.completed && <CheckIcon className="w-3 h-3 text-white" />}
         </button>
     );
 
     return (
-        <div className="flex items-center group bg-gray-800/50 hover:bg-gray-800/90 rounded-lg p-2 transition-colors">
+        <div className="flex items-start group bg-gray-800/50 hover:bg-gray-800/90 rounded-lg p-2 transition-colors">
             <CustomCheckbox />
             
-            {/* 2. ÍCONE DE META (adicionado aqui) */}
             {task.goalId && (
-                <div title={`Meta: ${task.goalTitle || ''}`} className="ml-2 text-purple-400 cursor-help flex-shrink-0">
+                <div title={`Meta: ${task.goalTitle || ''}`} className="ml-2 text-purple-400 cursor-help flex-shrink-0 mt-1">
                     <IconTarget className="w-4 h-4" />
                 </div>
             )}
 
-            <input type="text" value={text} onChange={handleChange} onBlur={handleBlur} onKeyDown={handleKeyDown} placeholder="Escreva uma tarefa..." className={`flex-1 mx-3 bg-transparent focus:outline-none text-sm leading-tight ${task.completed ? 'line-through text-gray-500' : 'text-gray-200'}`} />
+            <textarea
+                ref={textareaRef}
+                value={text}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                onKeyDown={handleKeyDown}
+                placeholder="Escreva uma tarefa..."
+                rows="1"
+                className={`flex-1 mx-3 bg-transparent focus:outline-none text-sm leading-tight resize-none overflow-hidden ${task.completed ? 'line-through text-gray-500' : 'text-gray-200'}`}
+            />
             
-            <button onClick={() => onDelete(task.id)} className="flex-shrink-0 text-gray-600 hover:text-red-400 opacity-50 lg:opacity-0 group-hover:opacity-100 transition-opacity" title="Excluir tarefa"><TrashIcon className="w-4 h-4" /></button>
+            <button onClick={() => onDelete(task.id)} className="flex-shrink-0 text-gray-600 hover:text-red-400 opacity-50 lg:opacity-0 group-hover:opacity-100 transition-opacity self-start mt-1" title="Excluir tarefa"><TrashIcon className="w-4 h-4" /></button>
         </div>
     );
 };
 
-// --- Componente apenas para o corpo da lista de tarefas ---
 export const TaskListBody = ({ tasks, taskUpdater, dateForNewTasks }) => {
     const [newTaskText, setNewTaskText] = useState('');
     const newTaskInputRef = useRef(null);
@@ -74,7 +111,6 @@ export const TaskListBody = ({ tasks, taskUpdater, dateForNewTasks }) => {
     );
 };
 
-// --- Componente Principal da Folha de Tarefas ---
 export const TaskSheet = ({ date, tasks, personalDay, onInfoClick, taskUpdater, isMobile = false }) => {
     const [isExpanded, setIsExpanded] = useState(true);
 

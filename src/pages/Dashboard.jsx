@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
+// ATUALIZAÇÃO 1: Importar o 'useNavigate' para gerenciar a navegação.
+import { useNavigate } from 'react-router-dom';
 import DashboardCard from '../components/ui/DashboardCard';
 import InfoCard from '../components/ui/InfoCard';
-import { BookIcon, CheckSquareIcon, SunIcon, CompassIcon, MoonIcon, StarIcon, RepeatIcon, TarotIcon, MoveIcon, CheckIcon } from '../components/ui/Icons';
+import { BookIcon, CheckSquareIcon, SunIcon, CompassIcon, MoonIcon, StarIcon, RepeatIcon, TarotIcon } from '../components/ui/Icons';
 import { textosDescritivos, textosArcanos, bussolaAtividades, textosCiclosDeVida, textosExplicativos } from '../data/content';
 import Spinner from '../components/ui/Spinner';
 import { db } from '../services/firebase';
@@ -14,6 +16,7 @@ import FloatingActionButton from '../components/ui/FloatingActionButton';
 import TaskModal from '../components/ui/TaskModal';
 import NewNoteEditor from '../components/ui/NewNoteEditor';
 import SortableCard from '../components/ui/SortableCard';
+import GoalsProgressCard from '../components/ui/GoalsProgressCard';
 
 const DailyTasksCard = React.memo(({ user, setActiveView }) => {
     const [tasks, setTasks] = React.useState([]);
@@ -101,15 +104,22 @@ const QuickJournalCard = React.memo(({ user, setActiveView }) => {
 
 
 function Dashboard({ user, userData, data, setActiveView, taskUpdater, onInfoClick, isEditMode, setIsEditMode }) {
+    // ATUALIZAÇÃO 2: Instanciar o hook de navegação.
+    const navigate = useNavigate();
     const [cardOrder, setCardOrder] = useState(null);
     const [isLoadingOrder, setIsLoadingOrder] = useState(true);
     const longPressTimer = useRef();
     const touchMoveRef = useRef(false);
 
-    const handlePressStart = useCallback(() => {
-        // Ativa o modo de edição apenas em telas menores (mobile)
-        if (window.innerWidth >= 1024) return;
+    // ATUALIZAÇÃO 3: Criar a função que lida com o clique e navega para a página de detalhes.
+    const handleSelectGoal = (goal) => {
+        if (goal && goal.id) {
+            navigate(`/goaldetails/${goal.id}`);
+        }
+    };
 
+    const handlePressStart = useCallback(() => {
+        if (window.innerWidth >= 1024) return;
         if (isEditMode) return;
         touchMoveRef.current = false;
         longPressTimer.current = setTimeout(() => {
@@ -129,7 +139,7 @@ function Dashboard({ user, userData, data, setActiveView, taskUpdater, onInfoCli
     }, []);
 
     const defaultOrder = [
-        'vibracaoDia', 'vibracaoMes', 'vibracaoAno', 'cicloVida', 'arcanoRegente', 'arcanoVigente',
+        'vibracaoDia', 'goalsProgress', 'vibracaoMes', 'vibracaoAno', 'cicloVida', 'arcanoRegente', 'arcanoVigente',
         'bussola', 'tarefas', 'anotacoes'
     ];
 
@@ -218,6 +228,8 @@ function Dashboard({ user, userData, data, setActiveView, taskUpdater, onInfoCli
 
     const cardComponents = {
         vibracaoDia: <InfoCard title="Vibração do Dia" number={diaPessoal} info={infoDia} icon={<SunIcon/>} colorClass={{text: 'text-cyan-300'}} onCardClick={() => !isEditMode && setInspirationModalData({ title: "Vibração do Dia", number: diaPessoal, info: infoDia, icon: <SunIcon/>, explicacao: textosExplicativos.vibracaoDia })} />,
+        // ATUALIZAÇÃO 4: Passar a função 'handleSelectGoal' para o componente de metas.
+        goalsProgress: <GoalsProgressCard setActiveView={setActiveView} onSelectGoal={handleSelectGoal} />,
         vibracaoMes: <InfoCard title="Vibração do Mês" number={mesPessoal} info={infoMes} icon={<MoonIcon/>} colorClass={{text: 'text-indigo-300'}} onCardClick={() => !isEditMode && setInspirationModalData({ title: "Vibração do Mês", number: mesPessoal, info: infoMes, icon: <MoonIcon/>, explicacao: textosExplicativos.mesPessoal })} />,
         vibracaoAno: <InfoCard title="Vibração do Ano" number={anoPessoal} info={infoAno} icon={<StarIcon/>} colorClass={{text: 'text-amber-300'}} onCardClick={() => !isEditMode && setInspirationModalData({ title: "Vibração do Ano", number: anoPessoal, info: infoAno, icon: <StarIcon/>, explicacao: textosExplicativos.anoPessoal })} />,
         cicloVida: <div className="lg:col-span-3 h-full">{isPremium ? <InfoCard title={cicloDeVidaAtual.nome} number={cicloDeVidaAtual.regente} info={infoCicloAtual} icon={<RepeatIcon />} colorClass={{text: 'text-green-300'}} onCardClick={() => !isEditMode && setInspirationModalData({ title: cicloDeVidaAtual.nome, number: cicloDeVidaAtual.regente, info: infoCicloAtual, icon: <RepeatIcon/>, explicacao: textosExplicativos.cicloDeVida })} /> : <UpgradeCard title="Desbloqueie seus Ciclos de Vida" featureText="Entenda os grandes temas da sua jornada com o plano Premium." />}</div>,
@@ -258,12 +270,11 @@ function Dashboard({ user, userData, data, setActiveView, taskUpdater, onInfoCli
                 </DndContext>
             </div>
             
-            <div className="fixed bottom-6 right-6 z-20 flex items-end gap-4">
-                <FloatingActionButton 
-                    onNewTask={() => setIsTaskModalOpen(true)}
-                    onNewNote={() => setIsNoteEditorOpen(true)}
-                />
-            </div>
+            <FloatingActionButton 
+                page="dashboard"
+                onNewTask={() => setIsTaskModalOpen(true)}
+                onNewNote={() => setIsNoteEditorOpen(true)}
+            />
         </div>
     );
 }

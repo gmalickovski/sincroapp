@@ -6,10 +6,11 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import { Pagination } from 'swiper/modules';
 import DicaDoDiaCard from '../components/ui/DicaDoDiaCard';
-import { ArrowLeftIcon, TrashIcon, CheckIcon, ChevronUpIcon, ChevronDownIcon, ClipboardCheckIcon, SparklesIcon, EditIcon, CalendarIcon } from '../components/ui/Icons';
+import { ArrowLeftIcon, TrashIcon, CheckIcon, ChevronUpIcon, ChevronDownIcon, EditIcon, CalendarIcon } from '../components/ui/Icons';
 import ScheduleMilestoneModal from '../components/ui/ScheduleMilestoneModal';
 import AISuggestionsModal from '../components/ui/AISuggestionsModal';
 import EditGoalModal from '../components/ui/EditGoalModal';
+import FloatingActionButton from '../components/ui/FloatingActionButton'; // Importar componente
 
 function debounce(func, wait) { let timeout; return function executedFunction(...args) { const later = () => { clearTimeout(timeout); func(...args); }; clearTimeout(timeout); timeout = setTimeout(later, wait); }; }
 
@@ -86,7 +87,6 @@ const GoalDetail = ({ goal: initialGoal, onBack, data, userData }) => {
         setIsScheduleModalOpen(false);
         setIsAiModalOpen(true);
         setUserTasks(null);
-
         const fetchData = async () => {
             try {
                 const tasksQuery = query(collection(db, 'users', user.uid, 'tasks'), orderBy('createdAt', 'desc'), limit(15));
@@ -100,10 +100,6 @@ const GoalDetail = ({ goal: initialGoal, onBack, data, userData }) => {
         fetchData();
     }, [user]);
     
-    // ### CORREÇÃO DEFINITIVA PARA O BUG DE DIGITAÇÃO ###
-    // Envolvendo todas as funções que são passadas para os modais com useCallback.
-    // Isso garante que elas não sejam recriadas a cada renderização, evitando a perda de foco.
-
     const handleCloseAiModal = useCallback(() => setIsAiModalOpen(false), []);
     const handleReturnToSchedule = useCallback(() => { setIsAiModalOpen(false); setIsScheduleModalOpen(true); }, []);
     const handleSaveGoal = useCallback(async (updatedData) => { if (user) { await updateDoc(doc(db, 'users', user.uid, 'goals', currentGoal.id), updatedData); }}, [user, currentGoal.id]);
@@ -158,30 +154,14 @@ const GoalDetail = ({ goal: initialGoal, onBack, data, userData }) => {
     return (
         <>
             <ScheduleMilestoneModal isOpen={isScheduleModalOpen} onClose={handleCloseScheduleModal} onSchedule={handleScheduleMilestone} milestoneTitle="" onAiSuggest={handleOpenAiModal} />
-            
-            <AISuggestionsModal 
-                isOpen={isAiModalOpen} 
-                onClose={handleCloseAiModal} 
-                onAddSuggestions={handleAiSuggestions} 
-                goalTitle={currentGoal.title} 
-                goalDescription={currentGoal.description} 
-                userBirthDate={userData?.dataNasc} 
-                onBack={handleReturnToSchedule}
-                userTasks={userTasks}
-                existingMilestones={milestones}
-                numerologyData={data} 
-            />
-
+            <AISuggestionsModal isOpen={isAiModalOpen} onClose={handleCloseAiModal} onAddSuggestions={handleAiSuggestions} goalTitle={currentGoal.title} goalDescription={currentGoal.description} userBirthDate={userData?.dataNasc} onBack={handleReturnToSchedule} userTasks={userTasks} existingMilestones={milestones} numerologyData={data} />
             <EditGoalModal isOpen={isEditModalOpen} onClose={handleCloseEditModal} onSave={handleSaveGoal} goal={currentGoal} />
             
             <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in h-full lg:h-auto lg:py-8">
                 <div className="lg:hidden flex flex-col h-full">
                     <div className="flex-shrink-0 pt-4"><button onClick={onBack} className="flex items-center text-sm font-semibold text-purple-400 hover:text-purple-300 transition-colors mb-4"><ArrowLeftIcon className="h-5 w-5 mr-2" />Voltar</button></div>
                     <div className={`flex-shrink-0 transition-all duration-300 ease-in-out overflow-hidden ${isTopSectionVisible ? 'max-h-[50vh]' : 'max-h-0 opacity-0'}`}>
-                        <Swiper modules={[Pagination]} spaceBetween={16} slidesPerView={1} pagination={{ clickable: true }} className="pb-4 equal-height-swiper">
-                            <SwiperSlide className="h-full pb-4"><GoalInfoCard goal={currentGoal} formatDate={formatDate} className="h-full" onEdit={handleOpenEditModal} /></SwiperSlide>
-                            <SwiperSlide className="h-full pb-4"><DicaDoDiaCard personalDayNumber={diaPessoalNumero} className="h-full" /></SwiperSlide>
-                        </Swiper>
+                        <Swiper modules={[Pagination]} spaceBetween={16} slidesPerView={1} pagination={{ clickable: true }} className="pb-4 equal-height-swiper"><SwiperSlide className="h-full pb-4"><GoalInfoCard goal={currentGoal} formatDate={formatDate} className="h-full" onEdit={handleOpenEditModal} /></SwiperSlide><SwiperSlide className="h-full pb-4"><DicaDoDiaCard personalDayNumber={diaPessoalNumero} className="h-full" /></SwiperSlide></Swiper>
                     </div>
                     <div className="flex-1 flex flex-col min-h-0">
                         <div className="flex justify-between items-center mb-2 flex-shrink-0 px-1"><h2 className="text-2xl font-semibold text-white">Marcos</h2><button onClick={() => setIsTopSectionVisible(!isTopSectionVisible)} className="p-2 text-gray-400 hover:text-white">{isTopSectionVisible ? <ChevronUpIcon className="w-6 h-6"/> : <ChevronDownIcon className="w-6 h-6" />}</button></div>
@@ -196,7 +176,10 @@ const GoalDetail = ({ goal: initialGoal, onBack, data, userData }) => {
                 </div>
             </div>
             
-            <button onClick={handleOpenScheduleModal} className="fixed bottom-6 right-6 bg-purple-600 text-white rounded-full p-4 shadow-lg hover:bg-purple-700 transition-transform hover:scale-110" aria-label="Adicionar Novo Marco"><ClipboardCheckIcon className="w-7 h-7" /></button>
+            <FloatingActionButton
+                page="goalDetail"
+                onNewMilestone={handleOpenScheduleModal}
+            />
         </>
     );
 };
