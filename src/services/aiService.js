@@ -1,108 +1,141 @@
 // src/services/aiService.js
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { textosDescritivos } from '../data/content'; // Importamos as descrições
+import { textosDescritivos } from '../data/content';
 
-// Pega a API key do .env
 const API_KEY = import.meta.env.VITE_GOOGLE_AI_API_KEY;
-
 let genAI;
 let model;
 
-// Valida se a API key existe
 if (!API_KEY) {
   console.error("❌ VITE_GOOGLE_AI_API_KEY não encontrada no arquivo .env");
 }
 
 const getModel = () => {
   if (!model) {
-    console.log("Inicializando o modelo de IA pela primeira vez...");
-    
     if (!API_KEY) {
       throw new Error("API Key do Google AI não configurada. Adicione VITE_GOOGLE_AI_API_KEY no arquivo .env");
     }
-    
     genAI = new GoogleGenerativeAI(API_KEY);
-    // ATUALIZADO: Usar Gemini 1.5 Flash
     model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
   }
   return model;
 };
 
-// ### ALTERAÇÃO PRINCIPAL: FUNÇÃO AGORA RECEBE MAIS CONTEXTO ###
-export const generateSuggestionsWithDates = async (goalTitle, goalDescription, userBirthDate, startDate) => {
+// ### ATUALIZADO: Remove 'userJournal' e adiciona 'existingMilestones' ###
+export const generateSuggestionsWithDates = async (
+    goalTitle, 
+    goalDescription, 
+    userBirthDate, 
+    startDate,
+    additionalInfo,
+    userTasks = [],
+    existingMilestones = [], // Novo
+    numerologyData = {}
+) => {
 
-  // Transforma as descrições do dia pessoal em um formato simples para o prompt
-  const numerologyContext = Object.entries(textosDescritivos.diaPessoal)
-    .filter(([key]) => !isNaN(key)) // Filtra apenas chaves numéricas
+  const diaPessoalContext = Object.entries(textosDescritivos.diaPessoal)
+    .filter(([key]) => !isNaN(key))
     .map(([day, { titulo, desc }]) => `Dia Pessoal ${day} (${titulo}): ${desc}`)
     .join('\n');
 
+  const { anoPessoal, mesPessoal, cicloDeVida1, cicloDeVida2, cicloDeVida3 } = numerologyData.numeros || {};
+  
+  const getDesc = (type, number) => {
+    if (!number || !textosDescritivos[type] || !textosDescritivos[type][number]) return "Não disponível.";
+    return `${textosDescritivos[type][number].titulo}: ${textosDescritivos[type][number].desc}`;
+  }
+
+  const anoPessoalContext = `Ano Pessoal ${anoPessoal}: ${getDesc('anoPessoal', anoPessoal)}`;
+  const mesPessoalContext = `Mês Pessoal ${mesPessoal}: ${getDesc('mesPessoal', mesPessoal)}`;
+  const cicloDeVidaContext = `
+    - Primeiro Ciclo de Vida (Formação, até ~28 anos): Vibração ${cicloDeVida1} - ${getDesc('ciclosDeVida', cicloDeVida1)}
+    - Segundo Ciclo de Vida (Produção, até ~56 anos): Vibração ${cicloDeVida2} - ${getDesc('ciclosDeVida', cicloDeVida2)}
+    - Terceiro Ciclo de Vida (Colheita, após 56 anos): Vibração ${cicloDeVida3} - ${getDesc('ciclosDeVida', cicloDeVida3)}
+  `;
+
   const formattedStartDate = startDate.toLocaleDateString('pt-BR');
 
+  const tasksContext = userTasks.length > 0
+    ? userTasks.map(task => `- [${task.completed ? 'X' : ' '}] ${task.text} (Meta: ${task.goalTitle || 'N/A'})`).join('\n')
+    : "Nenhuma tarefa recente.";
+
+  // ### NOVO: Contexto dos marcos já existentes ###
+  const milestonesContext = existingMilestones.length > 0
+    ? existingMilestones.map(milestone => `- ${milestone.text}`).join('\n')
+    : "Nenhum marco foi criado para esta meta ainda.";
+
+  // ### PROMPT ATUALIZADO ###
   const prompt = `
-    Você é um assistente especialista em produtividade e planejamento, com profundo conhecimento em numerologia.
-    Sua tarefa é quebrar uma meta principal em 5 a 7 marcos ou tarefas acionáveis E atribuir a data ideal para cada um, baseado na numerologia do dia pessoal do usuário.
+    Você é um Coach de Produtividade e Estrategista Pessoal, com profundo conhecimento em numerologia.
+    Sua missão é criar um plano de ação estratégico, quebrando uma meta principal em 5 a 7 marcos NOVOS e COMPLEMENTARES, atribuindo a data ideal para cada um.
 
-    **Contexto Numerológico para Análise:**
-    ${numerologyContext}
-    ---
-    Um dia de vibração 1 é bom para inícios.
-    Um dia de vibração 4 é bom para trabalho duro e organização.
-    Um dia de vibração 5 é bom para mudanças e ações versáteis.
-    Um dia de vibração 9 é bom para finalizações.
-    Use as outras vibrações de forma complementar.
-    ---
+    **DOSSIÊ DO USUÁRIO:**
 
-    **Dados do Usuário:**
+    **1. A META:**
     - Meta Principal: "${goalTitle}"
-    - Motivação: "${goalDescription || "Não fornecida"}"
-    - Data de Nascimento do Usuário: ${userBirthDate} (use isso para calcular o dia pessoal de datas futuras)
-    - Data de Início para o Planejamento: ${formattedStartDate}
+    - Motivação/Descrição: "${goalDescription || "Não fornecida"}"
+    - Informações Adicionais do Usuário: "${additionalInfo || "Nenhuma"}"
 
-    **Sua Tarefa:**
-    1.  Crie de 5 a 7 marcos claros e concisos para atingir a meta.
-    2.  Para cada marco, determine a data futura mais apropriada para sua execução, começando a partir de ${formattedStartDate}. Considere a energia do dia pessoal para cada data. Por exemplo, agende tarefas de "início" em dias de vibração 1.
-    3.  As datas devem ser sequenciais e realistas, com espaçamento de alguns dias ou semanas entre elas.
-    4.  Responda **APENAS** com um objeto JSON. Não inclua a palavra "json" ou quaisquer marcadores de código como \`\`\`.
+    **2. MARCOS JÁ EXISTENTES NA META (para evitar repetição):**
+    ${milestonesContext}
+
+    **3. CONTEXTO DE LONGO PRAZO (O CENÁRIO GERAL):**
+    - ${anoPessoalContext}
+    - ${mesPessoalContext}
+    - Ciclos de Vida: ${cicloDeVidaContext}
     
-    O JSON deve ser um array de objetos, onde cada objeto tem duas chaves: "title" (o marco) e "date" (a data sugerida no formato "YYYY-MM-DD").
+    **4. CONTEXTO DE CURTO PRAZO (ATIVIDADES RECENTES):**
+    - Últimas Tarefas do Usuário (em todas as metas): ${tasksContext}
+
+    **5. FERRAMENTA PARA DATAS (A VIBRAÇÃO DO DIA):**
+    - Data de Início do Planejamento: ${formattedStartDate}
+    - Data de Nascimento do Usuário: ${userBirthDate} (use para calcular o dia pessoal de datas futuras)
+    - Guia do Dia Pessoal: ${diaPessoalContext}
+
+    ---
+    **SUA TAREFA ESTRATÉGICA:**
+
+    1.  **ANÁLISE:** Primeiro, leia os "MARCOS JÁ EXISTENTES". Sua principal prioridade é NÃO sugerir marcos que sejam redundantes ou muito similares aos que já estão listados. Suas sugestões devem ser os PRÓXIMOS PASSOS lógicos.
+
+    2.  **SÍNTESE DO MOMENTO:** Analise o restante do dossiê (Ano Pessoal, Mês, Ciclos, Tarefas) para definir o **TEMA** do plano. O usuário está num ano de inícios? De finalizações? Use isso para guiar o tom das sugestões.
+
+    3.  **CRIE MARCOS NOVOS E COMPLEMENTARES:** Crie de 5 a 7 marcos que continuem o trabalho já feito. Se os marcos existentes são sobre "planejamento", sugira marcos sobre "execução". Se já existem marcos de "criação", sugira sobre "divulgação" ou "análise".
+    
+    4.  **ATRIBUA DATAS INTELIGENTES:** Para cada novo marco, encontre a data futura ideal (a partir de ${formattedStartDate}) usando o **Dia Pessoal**. (Ex: Planejamento em Dia 4, Lançamento em Dia 1, Conclusão em Dia 9).
+
+    5.  **FORMATO DA RESPOSTA:** Responda **APENAS** com um array de objetos JSON. Não inclua a palavra "json" ou marcadores de código \`\`\`. Cada objeto deve ter as chaves "title" e "date" (formato "YYYY-MM-DD").
 
     **Exemplo de Resposta Esperada:**
     [
-      {"title": "Definir a estrutura e os primeiros 5 episódios", "date": "2025-10-10"},
-      {"title": "Criar a identidade visual e as vinhetas", "date": "2025-10-17"},
-      {"title": "Gravar o primeiro episódio piloto", "date": "2025-10-25"},
-      {"title": "Planejar a estratégia de lançamento nas redes sociais", "date": "2025-11-05"},
-      {"title": "Publicar o primeiro episódio", "date": "2025-11-15"}
+      {"title": "Executar a primeira fase do plano de ação", "date": "2025-10-10"},
+      {"title": "Analisar os resultados iniciais e ajustar a estratégia", "date": "2025-10-15"},
+      {"title": "Iniciar a divulgação nas redes sociais (Dia 1)", "date": "2025-10-24"}
     ]
   `;
 
   try {
     const generativeModel = getModel();
     const result = await generativeModel.generateContent(prompt);
-    const response = result.response;
+    const response = await result.response;
     let text = response.text();
 
-    // Limpa a resposta para garantir que seja um JSON válido
     text = text.replace(/```json/g, '').replace(/```/g, '').trim();
 
+    if (!text.startsWith('[') || !text.endsWith(']')) {
+      throw new Error("A IA retornou um formato de texto inesperado.");
+    }
+
     const suggestions = JSON.parse(text);
-    
-    return suggestions; // Agora retorna o array de objetos {title, date}
+    return suggestions;
 
   } catch (error) {
-    console.error("Erro ao gerar sugestões com datas:", error);
-    console.error("Resposta recebida da IA que causou o erro:", text);
+    console.error("Erro ao gerar sugestões estratégicas:", error);
+    let textForError = 'Resposta da IA não disponível';
+    console.error("Resposta recebida da IA que causou o erro:", textForError);
     
     if (error instanceof SyntaxError) {
       throw new Error("A IA retornou um formato inválido. Tente novamente.");
-    }
-    
-    if (error.message?.includes("API_KEY_INVALID")) {
-      throw new Error("API Key inválida. Verifique sua chave no Google AI Studio.");
-    } else if (error.message?.includes("QUOTA_EXCEEDED")) {
-      throw new Error("Cota de uso da API excedida. Tente novamente mais tarde.");
     }
     
     throw new Error("Ocorreu um erro ao se comunicar com a IA.");
