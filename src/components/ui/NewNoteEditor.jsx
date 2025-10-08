@@ -15,7 +15,11 @@ const NewNoteEditor = ({ entryData, user, userData, onClose, onInfoClick }) => {
     const textareaRef = useRef(null);
     const isEditing = !!entryData?.id;
 
-    const noteDate = entryData?.createdAt ? entryData.createdAt.toDate() : (entryData?.date || new Date());
+    // ### CORREÇÃO APLICADA AQUI ###
+    // Converte o Timestamp do Firebase para um objeto Date do JavaScript.
+    // Isso garante que funções como .getDate() e .toLocaleDateString() funcionem corretamente.
+    const noteDate = entryData?.createdAt?.toDate ? entryData.createdAt.toDate() : (entryData?.date || new Date());
+
     const personalDayForPill = entryData?.personalDay || numerologyEngine.calculatePersonalDayForDate(noteDate, userData.dataNasc);
 
     useEffect(() => {
@@ -107,15 +111,15 @@ const NewNoteEditor = ({ entryData, user, userData, onClose, onInfoClick }) => {
                 
                 {!isEditing && !content && promptsForToday.length > 0 && (
                      <div className="p-4 border-b border-gray-700">
-                        <h3 className="text-sm font-semibold text-gray-300 mb-3 text-center">Inspire-se para começar...</h3>
-                        <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                            {promptsForToday.slice(0, 3).map((prompt, index) => (
-                                <button key={index} onClick={() => handlePromptClick(prompt)} className="text-xs text-center bg-gray-700/50 hover:bg-gray-700 transition-colors p-2 rounded-lg" >
-                                    {prompt}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+                         <h3 className="text-sm font-semibold text-gray-300 mb-3 text-center">Inspire-se para começar...</h3>
+                         <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                             {promptsForToday.slice(0, 3).map((prompt, index) => (
+                                 <button key={index} onClick={() => handlePromptClick(prompt)} className="text-xs text-center bg-gray-700/50 hover:bg-gray-700 transition-colors p-2 rounded-lg" >
+                                     {prompt}
+                                 </button>
+                             ))}
+                         </div>
+                     </div>
                 )}
                 <main className="flex-1 p-4 sm:p-6 overflow-y-auto custom-scrollbar">
                     <textarea ref={textareaRef} value={content} onChange={(e) => setContent(e.target.value)} placeholder="Escreva seus pensamentos, sentimentos e reflexões do dia aqui..." className="w-full h-full bg-transparent text-gray-200 resize-none focus:outline-none placeholder-gray-500 font-serif text-lg leading-relaxed" />
