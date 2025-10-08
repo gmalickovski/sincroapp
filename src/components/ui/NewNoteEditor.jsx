@@ -15,11 +15,25 @@ const NewNoteEditor = ({ entryData, user, userData, onClose, onInfoClick }) => {
     const textareaRef = useRef(null);
     const isEditing = !!entryData?.id;
 
-    // ### CORREÇÃO APLICADA AQUI ###
-    // Converte o Timestamp do Firebase para um objeto Date do JavaScript.
-    // Isso garante que funções como .getDate() e .toLocaleDateString() funcionem corretamente.
-    const noteDate = entryData?.createdAt?.toDate ? entryData.createdAt.toDate() : (entryData?.date || new Date());
+    // ### CORREÇÃO DEFINITIVA APLICADA AQUI ###
+    // Esta função segura garante que, independentemente do que 'entryData' contenha,
+    // 'noteDate' será sempre um objeto de data JavaScript válido.
+    const getSafeDate = (entry) => {
+        // 1. Se for um registro existente do Firebase, ele terá 'createdAt' com o método 'toDate'.
+        if (entry?.createdAt && typeof entry.createdAt.toDate === 'function') {
+            return entry.createdAt.toDate();
+        }
+        // 2. Se for uma nova anotação, ele pode ter a propriedade 'date'.
+        if (entry?.date instanceof Date) {
+            return entry.date;
+        }
+        // 3. Como último recurso, se nada for fornecido, usa a data atual.
+        return new Date();
+    };
 
+    const noteDate = getSafeDate(entryData);
+    
+    // Agora, esta linha sempre receberá um objeto Date válido, resolvendo o erro.
     const personalDayForPill = entryData?.personalDay || numerologyEngine.calculatePersonalDayForDate(noteDate, userData.dataNasc);
 
     useEffect(() => {
