@@ -1,17 +1,21 @@
-// src/pages/Goals.jsx
-
 import React, { useState, useEffect } from 'react';
+// ATUALIZAÇÃO 1: Importar hooks do React Router
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import { collection, onSnapshot, addDoc, doc, deleteDoc, query, where, getDocs, writeBatch } from 'firebase/firestore';
 import { db, auth } from '../services/firebase';
 import CreateGoalModal from '../components/ui/CreateGoalModal';
-import GoalDetail from './GoalDetail';
 import { IconTarget, CalendarIcon, TrashIcon } from '../components/ui/Icons';
 import Spinner from '../components/ui/Spinner';
-import FloatingActionButton from '../components/ui/FloatingActionButton'; // Importar o componente
+import FloatingActionButton from '../components/ui/FloatingActionButton';
 
-const Goals = ({ data, userData }) => {
+// ATUALIZAÇÃO 2: Remover as props da assinatura da função
+const Goals = () => {
+    // ATUALIZAÇÃO 3: Obter as props do contexto e instanciar o 'navigate'
+    const { data, userData } = useOutletContext();
+    const navigate = useNavigate();
+
     const [goals, setGoals] = useState([]);
-    const [selectedGoal, setSelectedGoal] = useState(null);
+    // const [selectedGoal, setSelectedGoal] = useState(null); // ATUALIZAÇÃO 4: Estado removido, pois a navegação agora é via URL
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const user = auth.currentUser;
@@ -27,6 +31,8 @@ const Goals = ({ data, userData }) => {
                 setLoading(false);
             });
             return () => unsubscribe();
+        } else {
+            setLoading(false);
         }
     }, [user]);
 
@@ -67,15 +73,21 @@ const Goals = ({ data, userData }) => {
         return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
     };
 
-    if (selectedGoal) {
-        return <GoalDetail goal={selectedGoal} onBack={() => setSelectedGoal(null)} data={data} userData={userData} />;
+    // ATUALIZAÇÃO 5: Bloco removido. A renderização do GoalDetail agora é feita pela rota em App.jsx
+    // if (selectedGoal) {
+    //     return <GoalDetail goal={selectedGoal} onBack={() => setSelectedGoal(null)} data={data} userData={userData} />;
+    // }
+
+    // Adicionado um check para caso os dados ainda não tenham carregado
+    if (!userData || !data) {
+        return <div className="h-full w-full flex justify-center items-center"><Spinner /></div>;
     }
 
     return (
         <>
             <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
                 <div className="flex justify-between items-center mb-6">
-                    <h1 className="text-3xl font-bold text-white">Minhas Metas</h1>
+                    <h1 className="text-3xl font-bold text-white">Jornadas</h1>
                 </div>
                 {loading ? ( <div className="flex justify-center items-center h-64"><Spinner /></div> ) : 
                 goals.length === 0 ? (
@@ -90,7 +102,8 @@ const Goals = ({ data, userData }) => {
                         {goals.map(goal => (
                             <div 
                                 key={goal.id} 
-                                onClick={() => setSelectedGoal(goal)}
+                                // ATUALIZAÇÃO 6: O clique agora navega para a URL de detalhes da meta
+                                onClick={() => navigate(`/app/goaldetails/${goal.id}`)}
                                 className="bg-gray-800 rounded-lg shadow-lg p-5 flex flex-col justify-between cursor-pointer hover:border-purple-500 border-2 border-transparent transition-all group relative"
                             >
                                 <button 

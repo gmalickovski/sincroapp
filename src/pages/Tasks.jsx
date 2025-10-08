@@ -1,15 +1,20 @@
-// src/pages/Tasks.jsx
-
 import React, { useState, useEffect, useMemo } from 'react';
+// ATUALIZAÇÃO 1: Importar hooks do React Router para contexto e navegação
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import { db, auth } from '../services/firebase';
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import Spinner from '../components/ui/Spinner';
 import numerologyEngine from '../services/numerologyEngine';
 import { TaskSheet } from '../components/ui/TaskSheet';
 import EditableTaskCard from '../components/ui/EditableTaskCard';
-import FloatingActionButton from '../components/ui/FloatingActionButton'; // 1. Importar o componente central
+import FloatingActionButton from '../components/ui/FloatingActionButton';
 
-const Tasks = ({ userData, setActiveView, onInfoClick, taskUpdater }) => {
+// ATUALIZAÇÃO 2: Remover as props da assinatura da função
+const Tasks = () => {
+    // ATUALIZAÇÃO 3: Obter as props do contexto e instanciar o 'navigate'
+    const { userData, onInfoClick, taskUpdater } = useOutletContext();
+    const navigate = useNavigate();
+
     const [allTasks, setAllTasks] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const user = auth.currentUser;
@@ -46,9 +51,14 @@ const Tasks = ({ userData, setActiveView, onInfoClick, taskUpdater }) => {
         return <div className="flex justify-center mt-16"><Spinner /></div>;
     }
     
+    // Adicionado um check para caso 'userData' ainda não tenha carregado
+    if (!userData) {
+        return <div className="flex justify-center mt-16"><Spinner /></div>;
+    }
+
     return (
         <div className="p-4 md:p-8 text-white w-full max-w-7xl mx-auto h-full flex flex-col">
-            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6 flex-shrink-0">Tarefas</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6 flex-shrink-0">Foco do Dia</h1>
 
             {/* Layout Desktop */}
             <div className="hidden lg:grid grid-cols-2 gap-12 flex-1 overflow-hidden">
@@ -111,10 +121,10 @@ const Tasks = ({ userData, setActiveView, onInfoClick, taskUpdater }) => {
                 </div>
             </div>
 
-            {/* 2. Botão antigo substituído pelo componente centralizado */}
+            {/* ATUALIZAÇÃO 4: O botão agora usa 'navigate' para mudar de página */}
             <FloatingActionButton 
                 page="tasks"
-                onGoToCalendar={() => setActiveView('calendar')}
+                onGoToCalendar={() => navigate('/app/calendar')}
             />
         </div>
     );

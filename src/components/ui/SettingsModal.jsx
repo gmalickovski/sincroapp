@@ -1,20 +1,17 @@
-// src/components/ui/SettingsModal.jsx
-
 import React, { useState } from 'react';
 import { getAuth, updatePassword, EmailAuthProvider, reauthenticateWithCredential, deleteUser } from "firebase/auth";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from '../../services/firebase';
-import { XIcon, UserIcon, BookIcon, StarIcon, ChevronLeft, AlertTriangleIcon } from './Icons';
+import { XIcon, UserIcon, BookIcon, StarIcon, AlertTriangleIcon, Share2Icon } from './Icons';
 import Spinner from './Spinner';
 
 // --- FUNÇÕES AUXILIARES PARA A DATA ---
-// Converte 'dd/mm/yyyy' do Firestore para 'yyyy-mm-dd' para o input do HTML
 const formatToInputDate = (dateStr) => {
     if (!dateStr || !dateStr.includes('/')) return dateStr;
     const [day, month, year] = dateStr.split('/');
     return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 };
-// Converte 'yyyy-mm-dd' do input para 'dd/mm/yyyy' para salvar no Firestore
+
 const formatToSaveDate = (dateStr) => {
     if (!dateStr || !dateStr.includes('-')) return dateStr;
     const [year, month, day] = dateStr.split('-');
@@ -23,23 +20,12 @@ const formatToSaveDate = (dateStr) => {
 
 const SettingsModal = ({ user, userData, onClose }) => {
     const [activeTab, setActiveTab] = useState('account');
-    const [mobileView, setMobileView] = useState('menu');
-
-    const [accountInfo, setAccountInfo] = useState({
-        primeiroNome: userData?.primeiroNome || '',
-        sobrenome: userData?.sobrenome || '',
-    });
-    const [numerologyInfo, setNumerologyInfo] = useState({
-        nomeAnalise: userData?.nomeAnalise || '',
-        dataNasc: formatToInputDate(userData?.dataNasc) || '',
-    });
+    const [accountInfo, setAccountInfo] = useState({ primeiroNome: userData?.primeiroNome || '', sobrenome: userData?.sobrenome || '' });
+    const [numerologyInfo, setNumerologyInfo] = useState({ nomeAnalise: userData?.nomeAnalise || '', dataNasc: formatToInputDate(userData?.dataNasc) || '' });
     const [passwordInfo, setPasswordInfo] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    
-    // ### CORREÇÃO DO SPINNER: ESTADOS DE LOADING SEPARADOS ###
     const [isSavingInfo, setIsSavingInfo] = useState(false);
     const [isSavingPassword, setIsSavingPassword] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
-    
     const [feedback, setFeedback] = useState({ type: '', message: '' });
     const auth = getAuth();
 
@@ -56,16 +42,11 @@ const SettingsModal = ({ user, userData, onClose }) => {
         setIsSavingInfo(true);
         const userDocRef = doc(db, "users", user.uid);
         let dataToUpdate = {};
-
         if (section === 'account') {
             dataToUpdate = accountInfo;
         } else if (section === 'numerology') {
-            dataToUpdate = {
-                ...numerologyInfo,
-                dataNasc: formatToSaveDate(numerologyInfo.dataNasc) // Formata a data antes de salvar
-            };
+            dataToUpdate = { ...numerologyInfo, dataNasc: formatToSaveDate(numerologyInfo.dataNasc) };
         }
-
         try {
             await updateDoc(userDocRef, dataToUpdate);
             showFeedback('success', 'Informações salvas com sucesso!');
@@ -86,7 +67,7 @@ const SettingsModal = ({ user, userData, onClose }) => {
         if (passwordInfo.newPassword !== passwordInfo.confirmPassword) return showFeedback('error', 'As novas senhas não coincidem.');
         if (passwordInfo.newPassword.length < 6) return showFeedback('error', 'A nova senha deve ter no mínimo 6 caracteres.');
         
-        setIsSavingPassword(true); // Usa o estado de loading correto
+        setIsSavingPassword(true);
         try {
             await reauthenticate(passwordInfo.currentPassword);
             await updatePassword(user, passwordInfo.newPassword);
@@ -103,7 +84,7 @@ const SettingsModal = ({ user, userData, onClose }) => {
         const password = prompt("AÇÃO IRREVERSÍVEL!\nPara confirmar a exclusão da sua conta, digite sua senha:");
         if (!password) return;
         
-        setIsDeleting(true); // Usa o estado de loading correto
+        setIsDeleting(true);
         try {
             await reauthenticate(password);
             await deleteUser(user);
@@ -114,12 +95,8 @@ const SettingsModal = ({ user, userData, onClose }) => {
         }
     };
     
-    const handleNavClick = (tabId) => {
-        setActiveTab(tabId);
-        setMobileView(tabId);
-    };
-
-    const NavItem = ({ id, icon, label }) => ( <button onClick={() => handleNavClick(id)} className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors ${activeTab === id ? 'bg-gray-700/80 text-white' : 'text-gray-400 hover:bg-gray-700/50 hover:text-white'}`}>{icon}<span>{label}</span></button> );
+    const NavItem = ({ id, icon, label }) => ( <button onClick={() => setActiveTab(id)} className={`w-full flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors ${activeTab === id ? 'bg-gray-700/80 text-white' : 'text-gray-400 hover:bg-gray-700/50 hover:text-white'}`}>{icon}<span>{label}</span></button> );
+    const MobileNavItem = ({ id, label }) => ( <button onClick={() => setActiveTab(id)} className={`flex-1 py-3 text-sm font-semibold transition-colors whitespace-nowrap px-2 ${activeTab === id ? 'text-purple-400 border-b-2 border-purple-400' : 'text-gray-400 hover:text-white'}`}>{label}</button> );
     const getInitials = (f = '', l = '') => ((f[0] || '') + (l[0] || '')).toUpperCase();
 
     const renderContent = (currentView) => {
@@ -130,41 +107,59 @@ const SettingsModal = ({ user, userData, onClose }) => {
                 return ( <div> <h2 className="text-lg font-bold text-white mb-1">Dados da Análise</h2> <p className="text-sm text-gray-400 mb-6">Informações usadas para os cálculos.</p> <div className="space-y-4"> <div> <label className="text-xs font-semibold text-gray-400">Nome Completo (para análise)</label> <input type="text" name="nomeAnalise" value={numerologyInfo.nomeAnalise} onChange={handleInputChange(setNumerologyInfo)} className="w-full bg-gray-700/50 border border-gray-600 rounded-md p-2 mt-1" /> </div> <div> <label className="text-xs font-semibold text-gray-400">Data de Nascimento</label> <input type="date" name="dataNasc" value={numerologyInfo.dataNasc} onChange={handleInputChange(setNumerologyInfo)} className="w-full bg-gray-700/50 border border-gray-600 rounded-md p-2 mt-1 custom-date-input" /> </div> <button onClick={() => handleSaveChanges('numerology')} disabled={isSavingInfo} className="font-semibold bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:bg-gray-600 w-32 h-10 flex items-center justify-center"> {isSavingInfo ? <Spinner/> : 'Salvar'} </button> </div> </div> );
             case 'plan':
                 return ( <div> <h2 className="text-lg font-bold text-white mb-1">Plano e Assinatura</h2> <p className="text-sm text-gray-400 mb-6">Gerencie seu plano e assinatura.</p> {userData?.plano === 'gratuito' ? ( <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-6 text-center"> <h3 className="text-xl font-bold text-white">Desbloqueie todo o potencial!</h3> <p className="text-purple-200 mt-2 mb-4">Acesse funcionalidades exclusivas com o plano Premium.</p> <button className="bg-purple-600 font-bold py-2 px-6 rounded-lg hover:bg-purple-700">Fazer Upgrade</button> </div> ) : ( <div className="bg-gray-700/40 border border-gray-600 rounded-lg p-6"> <h3 className="font-bold text-white">Seu plano atual: <span className="text-purple-400 capitalize">{userData?.plano}</span></h3> <p className="text-sm text-gray-400 mt-2 mb-4">Você tem acesso a todas as funcionalidades.</p> <div className="border-t border-gray-600 pt-4 mt-4"> <button className="text-sm font-semibold bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded-lg"> Cancelar Assinatura </button> </div> </div> )} </div> );
-            case 'menu':
-                return ( <div className="md:hidden"> <h2 className="text-lg font-bold text-white mb-4 px-2">Configurações</h2> <nav className="space-y-1"> <NavItem id="account" icon={<UserIcon className="w-5 h-5"/>} label="Minha Conta" /> <NavItem id="numerology" icon={<BookIcon className="w-5 h-5"/>} label="Dados da Análise" /> <NavItem id="plan" icon={<StarIcon className="w-5 h-5"/>} label="Meu Plano" /> </nav> </div> );
+            case 'integrations':
+                return ( <div> <h2 className="text-lg font-bold text-white mb-1">Integrações</h2> <p className="text-sm text-gray-400 mb-6">Conecte o SincroApp com outras ferramentas.</p> <div className="text-center p-12 bg-gray-900/40 rounded-lg border border-dashed border-gray-700"> <p className="text-gray-400 font-semibold">Em breve...</p> </div> </div> );
             default: return null;
         }
     };
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4" onClick={onClose}>
-            <div className="bg-gray-800 border border-gray-700 w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col md:flex-row overflow-hidden" onClick={e => e.stopPropagation()}>
-                <aside className="hidden md:block w-1/4 bg-gray-900/50 p-4 border-r border-gray-700">
+            <div className="bg-gray-800 border border-gray-700 w-full max-w-4xl h-[600px] max-h-[90vh] rounded-2xl shadow-2xl flex flex-col md:flex-row overflow-hidden" onClick={e => e.stopPropagation()}>
+                
+                {/* --- DESKTOP SIDEBAR --- */}
+                <aside className="hidden md:block w-64 bg-gray-900/50 p-4 border-r border-gray-700 flex-shrink-0">
                     <div className="text-white p-2 mb-4">
-                        <p className="font-bold">{`${userData?.primeiroNome || ''} ${userData?.sobrenome || ''}`}</p>
+                        <p className="font-bold truncate">{`${userData?.primeiroNome || ''} ${userData?.sobrenome || ''}`}</p>
                         <p className="text-xs text-gray-400 capitalize">{userData?.plano || 'Plano'} Plan</p>
                     </div>
                     <nav className="space-y-1">
                         <NavItem id="account" icon={<UserIcon className="w-5 h-5"/>} label="Minha Conta" />
                         <NavItem id="numerology" icon={<BookIcon className="w-5 h-5"/>} label="Dados da Análise" />
                         <NavItem id="plan" icon={<StarIcon className="w-5 h-5"/>} label="Meu Plano" />
+                        <NavItem id="integrations" icon={<Share2Icon className="w-5 h-5"/>} label="Integrações" />
                     </nav>
                 </aside>
-                <main className="flex-1 p-6 md:p-8 overflow-y-auto relative">
-                    <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full text-gray-400 hover:bg-gray-700 z-10"><XIcon className="h-5 h-5" /></button>
-                    {mobileView !== 'menu' && ( <button onClick={() => setMobileView('menu')} className="md:hidden flex items-center gap-2 text-sm text-gray-400 font-semibold mb-4"> <ChevronLeft className="w-5 h-5" /> Voltar </button> )}
+
+                {/* --- MAIN CONTENT (DESKTOP & MOBILE) --- */}
+                <main className="flex-1 flex flex-col overflow-y-auto custom-scrollbar relative">
+                    <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full text-gray-400 hover:bg-gray-700 z-10"><XIcon className="h-5 w-5" /></button>
                     
                     {feedback.message && (
-                        <div className={`p-3 rounded-md text-sm mb-4 animate-fade-in ${feedback.type === 'success' ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
+                        <div className="p-3 rounded-md text-sm m-4 animate-fade-in bg-opacity-20 text-opacity-90 -mb-2 z-10" style={{ backgroundColor: feedback.type === 'success' ? 'rgba(74, 222, 128, 0.2)' : 'rgba(248, 113, 113, 0.2)', color: feedback.type === 'success' ? '#86efac' : '#fca5a5' }}>
                             {feedback.message}
                         </div>
                     )}
                     
-                    <div className="hidden md:block">
+                    {/* --- DESKTOP VIEW --- */}
+                    <div className="hidden md:block p-6 md:p-8">
                         {renderContent(activeTab)}
                     </div>
-                    <div className="md:hidden">
-                        {renderContent(mobileView)}
+
+                    {/* --- MOBILE VIEW --- */}
+                    <div className="md:hidden flex flex-col h-full">
+                        <div className='p-4 text-center'>
+                             <h2 className="text-lg font-bold text-white">Configurações</h2>
+                        </div>
+                        <nav className="flex-shrink-0 flex border-b border-t border-gray-700">
+                            <MobileNavItem id="account" label="Conta" />
+                            <MobileNavItem id="numerology" label="Análise" />
+                            <MobileNavItem id="plan" label="Plano" />
+                            <MobileNavItem id="integrations" label="Integrações" />
+                        </nav>
+                        <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
+                            {renderContent(activeTab)}
+                        </div>
                     </div>
                 </main>
             </div>

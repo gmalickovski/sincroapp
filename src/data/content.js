@@ -878,13 +878,13 @@ export const bussolaAtividades = {
 
 
 export const textosExplicativos = {
-  vibracaoDia: "A Vibração do Dia, ou seu Dia Pessoal, revela a energia predominante que influenciará suas próximas 24 horas. É uma bússola para suas ações, emoções e a melhor forma de navegar o seu dia.",
-  mesPessoal: "Seu Mês Pessoal define o tema principal e as lições que o universo te convida a explorar durante este ciclo. Ele colore o cenário do mês, indicando áreas de foco e crescimento.",
-  anoPessoal: "O Ano Pessoal é o grande palco da sua jornada anual. Ele dita o ritmo, os desafios e as oportunidades que se apresentarão, guiando seu desenvolvimento ao longo do ano.",
-  cicloDeVida: "Os Ciclos de Vida são os grandes capítulos da sua existência. Cada ciclo, regido por um número, aponta para os aprendizados e missões fundamentais que moldam as diferentes fases da sua vida.",
-  arcanoRegente: "Seu Arcano Regente é a essência da sua personalidade e sua missão de alma. Ele representa a energia fundamental que te acompanha, revelando seus dons, desafios e o caminho para sua realização.",
-  arcanoVigente: "O Arcano Vigente, ou Arcano do Ano, ilumina o caminho do seu ano pessoal. Ele atua como um sábio conselheiro, trazendo arquétipos e sabedorias para te guiar através dos temas do ano.",
-  bussolaAtividades: "A Bússola de Atividades é sua guia prática para o dia. Baseada na energia do seu Dia Pessoal, ela sugere ações para 'Potencializar' o que está fluindo a seu favor e chama 'Atenção' para tendências que pedem mais cuidado e observação.",
+  vibracaoDia: { texto: "A Vibração do Dia, ou seu Dia Pessoal, revela a energia predominante que influenciará suas próximas 24 horas. É uma bússola para suas ações, emoções e a melhor forma de navegar o seu dia." },
+  mesPessoal: { texto: "Seu Mês Pessoal define o tema principal e as lições que o universo te convida a explorar durante este ciclo. Ele colore o cenário do mês, indicando áreas de foco e crescimento." },
+  anoPessoal: { texto: "O Ano Pessoal é o grande palco da sua jornada anual. Ele dita o ritmo, os desafios e as oportunidades que se apresentarão, guiando seu desenvolvimento ao longo do ano." },
+  cicloDeVida: { texto: "Os Ciclos de Vida são os grandes capítulos da sua existência. Cada ciclo, regido por um número, aponta para os aprendizados e missões fundamentais que moldam as diferentes fases da sua vida." },
+  arcanoRegente: { texto: "Seu Arcano Regente é a essência da sua personalidade e sua missão de alma. Ele representa a energia fundamental que te acompanha, revelando seus dons, desafios e o caminho para sua realização." },
+  arcanoVigente: { texto: "O Arcano Vigente, ou Arcano do Ano, ilumina o caminho do seu ano pessoal. Ele atua como um sábio conselheiro, trazendo arquétipos e sabedorias para te guiar através dos temas do ano." },
+  bussolaAtividades: { texto: "A Bússola de Atividades é sua guia prática para o dia. Baseada na energia do seu Dia Pessoal, ela sugere ações para 'Potencializar' o que está fluindo a seu favor e chama 'Atenção' para tendências que pedem mais cuidado e observação." },
 };
 
 // Textos para os Ciclos de Vida (um novo conceito)

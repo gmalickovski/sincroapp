@@ -1,17 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, onSnapshot, setDoc, collection, addDoc, updateDoc, deleteDoc, Timestamp } from "firebase/firestore";
 
-// Context
-import { AppProvider } from './contexts/AppContext'; // 1. Importar o AppProvider
+import { AppProvider } from './contexts/AppContext';
 
-// Serviços e Dados
 import { auth, db } from './services/firebase';
 import numerologyEngine from './services/numerologyEngine';
 import { textosExplicativos, textosVibracoes } from './data/content'; 
 
-// Componentes UI
 import Spinner from './components/ui/Spinner';
 import UserDetailsModal from './components/ui/UserDetailsModal';
 import NewNoteEditor from './components/ui/NewNoteEditor';
@@ -19,11 +16,9 @@ import InfoModal from './components/ui/InfoModal';
 import SettingsModal from './components/ui/SettingsModal'; 
 import UpgradeModal from './components/ui/UpgradeModal';
 
-// Layout
 import Sidebar from './components/layout/Sidebar';
 import Header from './components/layout/Header';
 
-// Páginas
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -34,7 +29,8 @@ import Dashboard from './pages/Dashboard';
 import Calendar from './pages/Calendar';
 import Journal from './pages/Journal';
 import Tasks from './pages/Tasks';
-import Goals from './pages/Goals'; // 2. Importar a página de Metas
+import Goals from './pages/Goals';
+import GoalDetail from './pages/GoalDetail';
 import AdminPanel from './pages/AdminPanel';
 
 let handleSaveUserDetails;
@@ -42,7 +38,6 @@ let handleSaveUserDetails;
 const PrivateRoute = ({ user, userData, isLoading, showDetailsModal }) => {
     if (isLoading) { return <div className="min-h-screen bg-gray-900 flex items-center justify-center"><Spinner /></div>; }
     if (!user) { return <Navigate to="/login" replace />; }
-    // O UserDetailsModal é renderizado aqui, e agora estará dentro do AppProvider
     if (showDetailsModal) { return <div className="min-h-screen bg-gray-900"><UserDetailsModal onSave={handleSaveUserDetails} /></div>; }
     if (user && userData) { return <Outlet />; }
     return <div className="min-h-screen bg-gray-900 flex items-center justify-center"><Spinner /></div>;
@@ -50,15 +45,16 @@ const PrivateRoute = ({ user, userData, isLoading, showDetailsModal }) => {
 
 const AppLayout = ({ user, userData, taskUpdater }) => {
     const [numerologyData, setNumerologyData] = useState(null);
-    const [activeView, setActiveView] = useState('dashboard');
     const [mobileState, setMobileState] = useState('closed'); 
     const [desktopState, setDesktopState] = useState('expanded'); 
     const [journalEditorData, setJournalEditorData] = useState(null); 
     const [infoModalData, setInfoModalData] = useState(null);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
-    
     const [isEditMode, setIsEditMode] = useState(false);
+    
+    const location = useLocation();
+    const activeView = location.pathname.split('/')[2] || 'dashboard';
 
     useEffect(() => {
         if (userData?.nomeAnalise && userData?.dataNasc) {
@@ -74,40 +70,17 @@ const AppLayout = ({ user, userData, taskUpdater }) => {
     }, [activeView]);
     
     const handleLogout = async () => await signOut(auth);
-    
     const handleOpenNewNote = (date) => setJournalEditorData({ date: date || new Date() });
     const handleEditNote = (entry) => setJournalEditorData(entry);
 
     const handleInfoClick = useCallback((identifier) => {
         let info = null;
-        if (typeof identifier === 'string') {
-            info = textosExplicativos[identifier] || textosExplicativos.default;
-        } else if (typeof identifier === 'number') {
-            info = textosVibracoes[identifier] || textosVibracoes.default;
-        }
+        if (typeof identifier === 'string') { info = textosExplicativos[identifier] || textosExplicativos.default; } 
+        else if (typeof identifier === 'number') { info = textosVibracoes[identifier] || textosVibracoes.default; }
         if (info) { setInfoModalData(info); }
     }, []);
     
-    const renderView = () => {
-        const viewProps = { user, userData, data: numerologyData, setActiveView, onInfoClick: handleInfoClick, taskUpdater, isEditMode, setIsEditMode };
-
-        switch (activeView) {
-            case 'dashboard': 
-                return <Dashboard {...viewProps} />;
-            case 'calendar': 
-                return <Calendar user={user} userData={userData} openNewNoteEditor={handleOpenNewNote} setEditingEntry={handleEditNote} onInfoClick={handleInfoClick} taskUpdater={taskUpdater} />;
-            case 'journal': 
-                return <Journal user={user} userData={userData} setEditingEntry={handleEditNote} openNewNoteEditor={handleOpenNewNote} onInfoClick={handleInfoClick} />;
-            case 'tasks': 
-                return <Tasks user={user} userData={userData} setActiveView={setActiveView} onInfoClick={handleInfoClick} taskUpdater={taskUpdater} />;
-            case 'goals': // 3. Adicionado o case para a view de Metas
-                return <Goals {...viewProps} />;
-            case 'admin': 
-                return userData?.isAdmin ? <AdminPanel /> : <Navigate to="/app" />;
-            default: 
-                return <Dashboard {...viewProps} />;
-        }
-    };
+    const pageProps = { user, userData, data: numerologyData, onInfoClick: handleInfoClick, taskUpdater, isEditMode, setIsEditMode, handleOpenNewNote, handleEditNote };
 
     return (
         <div className="h-screen w-screen flex flex-col bg-gray-900 text-gray-200 overflow-hidden">
@@ -121,11 +94,9 @@ const AppLayout = ({ user, userData, taskUpdater }) => {
                 setIsEditMode={setIsEditMode}
                 activeView={activeView}
             />
-            
             <div className="flex flex-1 overflow-hidden">
                 <Sidebar 
                     activeView={activeView} 
-                    setActiveView={setActiveView} 
                     onLogout={handleLogout} 
                     userData={userData} 
                     mobileState={mobileState} 
@@ -134,22 +105,13 @@ const AppLayout = ({ user, userData, taskUpdater }) => {
                     setDesktopState={setDesktopState}
                     onSettingsClick={() => setIsSettingsModalOpen(true)}
                 />
-
-                <main className={`flex-1 overflow-y-auto overflow-x-hidden transition-all duration-300 ease-in-out flex flex-col items-center ${mobileState === 'pinned' ? 'max-lg:ml-16' : ''}`}>
-                    {numerologyData ? renderView() : <div className="h-full w-full flex justify-center items-center"><Spinner /></div>}
+                <main className={`custom-scrollbar flex-1 overflow-y-auto overflow-x-hidden transition-all duration-300 ease-in-out ${mobileState === 'pinned' ? 'max-lg:ml-16' : ''}`}>
+                    {numerologyData ? <Outlet context={pageProps} /> : <div className="h-full w-full flex justify-center items-center"><Spinner /></div>}
                 </main>
             </div>
-
             {journalEditorData && <NewNoteEditor onClose={() => setJournalEditorData(null)} entryData={journalEditorData} user={user} userData={userData} onInfoClick={handleInfoClick} />}
             {infoModalData && <InfoModal info={infoModalData} onClose={() => setInfoModalData(null)} />}
-            
-            {isSettingsModalOpen && (
-                <SettingsModal 
-                    user={user}
-                    userData={userData}
-                    onClose={() => setIsSettingsModalOpen(false)}
-                />
-            )}
+            {isSettingsModalOpen && <SettingsModal user={user} userData={userData} onClose={() => setIsSettingsModalOpen(false)} />}
             {isUpgradeModalOpen && <UpgradeModal isOpen={isUpgradeModalOpen} onClose={() => setIsUpgradeModalOpen(false)} />}
         </div>
     );
@@ -165,14 +127,9 @@ function App() {
         if (!user) return;
         const { type, payload } = action;
         const tasksRef = collection(db, 'users', user.uid, 'tasks');
-        if (type === 'ADD') {
-            await addDoc(tasksRef, { text: payload.text, completed: false, createdAt: Timestamp.fromDate(payload.date) });
-        } else if (type === 'UPDATE') {
-            const { id, ...updates } = payload;
-            await updateDoc(doc(tasksRef, id), updates);
-        } else if (type === 'DELETE') {
-            await deleteDoc(doc(tasksRef, payload.id));
-        }
+        if (type === 'ADD') { await addDoc(tasksRef, { text: payload.text, completed: false, createdAt: Timestamp.fromDate(payload.date) }); } 
+        else if (type === 'UPDATE') { const { id, ...updates } = payload; await updateDoc(doc(tasksRef, id), updates); } 
+        else if (type === 'DELETE') { await deleteDoc(doc(tasksRef, payload.id)); }
     }, [user]);
 
     useEffect(() => {
@@ -180,7 +137,6 @@ function App() {
             if (currentUser) {
                 setUser(currentUser);
                 const userDocRef = doc(db, "users", currentUser.uid);
-
                 const unsubscribeUser = onSnapshot(userDocRef, (doc) => {
                     if (doc.exists()) {
                         setUserData(doc.data());
@@ -194,16 +150,13 @@ function App() {
                     console.error("Erro ao ouvir dados do usuário:", error);
                     setIsLoading(false);
                 });
-
                 return () => unsubscribeUser();
-
             } else {
                 setUser(null);
                 setUserData(null);
                 setIsLoading(false);
             }
         });
-
         return () => unsubscribeAuth();
     }, []);
 
@@ -225,21 +178,30 @@ function App() {
     }
 
     return (
-        // 4. O AppProvider envolve toda a aplicação, corrigindo o erro
         <AppProvider>
             <Router>
                 <Routes>
-                    <Route path="/" element={user ? <Navigate to="/app" replace /> : <LandingPage />} />
-                    <Route path="/login" element={user && !isLoading ? <Navigate to="/app"/> : <LoginPage />} />
-                    <Route path="/register" element={user && !isLoading ? <Navigate to="/app"/> : <RegisterPage />} />
+                    <Route path="/" element={user ? <Navigate to="/app/dashboard" replace /> : <LandingPage />} />
+                    <Route path="/login" element={user && !isLoading ? <Navigate to="/app/dashboard"/> : <LoginPage />} />
+                    <Route path="/register" element={user && !isLoading ? <Navigate to="/app/dashboard"/> : <RegisterPage />} />
                     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                     <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                     <Route path="/terms-of-service" element={<TermsOfService />} />
                     
                     <Route path="/app" element={<PrivateRoute user={user} userData={userData} isLoading={isLoading} showDetailsModal={showDetailsModal} />}>
-                        <Route index element={<AppLayout user={user} userData={userData} taskUpdater={taskUpdater} />} />
+                        <Route element={<AppLayout user={user} userData={userData} taskUpdater={taskUpdater} />}>
+                            <Route path="dashboard" element={<Dashboard />} />
+                            <Route path="calendar" element={<Calendar />} />
+                            <Route path="journal" element={<Journal />} />
+                            <Route path="tasks" element={<Tasks />} />
+                            <Route path="goals" element={<Goals />} />
+                            <Route path="goaldetails/:goalId" element={<GoalDetail />} />
+                            <Route path="admin" element={userData?.isAdmin ? <AdminPanel /> : <Navigate to="/app/dashboard" />} />
+                            <Route index element={<Navigate to="dashboard" replace />} />
+                        </Route>
                     </Route>
-                    <Route path="*" element={<Navigate to={user ? "/app" : "/"} replace />} />
+                    
+                    <Route path="*" element={<Navigate to={user ? "/app/dashboard" : "/"} replace />} />
                 </Routes>
             </Router>
         </AppProvider>

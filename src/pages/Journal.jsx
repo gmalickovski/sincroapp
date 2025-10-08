@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+// ATUALIZAÇÃO 1: Importar 'useOutletContext' para receber as props
+import { useOutletContext } from 'react-router-dom';
 import { db } from '../services/firebase';
 import { collection, onSnapshot, query, where, orderBy, doc, deleteDoc, Timestamp } from "firebase/firestore";
 import Spinner from '../components/ui/Spinner';
 import UpgradeModal from '../components/ui/UpgradeModal';
 import { CalendarIcon, EditIcon, ChevronDownIcon, TrashIcon, FilterIcon, XIcon, DotsVerticalIcon } from '../components/ui/Icons';
 import VibrationPill from '../components/ui/VibrationPill';
-import FloatingActionButton from '../components/ui/FloatingActionButton'; // 1. Importar o componente central
+import FloatingActionButton from '../components/ui/FloatingActionButton';
 
 const moodMap = { 1: '😔', 2: '😟', 3: '😐', 4: '😊', 5: '😄' };
 
@@ -122,7 +124,14 @@ const FilterPopover = ({ isVisible, onClose, filters, setFilters, dateInputRef }
     );
 };
 
-const Journal = ({ user, userData, setEditingEntry, openNewNoteEditor, onInfoClick }) => {
+// ATUALIZAÇÃO 2: Remover as props da assinatura da função
+const Journal = () => {
+    // ATUALIZAÇÃO 3: Obter as props do contexto
+    const { user, userData, onInfoClick, handleEditNote, handleOpenNewNote } = useOutletContext();
+    // As funções que eram props agora são atribuídas a partir dos handlers do contexto
+    const setEditingEntry = handleEditNote;
+    const openNewNoteEditor = handleOpenNewNote;
+
     const [entries, setEntries] = useState([]);
     const [vibrationFilter, setVibrationFilter] = useState('all');
     const [dateFilter, setDateFilter] = useState('');
@@ -168,7 +177,7 @@ const Journal = ({ user, userData, setEditingEntry, openNewNoteEditor, onInfoCli
             }
         }
         return groups;
-    }, [entries]);
+    }, [entries, openMonths]); // Adicionado openMonths como dependência
 
     const toggleMonth = (monthYear) => {
         setOpenMonths(prev => ({ ...prev, [monthYear]: !prev[monthYear] }));
@@ -176,6 +185,11 @@ const Journal = ({ user, userData, setEditingEntry, openNewNoteEditor, onInfoCli
 
     const handleDeleteNote = async (entryId) => { if (!user?.uid || !entryId) return; if (window.confirm("Tem certeza que deseja excluir esta anotação?")) { try { await deleteDoc(doc(db, 'users', user.uid, 'journalEntries', entryId)); } catch (error) { console.error("Erro:", error); } } };
     const handleNewNoteClick = () => { if (hasReachedLimit) { setShowUpgradeModal(true); } else { openNewNoteEditor(); }};
+    
+    // ATUALIZAÇÃO 4: Adicionado um estado de carregamento para 'userData'
+    if (!userData) {
+        return <div className="h-full w-full flex justify-center items-center"><Spinner /></div>;
+    }
 
     return (
         <>
@@ -220,7 +234,6 @@ const Journal = ({ user, userData, setEditingEntry, openNewNoteEditor, onInfoCli
                     }
                 </div>
                 
-                {/* 2. Botão antigo substituído pelo componente centralizado */}
                 <FloatingActionButton 
                     page="journal"
                     onNewNote={handleNewNoteClick}

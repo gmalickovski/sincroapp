@@ -36,7 +36,7 @@ const Header = ({ userData, onMenuClick, onSettingsClick, desktopState, setDeskt
             </div>
             
             <div className="flex-1 flex justify-end items-center gap-2 sm:gap-4">
-                {/* Botão de Edição para DESKTOP (visível apenas em telas 'lg' e maiores) */}
+                {/* Botão de Edição para DESKTOP */}
                 {activeView === 'dashboard' && (
                     <button
                         onClick={() => setIsEditMode(!isEditMode)}
@@ -47,16 +47,7 @@ const Header = ({ userData, onMenuClick, onSettingsClick, desktopState, setDeskt
                     </button>
                 )}
 
-                {/* Botão de Confirmação para MOBILE (visível apenas em telas menores que 'lg') */}
-                {activeView === 'dashboard' && isEditMode && (
-                    <button
-                        onClick={() => setIsEditMode(false)}
-                        className="p-2 rounded-full text-green-400 bg-green-500/20 animate-fade-in lg:hidden"
-                        title="Concluir Edição"
-                    >
-                        <CheckIcon className="w-6 h-6" />
-                    </button>
-                )}
+                {/* --- ATUALIZAÇÃO 1: O botão de confirmação para mobile foi REMOVIDO daqui --- */}
                 
                 <button 
                     onClick={onSettingsClick} 

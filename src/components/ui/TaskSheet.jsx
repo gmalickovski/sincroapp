@@ -1,8 +1,8 @@
-// src/components/ui/TaskSheet.jsx
-
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { PlusIcon, TrashIcon, CheckIcon, CheckAllIcon, ChevronDownIcon, IconTarget } from './Icons';
 import VibrationPill from './VibrationPill';
+// ATUALIZAÇÃO 1: Importar 'useOutletContext' para pegar a função 'onInfoClick' global
+import { useOutletContext } from 'react-router-dom';
 
 function debounce(func, wait) {
     let timeout;
@@ -13,43 +13,21 @@ function debounce(func, wait) {
     };
 }
 
-// ### ATUALIZAÇÃO PRINCIPAL: TaskItem agora usa <textarea> com auto-resize ###
 const TaskItem = ({ task, onUpdate, onDelete, onToggle, onEnter }) => {
     const [text, setText] = useState(task.text);
     const textareaRef = useRef(null);
-
     const debouncedUpdate = useCallback(debounce((newText) => { if (newText !== task.text) { onUpdate(task.id, { text: newText }); } }, 400), [task.id, task.text, onUpdate]);
 
-    // Ajusta a altura do textarea dinamicamente
     useEffect(() => {
         if (textareaRef.current) {
             textareaRef.current.style.height = 'auto';
             textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
         }
     }, [text]);
-
-    useEffect(() => {
-        setText(task.text);
-    }, [task.text]);
-
-    const handleChange = (e) => {
-        setText(e.target.value);
-        debouncedUpdate(e.target.value);
-    };
-
-    const handleBlur = () => {
-        if (text !== task.text) {
-            onUpdate(task.id, { text });
-        }
-    };
-
-    // Enter foca no próximo campo; Shift+Enter cria nova linha
-    const handleKeyDown = (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            onEnter();
-        }
-    };
+    useEffect(() => { setText(task.text); }, [task.text]);
+    const handleChange = (e) => { setText(e.target.value); debouncedUpdate(e.target.value); };
+    const handleBlur = () => { if (text !== task.text) { onUpdate(task.id, { text }); } };
+    const handleKeyDown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onEnter(); } };
 
     const CustomCheckbox = () => (
         <button onClick={() => onToggle(task.id, !task.completed)} className={`w-5 h-5 flex-shrink-0 rounded-full border-2 transition-all flex items-center justify-center self-start mt-1 ${task.completed ? 'bg-green-500 border-green-500' : 'border-gray-500 group-hover:border-purple-400'}`}>
@@ -60,13 +38,11 @@ const TaskItem = ({ task, onUpdate, onDelete, onToggle, onEnter }) => {
     return (
         <div className="flex items-start group bg-gray-800/50 hover:bg-gray-800/90 rounded-lg p-2 transition-colors">
             <CustomCheckbox />
-            
             {task.goalId && (
                 <div title={`Meta: ${task.goalTitle || ''}`} className="ml-2 text-purple-400 cursor-help flex-shrink-0 mt-1">
                     <IconTarget className="w-4 h-4" />
                 </div>
             )}
-
             <textarea
                 ref={textareaRef}
                 value={text}
@@ -77,7 +53,6 @@ const TaskItem = ({ task, onUpdate, onDelete, onToggle, onEnter }) => {
                 rows="1"
                 className={`flex-1 mx-3 bg-transparent focus:outline-none text-sm leading-tight resize-none overflow-hidden ${task.completed ? 'line-through text-gray-500' : 'text-gray-200'}`}
             />
-            
             <button onClick={() => onDelete(task.id)} className="flex-shrink-0 text-gray-600 hover:text-red-400 opacity-50 lg:opacity-0 group-hover:opacity-100 transition-opacity self-start mt-1" title="Excluir tarefa"><TrashIcon className="w-4 h-4" /></button>
         </div>
     );
@@ -89,7 +64,6 @@ export const TaskListBody = ({ tasks, taskUpdater, dateForNewTasks }) => {
     const sortedTasks = useMemo(() => tasks.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)), [tasks]);
     
     const handleAddTask = () => { if (newTaskText.trim() === '') return; taskUpdater({ type: 'ADD', payload: { date: dateForNewTasks, text: newTaskText } }); setNewTaskText(''); };
-    
     const handleEnterOnNew = (e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddTask(); } };
     const handleEnterOnItem = () => { newTaskInputRef.current?.focus(); };
 
@@ -111,8 +85,11 @@ export const TaskListBody = ({ tasks, taskUpdater, dateForNewTasks }) => {
     );
 };
 
-export const TaskSheet = ({ date, tasks, personalDay, onInfoClick, taskUpdater, isMobile = false }) => {
+// ATUALIZAÇÃO 2: A prop 'onInfoClick' foi removida, pois agora usamos a do contexto
+export const TaskSheet = ({ date, tasks, personalDay, taskUpdater, isMobile = false }) => {
     const [isExpanded, setIsExpanded] = useState(true);
+    // ATUALIZAÇÃO 3: Pegamos a função 'onInfoClick' diretamente do contexto do App
+    const { onInfoClick } = useOutletContext(); 
 
     const energyClasses = {
         1: { bg: 'bg-red-500/20', text: 'text-red-300', border: 'border-red-500', progress: 'bg-red-500' },
@@ -167,9 +144,8 @@ export const TaskSheet = ({ date, tasks, personalDay, onInfoClick, taskUpdater, 
                 </div>
             </div>
             <div className="flex-shrink-0 flex items-center gap-2">
-                <div onClick={(e) => { e.stopPropagation(); onInfoClick(personalDay); }}>
-                    <VibrationPill vibrationNumber={personalDay} />
-                </div>
+                {/* O onInfoClick do contexto já é usado aqui dentro do VibrationPill, mas garantimos que ele está disponível */}
+                <VibrationPill vibrationNumber={personalDay} onClick={() => onInfoClick(personalDay)} />
                 {isMobile && <ChevronDownIcon className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />}
             </div>
         </>

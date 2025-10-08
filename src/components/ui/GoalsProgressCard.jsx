@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+// ATUALIZAÇÃO 1: Importar 'useNavigate' para lidar com a navegação
+import { useNavigate } from 'react-router-dom';
 import { db, auth } from '../../services/firebase';
 import { collection, onSnapshot, query } from 'firebase/firestore';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -10,8 +12,11 @@ import CircularProgressBar from './CircularProgressBar';
 import { IconTarget, CalendarIcon, ClipboardCheckIcon } from './Icons';
 import Spinner from './Spinner';
 
-// ATUALIZAÇÃO 1: A prop 'onSelectGoal' foi adicionada de volta e 'navigate' foi removido.
-const GoalsProgressCard = ({ setActiveView, onSelectGoal }) => {
+// ATUALIZAÇÃO 2: A prop 'setActiveView' foi removida, pois a navegação agora é feita pelo 'navigate'
+const GoalsProgressCard = ({ onSelectGoal }) => {
+    // ATUALIZAÇÃO 3: Instanciar o hook de navegação
+    const navigate = useNavigate();
+
     const [goals, setGoals] = useState([]);
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -59,22 +64,23 @@ const GoalsProgressCard = ({ setActiveView, onSelectGoal }) => {
     );
 
     if (loading) {
-        return <DashboardCard title="Progresso das Metas" icon={<IconTarget />} className="min-h-[220px] flex flex-col justify-center items-center"><Spinner /></DashboardCard>;
+        return <DashboardCard title="Jornadas" icon={<IconTarget />} className="min-h-[220px] flex flex-col justify-center items-center"><Spinner /></DashboardCard>;
     }
 
     if (goals.length === 0) {
         return (
-             <DashboardCard title="Progresso das Metas" icon={<IconTarget />} className="min-h-[220px] flex flex-col justify-center items-center">
+             <DashboardCard title="Jornadas" icon={<IconTarget />} className="min-h-[220px] flex flex-col justify-center items-center">
                  <div className="flex flex-col items-center text-center">
                      <p className="text-sm text-gray-400 mb-3">Você ainda não criou nenhuma meta.</p>
-                     <button onClick={() => setActiveView('goals')} className="text-sm font-semibold text-purple-400 hover:text-purple-300">Criar minha primeira meta</button>
+                     {/* ATUALIZAÇÃO 4: O botão agora navega para a página de metas */}
+                     <button onClick={() => navigate('/app/goals')} className="text-sm font-semibold text-purple-400 hover:text-purple-300">Criar minha primeira meta</button>
                  </div>
              </DashboardCard>
         );
     }
 
     return (
-        <DashboardCard title="Progresso das Metas" icon={<IconTarget />} className="h-full flex flex-col">
+        <DashboardCard title="Jornadas" icon={<IconTarget />} className="h-full flex flex-col">
             <div className="flex-1 flex flex-col min-h-0">
                 <div className="flex-grow w-full min-h-0 flex flex-col justify-center pt-1 pb-6">
                      <Swiper
@@ -86,14 +92,15 @@ const GoalsProgressCard = ({ setActiveView, onSelectGoal }) => {
                          autoHeight={true}
                      >
                          <SwiperSlide>
-                             <SlideWrapper onClick={() => setActiveView('goals')}>
+                             {/* ATUALIZAÇÃO 5: O clique no slide geral agora navega para a lista de metas */}
+                             <SlideWrapper onClick={() => navigate('/app/goals')}>
                                  <h4 className="font-bold text-white text-xl">Progresso Geral</h4>
                                  <CircularProgressBar progress={overallProgress} size={180} strokeWidth={12}>
                                      <div className="text-sm font-semibold text-gray-300 mt-2 space-y-1">
-                                        <div className="flex items-center justify-center gap-1.5">
-                                            <IconTarget className="w-5 h-5 text-purple-400" />
-                                            <span>{activeGoals.length} / {completedGoals}</span>
-                                        </div>
+                                         <div className="flex items-center justify-center gap-1.5">
+                                             <IconTarget className="w-5 h-5 text-purple-400" />
+                                             <span>{activeGoals.length} ativas / {completedGoals} concl.</span>
+                                         </div>
                                      </div>
                                  </CircularProgressBar>
                              </SlideWrapper>
@@ -102,7 +109,7 @@ const GoalsProgressCard = ({ setActiveView, onSelectGoal }) => {
                              const milestoneCounts = getMilestoneCounts(goal.id);
                              return (
                                  <SwiperSlide key={goal.id}>
-                                     {/* ATUALIZAÇÃO 2: O onClick agora chama onSelectGoal(goal), avisando o Dashboard. */}
+                                     {/* ATUALIZAÇÃO 6: O clique no slide específico continua usando a função 'onSelectGoal' que já funciona corretamente */}
                                      <SlideWrapper onClick={() => onSelectGoal(goal)}>
                                          <h4 className="font-bold text-white text-lg leading-tight text-center px-4" title={goal.title}>{goal.title}</h4>
                                          <CircularProgressBar progress={goal.progress} size={180} strokeWidth={12}>

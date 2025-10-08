@@ -1,6 +1,6 @@
-// /src/components/ui/VibrationPill.jsx
-
 import React from 'react';
+// ATUALIZAÇÃO: Importar os textos para que o componente possa usá-los
+import { textosVibracoes } from '../../data/content';
 
 const VibrationPill = ({ vibrationNumber, onClick, className = '' }) => {
     const energyClasses = {
@@ -13,15 +13,22 @@ const VibrationPill = ({ vibrationNumber, onClick, className = '' }) => {
 
     const handleInteraction = (e) => {
         e.stopPropagation();
-        onClick(vibrationNumber); // Chama a função passada pelo pai com o número da vibração
+        
+        // ATUALIZAÇÃO: Agora, buscamos o objeto de informação completo
+        const infoObject = textosVibracoes[vibrationNumber] || textosVibracoes.default;
+        
+        // E adicionamos a propriedade 'numero' para garantir que a cor da borda funcione
+        const infoPayload = { ...infoObject, numero: vibrationNumber };
+
+        // Passamos o objeto completo para a função onClick
+        onClick(infoPayload);
     };
     
     return (
         <button 
             onClick={handleInteraction}
-            // SUGESTÃO DE MELHORIA: Adicionado efeito de hover para indicar que é clicável
             className={`text-xs font-bold px-2 py-1 rounded-full cursor-help transition-transform hover:scale-105 active:scale-100 ${energyClasses[vibrationNumber] || energyClasses.default} ${className}`}
-            title={`Saiba mais sobre a Vibração ${vibrationNumber}`} // Adicionado para acessibilidade
+            title={`Saiba mais sobre a Vibração ${vibrationNumber}`}
         >
             Vibração {vibrationNumber}
         </button>

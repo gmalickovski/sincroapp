@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useOutletContext } from 'react-router-dom'; 
 import { db } from '../services/firebase';
 import { collection, onSnapshot, query, where, Timestamp } from "firebase/firestore";
 import numerologyEngine from '../services/numerologyEngine';
 import { ChevronLeft, ChevronRight, BookIcon, CheckSquareIcon, PlusIcon, CalendarIcon } from '../components/ui/Icons';
 import VibrationPill from '../components/ui/VibrationPill';
 import TaskModal from '../components/ui/TaskModal';
+import Spinner from '../components/ui/Spinner';
 
 const FloatingActionButton = ({ onNewTask, onNewNote }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -50,9 +52,27 @@ const DayDetailPanel = ({ selectedDay, onOpenTaskModal, openNewNoteEditor, setEd
     const { date, items, personalDay } = selectedDay;
     
     const formattedDate = `${date.toLocaleString('pt-BR', { weekday: 'long' })} - Dia ${date.getDate()}`;
-        
-    const taskListItem = useMemo(() => { if (items.tasks.length === 0) return null; const completedCount = items.tasks.filter(t => t.completed).length; return { id: 'task-list-summary', type: 'task_list', text: 'Foco do Dia', progress: `${completedCount}/${items.tasks.length}` }; }, [items.tasks]);
-    const allItems = [taskListItem, ...items.journal.map(j => ({...j, text: j.content}))].filter(Boolean);
+    
+    // ATUALIZAÇÃO 1: A lógica de mapeamento dos itens foi alterada aqui
+    const allItems = useMemo(() => {
+        const taskListItem = items.tasks.length > 0 ? { 
+            id: 'task-list-summary', 
+            type: 'task_list', 
+            text: 'Foco do Dia', 
+            progress: `${items.tasks.filter(t => t.completed).length}/${items.tasks.length}` 
+        } : null;
+
+        const journalItems = items.journal.map(j => ({
+            ...j, // Mantém o objeto original da anotação
+            type: 'journal', // Garante que o tipo seja 'journal'
+            text: 'Diário de Bordo', // Define o texto estático
+            // Cria a nova propriedade 'time' para a hora
+            time: j.createdAt.toDate().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+        }));
+
+        return [taskListItem, ...journalItems].filter(Boolean);
+    }, [items]);
+    
     const hasItems = allItems.length > 0;
 
     const DetailItem = ({ item, onClick }) => {
@@ -61,7 +81,10 @@ const DayDetailPanel = ({ selectedDay, onOpenTaskModal, openNewNoteEditor, setEd
             <button onClick={onClick} className="w-full flex items-center gap-4 text-sm text-gray-300 bg-gray-900/50 p-3 rounded-lg animate-fade-in hover:bg-gray-700/80 transition-colors text-left active:bg-gray-700">
                 {icon}
                 <span className="flex-1 line-clamp-2 break-all font-medium">{item.text}</span>
+                
+                {/* ATUALIZAÇÃO 2: Renderização condicional para o progresso ou a hora */}
                 {item.type === 'task_list' && <span className="text-xs font-bold text-gray-400 flex-shrink-0">{item.progress}</span>}
+                {item.type === 'journal' && <span className="text-xs font-bold text-gray-400 flex-shrink-0">{item.time}</span>}
             </button>
         );
     };
@@ -79,7 +102,8 @@ const DayDetailPanel = ({ selectedDay, onOpenTaskModal, openNewNoteEditor, setEd
                 </div>
             </div>
 
-            <div className="flex-1 p-4 overflow-y-auto custom-scrollbar space-y-3 min-h-0">
+            {/* ATUALIZAÇÃO 3: Espaçamento reduzido de 'space-y-3' para 'space-y-2' */}
+            <div className="flex-1 p-4 overflow-y-auto custom-scrollbar space-y-2 min-h-0">
                 {hasItems ? (
                     allItems.map(item => (
                         <DetailItem 
@@ -130,7 +154,12 @@ const DayCellGrid = ({ day, isSelected, onClick }) => {
     );
 };
 
-const Calendar = ({ user, userData, openNewNoteEditor, setEditingEntry, onInfoClick, taskUpdater }) => {
+const Calendar = () => {
+    const { user, userData, onInfoClick, taskUpdater, handleOpenNewNote, handleEditNote } = useOutletContext();
+    
+    const openNewNoteEditor = handleOpenNewNote;
+    const setEditingEntry = handleEditNote;
+
     const [currentDate, setCurrentDate] = useState(new Date());
     const [monthData, setMonthData] = useState({ journalEntries: [], tasks: [] });
     const [selectedDay, setSelectedDay] = useState(null);
@@ -171,7 +200,7 @@ const Calendar = ({ user, userData, openNewNoteEditor, setEditingEntry, onInfoCl
     useEffect(() => {
         if (daysInMonth.length > 0 && !selectedDay) { const today = daysInMonth.find(d => d.isToday); setSelectedDay(today || daysInMonth.find(d => !d.empty)); } 
         else if (selectedDay) { const updatedSelectedDay = daysInMonth.find(d => d.key === selectedDay.key); if (updatedSelectedDay) setSelectedDay(updatedSelectedDay); }
-    }, [daysInMonth]);
+    }, [daysInMonth, selectedDay]);
 
     const changeMonth = (amount) => { setSelectedDay(null); setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + amount, 1)); };
     const handleDayClick = (day) => { if (day.empty) return; setSelectedDay(day); };
@@ -180,23 +209,23 @@ const Calendar = ({ user, userData, openNewNoteEditor, setEditingEntry, onInfoCl
     const weekDays = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
     const commonPanelProps = { selectedDay, onOpenTaskModal: handleOpenTaskModal, openNewNoteEditor, setEditingEntry, onInfoClick, taskUpdater };
 
+    if (!userData) {
+        return <div className="h-full w-full flex justify-center items-center"><Spinner /></div>;
+    }
+
     return (
         <>
             <TaskModal isOpen={isTaskModalOpen} onClose={() => setIsTaskModalOpen(false)} dayData={{date: selectedDay?.date, tasks: selectedDay?.items.tasks}} userData={userData} taskUpdater={taskUpdater} onInfoClick={onInfoClick} />
             
-            {/* --- MUDANÇA FINAL APLICADA ---
-              - O container principal agora tem w-full e padding.
-              - O container do grid foi simplificado e usa uma proporção flexível para as colunas.
-            */}
             <div className="p-4 md:p-6 h-full w-full">
-                <div className="max-w-6xl mx-auto lg:grid lg:grid-cols-[1fr_auto] lg:gap-8">
+                <div className="max-w-7xl mx-auto h-full flex flex-col lg:grid lg:grid-cols-[1fr_26rem] lg:gap-8">
                     
-                    <div className="flex flex-col lg:col-span-1 min-h-0 h-full">
+                    <div className="flex flex-col min-h-0">
                         
                         <div>
                             <div className="flex justify-between items-center mb-4 gap-4">
-                                <h1 className="text-xl sm:text-3xl font-bold text-white capitalize">
-                                    {`${currentDate.toLocaleString('pt-BR', { month: 'long' })}, ${currentDate.getFullYear()}`}
+                                <h1 className="text-2xl sm:text-3xl font-bold text-white capitalize">
+                                    Agenda
                                 </h1>
                                 <div className="flex items-center gap-2">
                                     <button onClick={() => changeMonth(-1)} className="p-2 rounded-full hover:bg-gray-700"><ChevronLeft/></button>
@@ -204,7 +233,13 @@ const Calendar = ({ user, userData, openNewNoteEditor, setEditingEntry, onInfoCl
                                     <button onClick={() => changeMonth(1)} className="p-2 rounded-full hover:bg-gray-700"><ChevronRight/></button>
                                 </div>
                             </div>
+
+                            <div className="text-lg font-semibold text-gray-400 mb-4 capitalize">
+                                {`${currentDate.toLocaleString('pt-BR', { month: 'long' })}, ${currentDate.getFullYear()}`}
+                            </div>
+                            
                             <div className="grid grid-cols-7 gap-1 text-center font-semibold text-gray-400 mb-2 flex-shrink-0">{weekDays.map((day, i) => <div key={i} className="text-xs sm:text-base">{day}</div>)}</div>
+                            
                             <div className="grid grid-cols-7 gap-1 sm:gap-2">
                                {daysInMonth.map(day => (<DayCellGrid key={day.key} day={day} isSelected={selectedDay?.key === day.key} onClick={() => handleDayClick(day)} />))}
                             </div>
@@ -215,9 +250,10 @@ const Calendar = ({ user, userData, openNewNoteEditor, setEditingEntry, onInfoCl
                         </div>
                     </div>
 
-                    <div className="hidden lg:flex lg:col-span-1 h-full">
+                    <div className="hidden lg:flex h-full">
                         <DayDetailPanel {...commonPanelProps} isMobile={false} showActionButtons={true} />
                     </div>
+
                 </div>
             </div>
             

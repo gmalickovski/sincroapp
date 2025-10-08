@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+// CORREÇÃO: useOutletContext vem de 'react-router-dom'
+import { useParams, useNavigate, useOutletContext } from 'react-router-dom'; 
 import { db, auth } from '../services/firebase';
 import { collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc, query, orderBy, where, Timestamp, writeBatch, getDocs, limit } from 'firebase/firestore';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -10,8 +12,10 @@ import { ArrowLeftIcon, TrashIcon, CheckIcon, ChevronUpIcon, ChevronDownIcon, Ed
 import ScheduleMilestoneModal from '../components/ui/ScheduleMilestoneModal';
 import AISuggestionsModal from '../components/ui/AISuggestionsModal';
 import EditGoalModal from '../components/ui/EditGoalModal';
-import FloatingActionButton from '../components/ui/FloatingActionButton'; // Importar componente
+import FloatingActionButton from '../components/ui/FloatingActionButton'; 
+import Spinner from '../components/ui/Spinner';
 
+// O restante do arquivo permanece exatamente o mesmo
 function debounce(func, wait) { let timeout; return function executedFunction(...args) { const later = () => { clearTimeout(timeout); func(...args); }; clearTimeout(timeout); timeout = setTimeout(later, wait); }; }
 
 const GoalInfoCard = ({ goal, formatDate, onEdit, className = '' }) => (
@@ -45,8 +49,12 @@ const MilestonesList = ({ milestones, onToggle, onDelete, onUpdate }) => {
     return ( <div className="space-y-2 px-1 pb-4"> {milestones.map(milestone => <MilestoneItem key={milestone.id} milestone={milestone} />)} </div> ); 
 };
 
-const GoalDetail = ({ goal: initialGoal, onBack, data, userData }) => {
-    const [currentGoal, setCurrentGoal] = useState(initialGoal);
+const GoalDetail = () => {
+    const { goalId } = useParams();
+    const navigate = useNavigate();
+    const { data, userData } = useOutletContext();
+
+    const [currentGoal, setCurrentGoal] = useState(null);
     const [milestones, setMilestones] = useState([]);
     const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
     const [isTopSectionVisible, setIsTopSectionVisible] = useState(true);
@@ -57,99 +65,41 @@ const GoalDetail = ({ goal: initialGoal, onBack, data, userData }) => {
     const diaPessoalNumero = data?.numeros?.diaPessoal;
 
     useEffect(() => { 
-        if (!user || !initialGoal.id) return;
-        const unsub = onSnapshot(doc(db, 'users', user.uid, 'goals', initialGoal.id), (doc) => { 
-            if (doc.exists()) { setCurrentGoal({ id: doc.id, ...doc.data() }); } else { onBack(); } 
+        if (!user || !goalId) return;
+        const unsub = onSnapshot(doc(db, 'users', user.uid, 'goals', goalId), (doc) => { 
+            if (doc.exists()) { 
+                setCurrentGoal({ id: doc.id, ...doc.data() }); 
+            } else { 
+                console.error("Meta não encontrada!");
+                navigate('/app/goals');
+            } 
         }); 
         return () => unsub(); 
-    }, [user, initialGoal.id, onBack]);
+    }, [user, goalId, navigate]);
     
     useEffect(() => { 
-        if (!user || !currentGoal.id) return;
-        const q = query(collection(db, 'users', user.uid, 'tasks'), where('goalId', '==', currentGoal.id), orderBy('createdAt', 'asc')); 
+        if (!user || !goalId) return;
+        const q = query(collection(db, 'users', user.uid, 'tasks'), where('goalId', '==', goalId), orderBy('createdAt', 'asc')); 
         const unsub = onSnapshot(q, (snapshot) => { setMilestones(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))); }); 
         return () => unsub(); 
-    }, [user, currentGoal.id]);
+    }, [user, goalId]);
     
     useEffect(() => { 
-        if (!user || !currentGoal.id) return;
+        if (!user || !goalId || !currentGoal) return;
         if (milestones.length > 0) { 
             const c = milestones.filter(m => m.completed).length; 
             const p = Math.round((c / milestones.length) * 100); 
-            if (p !== currentGoal.progress) { updateDoc(doc(db, 'users', user.uid, 'goals', currentGoal.id), { progress: p }); } 
+            if (p !== currentGoal.progress) { updateDoc(doc(db, 'users', user.uid, 'goals', goalId), { progress: p }); } 
         } else if (currentGoal.progress !== 0) { 
-            updateDoc(doc(db, 'users', user.uid, 'goals', currentGoal.id), { progress: 0 }); 
+            updateDoc(doc(db, 'users', user.uid, 'goals', goalId), { progress: 0 }); 
         } 
-    }, [milestones, user, currentGoal]);
+    }, [milestones, user, goalId, currentGoal]);
 
-    const handleOpenAiModal = useCallback(() => {
-        if (!user) return;
-        setIsScheduleModalOpen(false);
-        setIsAiModalOpen(true);
-        setUserTasks(null);
-        const fetchData = async () => {
-            try {
-                const tasksQuery = query(collection(db, 'users', user.uid, 'tasks'), orderBy('createdAt', 'desc'), limit(15));
-                const tasksSnapshot = await getDocs(tasksQuery);
-                setUserTasks(tasksSnapshot.docs.map(doc => doc.data()));
-            } catch (error) {
-                console.error("Erro ao buscar dados para IA:", error);
-                setUserTasks([]);
-            }
-        };
-        fetchData();
-    }, [user]);
-    
-    const handleCloseAiModal = useCallback(() => setIsAiModalOpen(false), []);
-    const handleReturnToSchedule = useCallback(() => { setIsAiModalOpen(false); setIsScheduleModalOpen(true); }, []);
-    const handleSaveGoal = useCallback(async (updatedData) => { if (user) { await updateDoc(doc(db, 'users', user.uid, 'goals', currentGoal.id), updatedData); }}, [user, currentGoal.id]);
-    const handleOpenScheduleModal = useCallback(() => setIsScheduleModalOpen(true), []);
-    const handleCloseScheduleModal = useCallback(() => setIsScheduleModalOpen(false), []);
-    const handleOpenEditModal = useCallback(() => setIsEditModalOpen(true), []);
-    const handleCloseEditModal = useCallback(() => setIsEditModalOpen(false), []);
+    const handleOpenAiModal=useCallback(()=>{if(!user)return;setIsScheduleModalOpen(!1),setIsAiModalOpen(!0),setUserTasks(null);const e=async()=>{try{const t=query(collection(db,"users",user.uid,"tasks"),orderBy("createdAt","desc"),limit(15)),s=await getDocs(t);setUserTasks(s.docs.map((e=>e.data())))}catch(t){console.error("Erro ao buscar dados para IA:",t),setUserTasks([])}};e()},[user]);const handleCloseAiModal=useCallback(()=>setIsAiModalOpen(!1),[]),handleReturnToSchedule=useCallback(()=>{setIsAiModalOpen(!1),setIsScheduleModalOpen(!0)},[]),handleSaveGoal=useCallback(async e=>{user&&await updateDoc(doc(db,"users",user.uid,"goals",currentGoal.id),e)},[user,currentGoal?.id]),handleOpenScheduleModal=useCallback(()=>setIsScheduleModalOpen(!0),[]),handleCloseScheduleModal=useCallback(()=>setIsScheduleModalOpen(!1),[]),handleOpenEditModal=useCallback(()=>setIsEditModalOpen(!0),[]),handleCloseEditModal=useCallback(()=>setIsEditModalOpen(!1),[]);const handleScheduleMilestone=useCallback(async e=>{if(!user||!currentGoal?.id)return;const{title:t,startDate:s,isRecurrent:a,endDate:n,weekdays:i}=e;if(!t.trim())return void alert("O título do marco não pode estar vazio.");const l=collection(db,"users",user.uid,"tasks");if(!a){const o=new Date(`${s}T00:00:00`);try{await addDoc(l,{text:t,completed:!1,createdAt:Timestamp.fromDate(o),goalId:currentGoal.id,goalTitle:currentGoal.title})}catch(r){console.error("Erro ao criar tarefa:",r)}return}const c=writeBatch(db);let d=new Date(`${s}T00:00:00`);const u=new Date(`${n}T00:00:00`),m={sun:0,mon:1,tue:2,wed:3,thu:4,fri:5,sat:6},p=i.map((e=>m[e]));for(;d<=u;){if(p.includes(d.getDay())){const g=doc(l);c.set(g,{text:t,completed:!1,createdAt:Timestamp.fromDate(d),goalId:currentGoal.id,goalTitle:currentGoal.title})}d.setDate(d.getDate()+1)}try{await c.commit()}catch(f){console.error("Erro ao criar tarefas recorrentes:",f)}},[user,currentGoal?.id,currentGoal?.title]);const handleAiSuggestions=useCallback(async e=>{if(!user||!currentGoal?.id||0===e.length)return;const t=collection(db,"users",user.uid,"tasks"),s=writeBatch(db);e.forEach((e=>{const{title:a,date:n}=e,i=new Date(`${n}T00:00:00`),l=doc(t);s.set(l,{text:a,completed:!1,createdAt:Timestamp.fromDate(i),goalId:currentGoal.id,goalTitle:currentGoal.title})}));try{await s.commit()}catch(a){console.error("Erro ao adicionar marcos da IA em lote:",a)}},[user,currentGoal?.id,currentGoal?.title]);const handleToggleMilestone=useCallback(async e=>{user&&await updateDoc(doc(db,"users",user.uid,"tasks",e.id),{completed:!e.completed})},[user]),handleDeleteMilestone=useCallback(async e=>{user&&await deleteDoc(doc(db,"users",user.uid,"tasks",e))},[user]),handleUpdateMilestone=useCallback(async(e,t)=>{user&&await updateDoc(doc(db,"users",user.uid,"tasks",e),t)},[user]),formatDate=useCallback((e=>{if(!e)return"";const t=new Date(e+"T00:00:00");return t.toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"})}),[]);
 
-    const handleScheduleMilestone = useCallback(async (scheduleData) => {
-        if (!user || !currentGoal.id) return;
-        const { title, startDate, isRecurrent, endDate, weekdays } = scheduleData;
-        if (!title.trim()) { alert("O título do marco não pode estar vazio."); return; }
-        const tasksColRef = collection(db, 'users', user.uid, 'tasks');
-        if (!isRecurrent) {
-            const sDate = new Date(`${startDate}T00:00:00`);
-            try { await addDoc(tasksColRef, { text: title, completed: false, createdAt: Timestamp.fromDate(sDate), goalId: currentGoal.id, goalTitle: currentGoal.title }); } catch (e) { console.error("Erro ao criar tarefa:", e); }
-            return;
-        }
-        const batch = writeBatch(db);
-        let currentDate = new Date(`${startDate}T00:00:00`);
-        const finalDate = new Date(`${endDate}T00:00:00`);
-        const dayMap = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
-        const selectedDays = weekdays.map(d => dayMap[d]);
-        while (currentDate <= finalDate) {
-            if (selectedDays.includes(currentDate.getDay())) {
-                const newDocRef = doc(tasksColRef);
-                batch.set(newDocRef, { text: title, completed: false, createdAt: Timestamp.fromDate(currentDate), goalId: currentGoal.id, goalTitle: currentGoal.title });
-            }
-            currentDate.setDate(currentDate.getDate() + 1);
-        }
-        try { await batch.commit(); } catch (e) { console.error("Erro ao criar tarefas recorrentes:", e); }
-    }, [user, currentGoal.id, currentGoal.title]);
-    
-    const handleAiSuggestions = useCallback(async (suggestions) => {
-        if (!user || !currentGoal.id || suggestions.length === 0) return;
-        const tasksColRef = collection(db, 'users', user.uid, 'tasks');
-        const batch = writeBatch(db);
-        suggestions.forEach(suggestion => {
-            const { title, date } = suggestion;
-            const taskDate = new Date(`${date}T00:00:00`);
-            const newDocRef = doc(tasksColRef);
-            batch.set(newDocRef, { text: title, completed: false, createdAt: Timestamp.fromDate(taskDate), goalId: currentGoal.id, goalTitle: currentGoal.title });
-        });
-        try { await batch.commit(); } catch (error) { console.error("Erro ao adicionar marcos da IA em lote:", error); }
-    }, [user, currentGoal.id, currentGoal.title]);
-
-    const handleToggleMilestone = useCallback(async (m) => { if (user) { await updateDoc(doc(db, 'users', user.uid, 'tasks', m.id), { completed: !m.completed }); } }, [user]);
-    const handleDeleteMilestone = useCallback(async (id) => { if (user) { await deleteDoc(doc(db, 'users', user.uid, 'tasks', id)); } }, [user]);
-    const handleUpdateMilestone = useCallback(async (id, updates) => { if (user) await updateDoc(doc(db, 'users', user.uid, 'tasks', id), updates); }, [user]);
-    const formatDate = useCallback((dStr) => { if (!dStr) return ''; const date = new Date(dStr + 'T00:00:00'); return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }); }, []);
+    if (!currentGoal) {
+        return <div className="h-full w-full flex justify-center items-center"><Spinner /></div>;
+    }
 
     return (
         <>
@@ -159,7 +109,7 @@ const GoalDetail = ({ goal: initialGoal, onBack, data, userData }) => {
             
             <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in h-full lg:h-auto lg:py-8">
                 <div className="lg:hidden flex flex-col h-full">
-                    <div className="flex-shrink-0 pt-4"><button onClick={onBack} className="flex items-center text-sm font-semibold text-purple-400 hover:text-purple-300 transition-colors mb-4"><ArrowLeftIcon className="h-5 w-5 mr-2" />Voltar</button></div>
+                    <div className="flex-shrink-0 pt-4"><button onClick={() => navigate('/app/goals')} className="flex items-center text-sm font-semibold text-purple-400 hover:text-purple-300 transition-colors mb-4"><ArrowLeftIcon className="h-5 w-5 mr-2" />Voltar</button></div>
                     <div className={`flex-shrink-0 transition-all duration-300 ease-in-out overflow-hidden ${isTopSectionVisible ? 'max-h-[50vh]' : 'max-h-0 opacity-0'}`}>
                         <Swiper modules={[Pagination]} spaceBetween={16} slidesPerView={1} pagination={{ clickable: true }} className="pb-4 equal-height-swiper"><SwiperSlide className="h-full pb-4"><GoalInfoCard goal={currentGoal} formatDate={formatDate} className="h-full" onEdit={handleOpenEditModal} /></SwiperSlide><SwiperSlide className="h-full pb-4"><DicaDoDiaCard personalDayNumber={diaPessoalNumero} className="h-full" /></SwiperSlide></Swiper>
                     </div>
@@ -170,7 +120,7 @@ const GoalDetail = ({ goal: initialGoal, onBack, data, userData }) => {
                 </div>
                 
                 <div className="hidden lg:grid lg:grid-cols-5 lg:gap-8">
-                    <div className="flex-shrink-0 col-span-5"><button onClick={onBack} className="flex items-center text-sm font-semibold text-purple-400 hover:text-purple-300 transition-colors mb-6"><ArrowLeftIcon className="h-5 w-5 mr-2" />Voltar</button></div>
+                    <div className="flex-shrink-0 col-span-5"><button onClick={() => navigate('/app/goals')} className="flex items-center text-sm font-semibold text-purple-400 hover:text-purple-300 transition-colors mb-6"><ArrowLeftIcon className="h-5 w-5 mr-2" />Voltar</button></div>
                     <div className="lg:col-span-2 space-y-8"><GoalInfoCard goal={currentGoal} formatDate={formatDate} onEdit={handleOpenEditModal} /><DicaDoDiaCard personalDayNumber={diaPessoalNumero} /></div>
                     <div className="lg:col-span-3"><div className="flex justify-between items-center mb-4"><h2 className="text-2xl font-semibold text-white">Marcos da Jornada</h2></div><MilestonesList milestones={milestones} onToggle={handleToggleMilestone} onDelete={handleDeleteMilestone} onUpdate={handleUpdateMilestone} /></div>
                 </div>
